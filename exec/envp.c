@@ -5,6 +5,7 @@
  * value of the TERM variable to dialup.
  *
  */
+#include "../common.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>

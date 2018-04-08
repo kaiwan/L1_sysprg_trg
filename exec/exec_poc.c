@@ -7,6 +7,7 @@
  * Author: Kaiwan N Billimoria <kaiwan@kaiwantech.com>
  * License: MIT
  */
+#include "../common.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
