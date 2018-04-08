@@ -10,20 +10,18 @@
 #include <string.h>
 #include <stdlib.h>
 
+extern char **environ; /* the environment */
 #define MAXENV	4096
 
-int main(argc, argv, arge)
-int argc;
-char *argv[];
-char *arge[];
+int main(int argc, char **argv)
 {
 	int i, j;
 	static char *envp[MAXENV];	/* Pointers to environment */
 	char *s = "TERM=dialup";
 
-	for (i = 0; arge[i] != NULL; i++) {
-		envp[i] = arge[i];
-	}			/* for */
+	for (i = 0; environ[i] != NULL; i++) {
+		envp[i] = environ[i];
+	}
 	envp[i] = NULL;
 
 	/* Search for TERM variable in environment.
@@ -54,4 +52,4 @@ char *arge[];
 	}			/* if */
 	exit(0);		// just to get rid of the compiler warning 
 	// ("warning: control reaches end of non-void function")
-}				/* main */
+}
