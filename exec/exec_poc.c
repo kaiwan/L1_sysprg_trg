@@ -2,13 +2,11 @@
  * exec_poc.c
  * 
  * Trivial demo of using execl() to execute a process.
- * 
  * Shows that the PID of the predecessor and successor are the same.
  *
  * Author: Kaiwan N Billimoria <kaiwan@kaiwantech.com>
- * License: GNU [L]GPL v2
+ * License: MIT
  */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
