@@ -17,10 +17,10 @@
 #include <unistd.h>
 #include "../convenient.h"
 
+static volatile sig_atomic_t c=0, d=0;
+
 static void sighdlr(int signum)
 {
-	static int c = 0, d = 0;
-
 	switch (signum) {
 	case SIGINT:
 		printf("SIGINT: count=%d\n", ++c);
