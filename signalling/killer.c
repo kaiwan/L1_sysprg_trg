@@ -54,10 +54,12 @@ int main(int argc, char **argv)
 		printf("parent is %d, child is %d\n", getpid(), pid);
 		(void)sleep(1);
 
-		/* send signal to child */
-		if (kill(pid, SIGINT) == -1) {
-			perror("kill failed");
-			exit(1);
+		if (kill(pid, 0) == 0) {	// iff child is alive ...
+			/* send signal to child */
+			if (kill(pid, SIGINT) == -1) {
+				perror("kill failed");
+				exit(1);
+			}
 		}
 
 		if ((n = wait(0)) == -1) {
