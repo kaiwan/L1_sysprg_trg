@@ -14,31 +14,35 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define SIG2SEND   SIGUSR1
+
 /* Strictly speaking we should not use [f|s]printf() in a signal handler;
  * we do use it here in this demo for convenience...
  */
 static void catchit(int signo)
 {
-	if (signo == SIGINT) {
+	if (signo == SIG2SEND) {
 		printf
-		    ("catcher: process %d received signal SIGINT ; will now die.\n",
-		     getpid());
+		    ("catcher: process %d received signal %d; will now die.\n",
+		     getpid(), SIG2SEND);
 		exit(0);
 	} else
-		printf("catchit: error, handler for SIGINT only\n");
+		printf("catchit: error, handler for %d only\n", SIG2SEND);
 }
 
 int main(int argc, char **argv)
 {
 	pid_t pid, n;
 	struct sigaction act;
+#define MAXTRIES  3
+	int try = 0;
 
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = catchit;
 	sigemptyset(&act.sa_mask);
 	act.sa_flags = SA_RESTART;
 
-	if (sigaction(SIGINT, &act, 0) == -1) {
+	if (sigaction(SIG2SEND, &act, 0) == -1) {
 		perror("killer: sigaction failed.");
 		exit(1);
 	}
@@ -52,14 +56,21 @@ int main(int argc, char **argv)
 		exit(0);	/* never get here */
 	default:		// Parent      
 		printf("parent is %d, child is %d\n", getpid(), pid);
-		(void)sleep(1);
-
-		if (kill(pid, 0) == 0) {	// iff child is alive ...
-			/* send signal to child */
-			if (kill(pid, SIGINT) == -1) {
-				perror("kill failed");
+		// poll for the child being alive
+		while(kill(pid, 0) < 0) {
+			printf("."); fflush(stdout);
+			if (try >= MAXTRIES) {
+				fprintf(stderr,
+				"\n%s: parent: child still not alive, aborting..\n", argv[0]);
 				exit(1);
 			}
+			(void)sleep(1);
+			try ++;
+		}
+		printf("\n");
+		if (kill(pid, SIG2SEND) < 0) {
+			perror("kill(2) failed");
+			exit(1);
 		}
 
 		if ((n = wait(0)) == -1) {
