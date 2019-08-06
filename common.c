@@ -217,4 +217,14 @@ void hex_dump(unsigned char *data, int size, char *caption, int verbose)
 		printf("%s", buffer);
 }
 
+void Dprint(const char *fmt, ...)
+{
+	va_list ap; 
+#ifdef DEBUG
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+#endif
+}
+
 /* vi: ts=8 */

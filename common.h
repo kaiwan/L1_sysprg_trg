@@ -13,12 +13,15 @@
 
 /*--- 'Regular' headers ---*/
 #include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <stdlib.h>
 /*---*/
 
 #define NON_FATAL    0
 int handle_err(int fatal, const char *fmt, ...);
+void Dprint(const char *fmt, ...);
 
 #define WARN(warnmsg, args...) do {                   \
 	handle_err(NON_FATAL, "!WARNING! %s:%s:%d: " warnmsg, \
@@ -57,4 +60,5 @@ static inline void beep(int what)
 	/*printf("c=%d\n",c);*/                                                \
 }
 /*------------------------------------------------------------------------*/
-#endif
+
+#endif     /* #ifndef _COMMON_H_ */
