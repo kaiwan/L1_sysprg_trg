@@ -1,0 +1,73 @@
+Hi Alex,
+
+Super stuff, thanks!
+However, I'd like to point out one interesting thing I came across: 
+
+I slightly modified your 'C' hex_dump() code to add an 'offset' and a 'verbose' parameter. Then, when trying out the 'C' hex_dump() function with a large file, I specified an offset of 6,000,000. This caused glibc to catch a buffer overflow in the sprintf!
+
+./mmap_simple /boot/vmlinuz-3.16.0-38-generic 1000000 32
+        +0          +4          +8          +c            0   4   8   c   
+*** buffer overflow detected ***: ./mmap_simple terminated
+======= Backtrace: =========
+/lib/i386-linux-gnu/libc.so.6(+0x6d0be)[0xf758f0be]
+/lib/i386-linux-gnu/libc.so.6(__fortify_fail+0x6b)[0xf761e29b]
+/lib/i386-linux-gnu/libc.so.6(+0xfa2ca)[0xf761c2ca]
+/lib/i386-linux-gnu/libc.so.6(+0xf9a28)[0xf761ba28]
+/lib/i386-linux-gnu/libc.so.6(_IO_default_xsputn+0x8e)[0xf7592abe]
+/lib/i386-linux-gnu/libc.so.6(_IO_vfprintf+0x89b)[0xf7565f8b]
+/lib/i386-linux-gnu/libc.so.6(__vsprintf_chk+0xb1)[0xf761bae1]
+/lib/i386-linux-gnu/libc.so.6(__sprintf_chk+0x2f)[0xf761ba0f]
+./mmap_simple[0x80490c3]
+./mmap_simple[0x8048972]
+/lib/i386-linux-gnu/libc.so.6(__libc_start_main+0xf3)[0xf753ba83]
+./mmap_simple[0x80489e9]
+======= Memory map: ========
+...
+...
+
+Notice it fails at sprintf_chk in the call stack above.
+I modified the code to increase the space in the 'temp' buffer to 20 bytes and changed the sprintf's to snprintf's... It now seems fine.
+
+A patch:
+--- bkp/mmap_simple.c	2015-06-06 10:01:35.616622941 +0530
++++ mmap_simple.c	2015-06-06 10:16:58.292636785 +0530 
+
+ /*--------------- Function hex_dump() sourced from:
+ http://www.alexonlinux.com/hex-dump-functions
+@@ -31,7 +31,8 @@
+ {
+ 	int i;			// index in data...
+ 	int j;			// index in line...
+-	char temp[8];
++#define MAX_NUMERALS 20  // max # of chars needed to hold an offset
++	char temp[MAX_NUMERALS];
+ 	char buffer[128];
+ 	char *ascii;
+ 
+@@ -50,7 +51,7 @@
+ 	ascii = buffer + 58;
+ 	memset(buffer, ' ', 58 + 16);
+ 
+-	sprintf(temp, "+%06d", offset);
++	snprintf(temp, MAX_NUMERALS, "+%06d", offset);
+ 	buffer[58 + 16] = '\n';
+ 	buffer[58 + 17] = '\0';
+ 	buffer[0] = '+';
+@@ -68,13 +69,13 @@
+ 			printf("%s", buffer);
+ 			memset(buffer, ' ', 58 + 16);
+ 
+-			sprintf(temp, "+%06d", i+offset); // set offset to initial offset
++			snprintf(temp, MAX_NUMERALS, "+%06d", i+offset); // set offset to initial offset
+ 			memcpy(buffer, temp, 7);
+ 
+ 			j = 0;
+ 		}
+ 
+-		sprintf(temp, "%02x", 0xff & data[i]);
++		snprintf(temp, MAX_NUMERALS, "%02x", 0xff & data[i]);
+ 		memcpy(buffer + 8 + (j * 3), temp, 2);
+ 		if ((data[i] > 31) && (data[i] < 127))
+ 			ascii[j] = data[i];
+
+HTH !
