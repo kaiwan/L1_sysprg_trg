@@ -87,13 +87,13 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	MSG("parent: %d\n", getpid());
+	printf("parent: %d\n", getpid());
 	switch (fork()) {
 	case -1:
 		perror("fork failed");
 		exit(1);
 	case 0:		// Child
-		MSG("child: %d\n", getpid());
+		printf("child: %d\n", getpid());
 		DELAY_LOOP('c', 25);
 		exit(0);
 	default:		// Parent

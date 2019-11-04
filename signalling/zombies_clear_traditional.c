@@ -25,7 +25,7 @@ static void clearzomb(int signum)
 {
 	pid_t pid;
 
-	MSG("\nPID: %d\n", getpid());
+	printf("\nPID: %d\n", getpid());
 	// wait(0);
 	/*
 	   pid_t wait3(int *status, int options,
@@ -42,7 +42,7 @@ static void clearzomb(int signum)
 	   zombies - we must, therefore, call the wait3 in a loop, until it fails.
 	 */
 	while ((pid = wait3(0, WNOHANG, 0)) != -1)
-		MSG("\n** Zombie %d cleared **\n", pid);
+		printf("\n** Zombie %d cleared **\n", pid);
 }
 
 int main(int argc, char **argv)
@@ -59,13 +59,13 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	MSG("parent: %d\n", getpid());
+	printf("parent: %d\n", getpid());
 	switch (fork()) {
 	case -1:
 		perror("fork failed");
 		exit(1);
 	case 0:		// Child
-		MSG("child: %d\n", getpid());
+		printf("child: %d\n", getpid());
 		DELAY_LOOP('c', 25);
 		exit(0);
 	default:		// Parent
