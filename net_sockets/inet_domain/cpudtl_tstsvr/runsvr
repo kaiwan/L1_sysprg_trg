@@ -1,0 +1,14 @@
+#!/bin/bash
+# runsvr
+# This service has been registered on remote.io a/c with 
+# hostname proxy72.rt3.io and port # 30193  (60001 in little endian)
+svr=cpudtl_tstsvr
+pgrep ${svr} && {
+ echo "server ${svr} is already running..."
+ exit 1
+}
+./${svr} 0.0.0.0 60001 -v &
+# now connect from the client like this:
+#  nc -v proxy72.rt3.io 30193   
+# -or-
+#  ./client_any proxy72.rt3.io 30193   

@@ -1,0 +1,74 @@
+/* 
+*  unix_svr.c
+*  Simple Unix-domain C/S demo program
+*  UNIX domain connection-oriented streams socket server; concurrent server
+*/
+#include "unet.h"
+
+static void sig_child(int signum)
+{
+	int status;
+	while (wait3(&status, WNOHANG, 0) > 0) ;
+}
+
+int main(int argc, char *argv[])
+{
+	int sd, ns;
+	socklen_t fromlen;
+	struct sockaddr_un svr_addr, cli_addr;
+	struct sigaction act;
+
+	unlink(SOCKET_NAME);
+
+	if ((sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
+		perror("socket creation error"), exit(1);
+
+	// Initialize server's address & bind it
+	svr_addr.sun_family = AF_UNIX;
+	strncpy(svr_addr.sun_path, SOCKET_NAME, sizeof(svr_addr.sun_path) - 1);
+	if (bind(sd, (struct sockaddr *)&svr_addr, sizeof(struct sockaddr_un))
+	    == -1)
+		perror("socket bind error"), exit(1);
+
+	// listen for connections
+	if (listen(sd, 1) == -1)
+		perror("socket listen error"), exit(1);
+
+	act.sa_handler = sig_child;
+	sigemptyset(&act.sa_mask);
+	/* using the SA_NOCLDWAIT flag makes it easy- zombies are prevented.
+	 * See man sigaction for details...
+	 */
+	act.sa_flags = SA_RESTART | SA_NOCLDSTOP | SA_NOCLDWAIT;
+	if (sigaction(SIGCHLD, &act, 0) == -1)
+		perror("signal handling error"), exit(1);
+
+	for (;;) {
+		fromlen = sizeof(struct sockaddr_un);
+		ns = accept(sd, (struct sockaddr *)&cli_addr, &fromlen);	// server blocks here..
+		if (ns == -1)
+			perror("socket accept error"), exit(1);
+
+		/* This is a concurrent server. So when a client connects, fork; 
+		 * the child server processes the client, the parent goes back to waiting
+		 * on new incoming connections...
+		 */
+		switch (fork()) {
+		case -1:
+			perror("fork error");
+			fflush(stdout);
+			break;
+
+		case 0:	// Child server
+			close(sd);
+			if (write(ns, "hello world", 11) == -1)
+				perror("write error"), exit(1);
+			exit(0);
+
+		default:	// Parent server
+			close(ns);
+		}		// switch
+	}			// for
+
+	return 0;
+}				// main()
