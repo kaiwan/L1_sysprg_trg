@@ -1,0 +1,52 @@
+Hi folks,
+
+Am unable to understand (what I think) is a peculiar situation wrt process/thread scheduling on Linux.
+[Env: Ubuntu 12.10 , kernel ver 3.5.0-... ]
+
+A 'test' application (call it sched_pthread), will have a total of three threads - 'main' + two others; main() will spawn two new threads:
+
+Thread 1 [main()]:
+Runs as SCHED_NORMAL (or SCHED_OTHER). It:
+Creates two threads (Thread 2 and Thread 3 below); they will automatically inherit the   
+ scheduling policy and priority of main.
+Prints the character “m” to the terminal in a loop.
+Terminates.
+
+Thread 2 [t2]:
+Sleeps for 2 seconds.
+Changes it's scheduling policy to SCHED_FIFO, setting it's real­time priority to the   
+ value passed on the command line.
+Prints the character “2” to the terminal in a loop.
+Terminates.
+
+Thread 3 [t3]:
+Changes it's scheduling policy to SCHED_FIFO, setting it's real­time priority to the 
+ value passed on the command line plus 10.
+Sleeps for 4 seconds.
+Prints the character “3” to the terminal in a loop.
+Terminates.
+
+
+We run it as root.
+As per scheduling policy, we should first see main() print 'm' for about 2s, then it should 
+get preempted by t2 (as it awakens after 2s) and we should see '2' appearing on the terminal for
+about 2s, after which t3 wakes up (it was asleep for 4s); it should now preempt everyone else & emit
+'3' to the display; after it dies, we should see '2's until p2 dies, then 'm's until main() dies.
+
+So okay, this works: when i test it in console mode (no X server). 
+(Of course, i take care to run it as:
+ sudo taskset 02 ./sched_pthrd 8
+so that in effect it runs on only 1 processor core).
+
+When I run the same thing in graphical mode (with X), after the initial 'm's by main(), there is a long-ish
+pause (a few seconds) during which nothing appears on the screen; then all of a sudden we get the 2's and 3's and m's slapped onto the screen!
+This can be explained : the X server (Xorg) was preempted by the SCHED_FIFO threads and hence could not 'paint'
+pixels on the screen. 
+
+However - here's the question at last - : how come the Xorg process was not scheduled / migrated onto some other core (so that it can continue updating the screen in parallel with the RT threads)??
+taskset verifies that the cpu affinity mask of Xorg is 'f' (1111b) (i have 4 cores on my laptop).
+
+Any ideas??
+
+[Here's the source]: http://goo.gl/PLHBrC
+
