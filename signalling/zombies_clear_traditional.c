@@ -1,7 +1,7 @@
 /*
- * clearz.c
+ * zombies_clear_traditional.c
  *
- * clearz : clear zombie
+ * Clear zombie
  *
  * A process forks; the parent does not wait for the child,
  * it continues to do some work...

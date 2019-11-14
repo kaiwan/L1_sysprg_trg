@@ -1,5 +1,5 @@
 /*
- * clear_zombie_linux26.c.c
+ * clear_zombie_linux26.c
  *
  * A process forks; the parent does not wait for the child,
  * it continues to do some work...

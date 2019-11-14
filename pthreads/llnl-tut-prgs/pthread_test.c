@@ -17,6 +17,7 @@ void *do_nothing(void *null)
 {
 	int i;
 	i = 0;
+	pause();
 	pthread_exit(NULL);
 }
 
@@ -47,6 +48,7 @@ int main()
 		}
 	}
 
+pause();
 	pthread_attr_destroy(&attr);
 	pthread_exit(NULL);
 }
