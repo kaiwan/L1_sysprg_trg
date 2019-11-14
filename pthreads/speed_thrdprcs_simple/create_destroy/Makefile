@@ -6,6 +6,6 @@ all: ${ALL}
 fork_test: fork_test.c
 	${CC} fork_test.c -o fork_test -Wall
 pthread_test: pthread_test.c
-	${CC} pthread_test.c -o pthread_test -Wall -lpthread
+	${CC} pthread_test.c -o pthread_test -Wall -pthread
 clean:
 	rm -fv ${ALL}

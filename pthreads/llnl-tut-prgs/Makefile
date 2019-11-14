@@ -2,7 +2,7 @@
 
 CFLAGS = -Wall
 CFLAGS_DBG = -Wall -g -ggdb -gdwarf-4 -O0 -DDEBUG
-LINKIN = -lpthread
+LINKIN = -pthread
 
 # UPDATE CXX for your system!
 CXX := /CodeSourcery_toolchain/arm-none-linux-gnueabi

@@ -17,7 +17,7 @@ all : ${EXE}
 #LDLIBS = ${IMPL_LDLIBS} ${IMPL_THREAD_FLAGS}
 CFLAGS = -Wall
 CFLAGS_DBG = -Wall -DDEBUG -g -ggdb -O0
-LDLIBS = -lpthread
+LDLIBS = -pthread
 
 strerror_test: strerror_test.o strerror.o
 	${CC} -o $@ strerror_test.o strerror.o ${CFLAGS} ${LDLIBS}

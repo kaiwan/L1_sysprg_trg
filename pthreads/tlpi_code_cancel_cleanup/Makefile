@@ -17,7 +17,7 @@ all : ${EXE}
 #LDLIBS = ${IMPL_LDLIBS} ${IMPL_THREAD_FLAGS}
 CFLAGS = -Wall
 CFLAGS_DBG = -Wall -DDEBUG -g -ggdb -O0
-LDLIBS = -lpthread
+LDLIBS = -pthread
 
 thread_cancel: thread_cancel.o
 	${CC} -o $@ thread_cancel.o \

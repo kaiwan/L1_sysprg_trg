@@ -22,14 +22,13 @@ CC := gcc
 CFLAGS := -O2 -Wall
 CFLAGS_DBG := -DDEBUG -O0 -g -ggdb -Wall
 
-all: prg12.9 whichexit
+ALL := prg12.9 whichexit
 
 whichexit: whichexit.c
-	${CC} ${CFLAGS_DBG} whichexit.c -o whichexit -lpthread
+	${CC} ${CFLAGS_DBG} whichexit.c -o whichexit -pthread
 
 prg12.9: prg12.9.c
-	${CC} ${CFLAGS_DBG} prg12.9.c -o prg12.9 -lpthread
+	${CC} ${CFLAGS_DBG} prg12.9.c -o prg12.9 -pthread
 
 clean:
-	rm -f *.o ${all}
-
+	rm -fv ${ALL}
