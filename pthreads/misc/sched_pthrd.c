@@ -78,7 +78,7 @@ void * thrd_p2( void * msg )
 		perror("pthread_setschedparam");
 	
 	puts("  p2: working");
-	DELAY_LOOP('2', 100);
+	DELAY_LOOP('2', 300);
 
 	puts("  p2: exiting..");
 	pthread_exit(NULL);
@@ -109,7 +109,7 @@ void * thrd_p3( void * msg )
 	sleep(4);
 	
 	puts("  p3: working");
-	DELAY_LOOP('3', 110);
+	DELAY_LOOP('3', 310);
 
 	puts("  p3: exiting..");
 	pthread_exit(NULL);
@@ -161,7 +161,7 @@ program as superuser\n");
 			(void *)rt_pri );		// argument to function
 	if( r ) perror( "pthread creation" ), exit(1);
 
-	DELAY_LOOP('m', 200);
+	DELAY_LOOP('m', 600);
 	pthread_exit( NULL );
 }
 

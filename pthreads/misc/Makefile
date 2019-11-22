@@ -7,7 +7,7 @@ LINKIN = -pthread
 # UPDATE CXX for your system!
 CXX := /CodeSourcery_toolchain/arm-none-linux-gnueabi
 
-OUT = tslp thrd4 tsig main_dies vmuser_pthrds attr_setget rlim_threads cr8ManyThrds main_dies worker_dies
+OUT = tslp thrd4 tsig main_dies vmuser_pthrds attr_setget rlim_threads cr8ManyThrds main_dies worker_dies sched_pthrd
 CB_FILES = tslp.c thrd4.c tsig.c main_dies.c vmuser_pthrds.c rlim_threads.c attr_setget.c cr8ManyThrds.c main_dies.c worker_dies.c
 
 all: ${OUT}
@@ -19,6 +19,9 @@ worker_dies: worker_dies.c
 
 cr8ManyThrds: cr8ManyThrds.c
 	gcc ${CFLAGS} cr8ManyThrds.c -o cr8ManyThrds ${LINKIN}
+
+sched_pthrd: sched_pthrd.c
+	gcc ${CFLAGS} sched_pthrd.c -o sched_pthrd ${LINKIN}
 
 tslp: tslp.c libpk.h
 	gcc ${CFLAGS} tslp.c -o tslp ${LINKIN}

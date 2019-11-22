@@ -24,7 +24,8 @@ int main()
 /* Get access to the standard input of the RHS cmd of the pipe */
 	if( (fp2=popen( "wc -l", "w")) == NULL ) {
    		fprintf(stderr,"Error opening pipe\n");
-	    	exit(1);
+		pclose(fp1);
+	   	exit(1);
 	} /* if */
 /* Send stdout of LHS cmd to stdin of the RHS command */
 	while( fgets(s,LINELENGTH,fp1) != NULL )

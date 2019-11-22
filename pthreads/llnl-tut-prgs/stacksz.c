@@ -69,15 +69,6 @@ int main(int argc, char **argv)
 	    atoi(argv[1]));
 
 	stacksize = atoi(argv[1]) * 1024;
-#if 0
-#if 0
-// stacksize=50*1024;  // toooo small, will cause a crash!
-	stacksize = atoi(argv[1]) * 1024;
-#else
-	stacksize = 1024 * 1024;	// this is okay
-	req_stacksize = atoi(argv[1]) * 1024;
-#endif
-#endif
 	if (pthread_attr_setstacksize(&attr, stacksize)) {
 		MSG("pthread_attr_setstacksize (%lu bytes) failed!\n", stacksize);
 		exit(1);

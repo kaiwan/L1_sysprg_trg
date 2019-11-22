@@ -13,6 +13,7 @@ PRG_CAP=pr_ids_capdumb
   exit 1
 }
 rm ${PRG_CAP} 2>/dev/null # rm stale instance
+make  # build binary
 
 aecho "1. Traditional setuid-root binary:"
 ls -l ${PRG_SR}
