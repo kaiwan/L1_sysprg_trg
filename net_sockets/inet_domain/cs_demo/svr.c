@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
 	socklen_t clilen;
 	struct sockaddr_in svr_addr, cli_addr;
 	struct sigaction act;
-	short port=6100;
+	int port=6100;
 
 	if (argc < 3) {
 		fprintf(stderr, "Usage: %s server-ip-addr port-num [-v]\n", argv[0]);
@@ -222,8 +222,7 @@ int main(int argc, char *argv[])
 	if (bind(sd, (struct sockaddr *)&svr_addr, sizeof(svr_addr)) == -1)
 		ErrExit(argv[0], "socket bind error", 2);
 	if (verbose)
-		printf("%s: bind done at IP %s port %d\n", argv[0], argv[1],
-		       port);
+		printf("%s: bind done at IP %s port %d\n", argv[0], argv[1], port);
 
 	if (listen(sd, QLENGTH) == -1)
 		ErrExit(argv[0], "socket listen error", 3);
