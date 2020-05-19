@@ -1,0 +1,14 @@
+README : for the 'killer' assignment
+Part of the 'Linux system Programming' training, kaiwanTECH
+May 2020
+
+To build:
+make
+
+Type
+make <tab><tab>
+to see all available targets
+(remember to put a space after typing 'make').
+
+make <target>
+to build <target>.
