@@ -35,8 +35,9 @@ int main(int argc, char **argv)
 	struct sigaction act;
 
 	act.sa_sigaction = catcher;
-	sigemptyset(&act.sa_mask);	// allow all
-	act.sa_flags = SA_SIGINFO;
+	sigemptyset(&act.sa_mask);	// while handling the signal, allow all
+	//sigfillset(&act.sa_mask);	// while handling the signal, disallow all
+	act.sa_flags = SA_RESTART|SA_SIGINFO;
 	if (sigaction(SIGRTMIN+3, &act, 0) == -1) {
 	//if (sigaction(SIGINT, &act, 0) == -1) {
 		perror("sigaction failure");

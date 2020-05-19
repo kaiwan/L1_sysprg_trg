@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 				printf("%c ", p[i]);
 			printf("\n");
 		}
-	#if 0
+	#if 1
 		free(p);
 	#endif
 		exit(0);
