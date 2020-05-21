@@ -10,6 +10,17 @@ README : for the 'killer' assignment
 Part of the 'Linux system Programming' training, kaiwanTECH
 May 2020
 
+--------------------------------------------------------
+Assignment: killer
+Write a program "killer", which should work as follows:
+A process traps the SIGINT signal;
+It then forks...
+The parent then sends the SIGINT signal to it's child;
+What happens to the child process? Will it die immediately
+or will it execute the signal handler routine?
+Test and draw your conclusions.
+--------------------------------------------------------
+
 To build:
 make
 
@@ -21,3 +32,23 @@ to see all available targets
 make <target>
 to build <target>.
 ----------------------------------------------------------------------------------
+
+
+A few important rules / a quick Checklist for the Programmer
+----------------------------------------------------------------------------------
+DID YOU REMEMBER TO
+✔ Rule #1 : Check all APIs for their failure case
+✔ Rule #2 : Compile with warnings on (-Wall -Wextra) and eliminate all
+   warnings as far as is possible
+✔ Rule #3 : Never trust [user] input; validate it
+✔ Rule #4 : Use assertions in your code
+✔ Rule #5 : Eliminate unused (or dead) code from the codebase immediately
+✔ Rule #6 : Test thoroughly; 100% code coverage is the objective. Take the
+   time and trouble to learn to use powerful tools: memory checkers
+   (Valgrind, the sanitizer toolset), static and dynamic analyzers, security
+   checkers (checksec), fuzzers, etc
+✔ Rule #7 : Do NOT Assume Anything
+   (“ASSUME : makes an ASS out of U and ME” :-) )
+
+Also see:
+LOW-LEVEL SOFTWARE DESIGN: https://kaiwantech.wordpress.com/2017/01/03/low-level-software-design/
