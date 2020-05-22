@@ -37,11 +37,11 @@ killer_dbg: killer.c
 
 #--- Sanitizers (use clang): <foo>_dbg_[asan|ub|msan]
 killer_dbg_asan: killer.c
-	${CL} ${CFLAGS_DBG_ASAN} killer.c -o killer_dbg_asan
+	${CC} ${CFLAGS_DBG_ASAN} killer.c -o killer_dbg_asan
 killer_dbg_ub: killer.c
-	${CL} ${CFLAGS_DBG_UB} killer.c -o killer_dbg_ub
+	${CC} ${CFLAGS_DBG_UB} killer.c -o killer_dbg_ub
 killer_dbg_msan: killer.c
-	${CL} ${CFLAGS_DBG_MSAN} killer.c -o killer_dbg_msan
+	${CC} ${CFLAGS_DBG_MSAN} killer.c -o killer_dbg_msan
 
 # indent- "beautifies" C code - to conform to the the Linux kernel
 # coding style guidelines.
@@ -76,3 +76,14 @@ package:
 
 clean:
 	rm -vf ${ALL} core* vgcore* *.o *~ *.c.gcov *.gcda *.gcno
+
+help:
+	@echo '=== Makefile Help : additional targets available ==='
+	@echo 'checkpatch : run the kernel code style checker tool on source file(s)'
+	@echo 'clean      : cleanup - remove all the binaries, core files, etc'
+	@echo 'covg       : run the gcov code coverage tool on the source'
+	@echo 'da         : run the dynamic analysis tool ($(VALGRIND)) on the binary executable'
+	@echo 'help       : this 'help' target'
+	@echo 'indent     : run the $(INDENT) utility on source file(s) to indent them as per the kernel code style'
+	@echo 'package    : tar and compress the source files into the dir above'
+	@echo 'sa         : run the static analysis tool ($(FLAWFINDER)) on the source file(s)'
