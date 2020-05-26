@@ -40,7 +40,7 @@ static void *dowork(void *tag)
 	QP;
 	foo(1, 2);
 	pthread_attr_getstacksize(&attr, &mystacksize);
-	MSG("Thread # %lu : stack size = %lu bytes \n", (u64)tag, mystacksize);
+	MSG("Thread # %zu : stack size = %zu bytes \n", (u64)tag, mystacksize);
 
 	for (i = 0; i < N; i++)
 		for (j = 0; j < N; j++)
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 	pthread_attr_getstacksize(&attr, &stacksize);
-	MSG("current stacksize = %lu (=%lu Kb =%lu Mb), setting stacksz to %d Kb\n", 
+	MSG("current stacksize = %zu (=%zu Kb =%zu Mb), setting stacksz to %d Kb\n",
 		stacksize, stacksize/1024, stacksize/(1024*1024), 
 	    atoi(argv[1]));
 
