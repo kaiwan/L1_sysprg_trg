@@ -105,7 +105,8 @@ int main(int argc, char **argv)
 
 	if (geteuid() != 0)
 		printf("\nNote: to create true RT threads, you need to run this"
-			" program as superuser\n");
+			" program as superuser\n -OR-\n[RECOMMENDED!] set the CAP_SYS_NICE"
+			" capability bit in the binary executable\n\n");
 
 	printf("main thread (%d): now creating realtime pthread p2..\n",
 	       getpid());
