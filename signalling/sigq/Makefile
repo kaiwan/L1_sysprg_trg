@@ -18,7 +18,7 @@ CB_FILES := *.[ch]
 common.o: ../../common.c ../../common.h
 	${CC} ${CFLAGS} -c ../../common.c -o common.o
 common_dbg.o: ../../common.c ../../common.h
-	${CC} ${CFLAGS_DBG} -c ../common.c -o common_dbg.o
+	${CC} ${CFLAGS_DBG} -c ../../common.c -o common_dbg.o
 
 
 sigq_rcv: common.o sigq_rcv.o

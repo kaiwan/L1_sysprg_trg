@@ -1,13 +1,10 @@
 /*
  * sigq_recv.c
  * 
- * History:
- *
  * Author(s) : 
  * Kaiwan N Billimoria
  *  <kaiwan -at- kaiwantech -dot- com>
- *
- * License(s): [L]GPL
+ * License(s): MIT
  */
 #include <stdio.h>
 #include <stdlib.h>
