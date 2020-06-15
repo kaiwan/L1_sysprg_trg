@@ -5,6 +5,30 @@ through it carefully and follow the conventions and style; particularly, see and
 follow the various Makefile targets. In general, follow all guidelines you have
 been given in the "Grading Methodology" PDF sent earlier to you.
 
+IMPORTANT ::
+
+We expect you to have several targets in the Makefile (besides the usual
+suspects); do see the Makefile 'template' here. The output of the 'make 
+help' below shows the targets expected (besides the 'usual' program built
+for non-debug as well as for debug):
+
+$ make help
+=== Makefile Help : additional targets available ===
+indent     : run the indent utility on source file(s) to indent them as per the
+ kernel code style
+checkpatch : run the kernel code style checker tool on source file(s)
+covg       : run the gcov code coverage tool on the source
+da         : run the dynamic analysis tool (valgrind) on the binary executable
+sa         : run the static analysis tool (flawfinder) on the source file(s)
+clean      : cleanup - remove all the binaries, core files, etc
+package    : tar and compress the source files into the dir above
+help       : this help target
+$ 
+
+The checkpatch.pl Perl script is part of the Linux kernel source; you can
+download it here:
+https://github.com/torvalds/linux/blob/master/scripts/checkpatch.pl
+
 ----------------------------------------------------------------------------------
 README : for the 'killer' assignment
 Part of the 'Linux system Programming' training, kaiwanTECH
