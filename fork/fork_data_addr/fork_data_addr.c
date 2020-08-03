@@ -3,7 +3,7 @@
  * Demo to show that data is copied across the fork (and not shared.
  * The COW optimization of course is till present under the hood).
  *
- * Also, the _virtual_ addresses might be the same in parent & child, 
+ * Also, the _virtual_ addresses might be the same in parent & child,
  * but the underlying physical addresses will differ once the memory
  * is written to.
  *
@@ -12,7 +12,6 @@
  * kaiwan at kaiwantech dot com
  * license: MIT
  */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -24,8 +23,8 @@
 static char *p;
 
 #define PR(pi, pj)   do { \
-  printf ("   i=%d j=%d\n" \
-	      "   &i=%p &j=%p\n", pi, pj, (void *)&pi, (void *)&pj); \
+printf ("   i=%d j=%d\n" \
+		"   &i=%p &j=%p\n", pi, pj, (void *)&pi, (void *)&pj); \
 } while (0)
 
 int main(int argc, char **argv)
@@ -54,14 +53,15 @@ int main(int argc, char **argv)
 		memset(p, 'c', NUM);
 		printf("\nChild: malloc ret: %p\n", p);
 		{
-			int i;
-			for (i = 0; i < FEW; i++)
-				printf("%c ", p[i]);
+			int k;
+
+			for (k = 0; k < FEW; k++)
+				printf("%c ", p[k]);
 			printf("\n");
 		}
-	#if 1
+#if 1
 		free(p);
-	#endif
+#endif
 		exit(0);
 	default:		// the Parent process
 		wait(0);	// synchronize: let the child run first
@@ -76,9 +76,10 @@ int main(int argc, char **argv)
 		memset(p, 'p', NUM);
 		printf("\nParent: malloc ret: %p\n", p);
 		{
-			int i;
-			for (i = 0; i < FEW; i++)
-				printf("%c ", p[i]);
+			int k;
+
+			for (k = 0; k < FEW; k++)
+				printf("%c ", p[k]);
 			printf("\n");
 		}
 		free(p);

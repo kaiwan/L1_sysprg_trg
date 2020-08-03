@@ -1,4 +1,4 @@
-/* 
+/*
  * mysh_simple.c
  *
  * "my simple shell"
@@ -8,7 +8,6 @@
  * Author: Kaiwan N Billimoria <kaiwan@kaiwantech.com>
  * MIT License.
  */
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -26,6 +25,7 @@ static int MYDEBUG = OFF;
 static void Dprint(const char *fmt, ...)
 {
 	va_list ap;
+
 	if (MYDEBUG == OFF)
 		return;
 	va_start(ap, fmt);
@@ -46,7 +46,8 @@ int main(int argc, char **argv)
 		fflush(stdout);
 
 		/* fgets is safe; gets is not. (Btw, getline(3) could be even better!) */
-		fgets(cmd, LEN, stdin);
+		if (!fgets(cmd, LEN, stdin))
+			continue;	// no input?
 		cmd[strlen(cmd) - 1] = '\0';	/* remove trailing \n */
 		Dprint("cmd: len=%d, cmd=%s\n", strlen(cmd), cmd);
 
@@ -67,11 +68,14 @@ int main(int argc, char **argv)
 				perror("exec failure");
 				exit(1);
 			}
-			/* code never reaches here.. */
+			/* code never reaches here... but we use the 'break' just to
+			 * mollify the compiler
+			 */
+			break;
 		default:	// Parent
 			if (wait(0) == -1)
 				perror("wait"), exit(1);
 		}
 	}			// while
 	/* code never reaches here.. */
-} // main()
+}				// main()

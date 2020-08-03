@@ -1,8 +1,7 @@
 /*
  * fork2c.c
- *
+ * (c) kaiwan nb, kaiwanTECH
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -43,7 +42,8 @@ static void createChild(int sleep_time)
 		       sleep_time);
 		sleep(sleep_time);
 		exit(0);
-	default:;		// Parent returns..
+	default:
+		;		// Parent returns..
 	}
 }
 
@@ -90,12 +90,9 @@ int main(int argc, char **argv)
 		exit(0);
 	default:		// Parent
 		createChild(c2_slptm);
-		while ((cpid = wait(&stat)) != -1) {
+		while ((cpid = wait(&stat)) != -1)
 			displayChildStatus(stat, cpid);
-		}
 	}
 	printf("\nParent: all children dead, exiting...\n");
 	exit(0);
 }
-
-// end
