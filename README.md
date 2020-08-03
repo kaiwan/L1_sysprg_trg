@@ -27,7 +27,7 @@ VERY IMPORTANT ::
 Before using this source(s) in your project(s) / product(s), you *MUST* check
 with your organization's legal staff that it is appropriate to do so.
 
-[Courseware PDFs are *not* under the MIT License, they are to be kept
+[Courseware PDFs are *not* under any opensource License, they are to be kept
 confidential, non-distributable without consent, for your private internal
 use only].
 

@@ -32,7 +32,7 @@ ALL :=  prod prod_2part
 # Update as required
 # Simply replace the 'killer' program name with your program name!
 # f.e. with sed:
-#   sed --in-place 's/killer/myprg/g' Makefile
+#   sed --in-place "s/killer/myprg/g" Makefile
 # Of course, if you have >1 C program to build, you must add  it manually,
 # or better, keep one Makefile per program in separate directories.
 ###
@@ -58,13 +58,12 @@ CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage
 all: ${ALL}
 SRC_FILES := *.[ch]
 INDENT := indent
-CHECKPATCH := ../../checkpatch.pl    # update as required
 FLAWFINDER := flawfinder
 CPPCHECK := cppcheck
 VALGRIND := valgrind
-
 # update as required
 PKG_NAME := killer
+CHECKPATCH := ../../checkpatch.pl
 
 # Targets and their rules
 # Three types:
@@ -148,7 +147,7 @@ sa_cppcheck:
 	@echo
 	@echo "--- static analysis with cppcheck ---"
 	@echo
-	${CPPCHECK} -v --force --enable=all -i bkp/ .
+	${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
 
 # dynamic analysis with valgrind
 valgrind:
