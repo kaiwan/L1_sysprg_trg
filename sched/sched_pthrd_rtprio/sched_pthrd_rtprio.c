@@ -1,7 +1,7 @@
 /*
- * sched_pthrd.c
- * (c) Kaiwan, kaiwanTECH.
- *
+ * sched_pthrd_rtprio.c
+ * (c) Kaiwan NB, kaiwanTECH.
+ * License: MIT
  */
 #include <stdio.h>
 #include <unistd.h>
@@ -9,9 +9,9 @@
 #include <stdlib.h>
 #include "libpk.h"
 
-#define DEBUG	1		// 0 to switch off messages
+#define DEBUG			// undefine to switch off messages
 #ifdef DEBUG
-#define MSG(string, args...) fprintf(stderr, "%s:%s : " string, __FILE__, __FUNCTION__, ##args)
+#define MSG(string, args...) fprintf(stderr, "%s:%s : " string, __FILE__, __func__, ##args)
 #else
 #define MSG(string, args...)
 #endif
@@ -25,9 +25,9 @@ void *thrd_p2(void *msg)
 	 * };
 	 */
 
-	printf("  RT Thread p2 (LWP %d) here in function thrd_p2\n\
-   setting sched policy to SCHED_FIFO and RT priority to %ld in 2 seconds..\n",
-		getpid(), (long)msg);
+	printf("  RT Thread p2 (LWP %d) here in function %s()\n"
+			"   setting sched policy to SCHED_FIFO and RT priority to %ld in 2 seconds..\n",
+				getpid(), __func__, (long)msg);
 	sleep(2);
 
 	/* pthread_setschedparam(3) internally becomes the syscall
@@ -55,9 +55,9 @@ void *thrd_p3(void *msg)
 	long pri = (long)msg;
 
 	pri += 10;
-	printf("  RT Thread p3 (LWP %d) here in function thrd_p3\n"
-	" setting sched policy to SCHED_FIFO and RT priority HIGHER to %ld in 4 seconds..\n",
-		getpid(), pri);
+	printf("  RT Thread p3 (LWP %d) here in function %s()\n"
+	       " setting sched policy to SCHED_FIFO and RT priority HIGHER to %ld in 4 seconds..\n",
+	       getpid(), __func__, pri);
 
 	/* pthread_setschedparam(3) internally becomes the syscall
 	 * sched_setscheduler(2) (or sched_setattr(2)).
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 {
 	pthread_t p2, p3;
 	int r, min, max;
-	long rt_pri=1;
+	long rt_pri = 1;
 
 	if (argc == 1)
 		fprintf(stderr, "Usage: %s realtime-priority\n",
@@ -105,8 +105,8 @@ int main(int argc, char **argv)
 
 	printf("\nNote: to create true RT threads, you need to run this \
 program as superuser\n");
-	printf("main thread (%d): now creating realtime pthread p2..\n",
-	       getpid());
+	printf("%s() thread (%d): now creating realtime pthread p2..\n",
+	       __func__, getpid());
 	r = pthread_create(&p2,	// thread id
 			   NULL,	// thread attributes (use default)
 			   thrd_p2,	// function to execute
@@ -114,8 +114,8 @@ program as superuser\n");
 	if (r)
 		perror("pthread creation"), exit(1);
 
-	printf("main thread (%d): now creating realtime pthread p3..\n",
-	       getpid());
+	printf("%s() thread (%d): now creating realtime pthread p3..\n",
+	       __func__, getpid());
 	r = pthread_create(&p3,	// thread id
 			   NULL,	// thread attributes (use default)
 			   thrd_p3,	// function to execute
