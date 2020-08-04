@@ -30,13 +30,13 @@ ALL :=  prod prod_2part
 
 ###
 # Update as required
-# Simply replace the 'mt_fork_exec' program name with your program name!
+# Simply replace the 'attr_setget' program name with your program name!
 # f.e. with sed:
-#   sed --in-place "s/mt_fork_exec/myprg/g" Makefile
+#   sed --in-place "s/attr_setget/myprg/g" Makefile
 # Of course, if you have >1 C program to build, you must add  it manually,
 # or better, keep one Makefile per program in separate directories.
 ###
-ALL_NM :=  mt_fork_exec mt_fork_exec_dbg mt_fork_exec_dbg_asan mt_fork_exec_dbg_ub mt_fork_exec_gcov
+ALL_NM :=  attr_setget attr_setget_dbg attr_setget_dbg_asan attr_setget_dbg_ub attr_setget_gcov
 
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
@@ -62,8 +62,8 @@ FLAWFINDER := flawfinder
 CPPCHECK := cppcheck
 VALGRIND := valgrind
 # update as required
-PKG_NAME := mt_fork_exec
-CHECKPATCH := ../../../checkpatch.pl
+PKG_NAME := attr_setget
+CHECKPATCH := ../../checkpatch.pl
 
 # Targets and their rules
 # Three types:
@@ -72,35 +72,35 @@ CHECKPATCH := ../../../checkpatch.pl
 #     excellent for production as it gives ability to debug as and when required!
 #     (internally invokes the 'debug' target as it requires the debug binary as well
 # 3. 'debug' target(s): -O0, debug symbolic info (-g -ggdb), not stripped
-prod: mt_fork_exec.c
+prod: attr_setget.c
 	@echo
 	@echo "--- building 'production'-ready target (-O2, no debug, stripped) ---"
 	@echo
-	${CC} ${CFLAGS} mt_fork_exec.c -o mt_fork_exec -pthread
-	${STRIP} --strip-all ./mt_fork_exec
+	${CC} ${CFLAGS} attr_setget.c -o attr_setget -pthread
+	${STRIP} --strip-all ./attr_setget
 
 # The '2-part executable' solution : use strip and objcopy to generate a
 # binary executable that has the ability to retrieve debug symbolic information
 # from the 'debug' binary!
-prod_2part: mt_fork_exec.c
+prod_2part: attr_setget.c
 	@echo
 	@echo "--- building 'production'-ready 2-part target (-O2, no debug, strip-debug) ---"
 	@echo
 # We reuire the 'debug' build for the 2part, so do that first
 	make debug
-	${CC} ${CFLAGS} mt_fork_exec.c -o mt_fork_exec -pthread
-	${STRIP} --strip-debug ./mt_fork_exec
-	objcopy --add-gnu-debuglink=./mt_fork_exec_dbg ./mt_fork_exec
+	${CC} ${CFLAGS} attr_setget.c -o attr_setget -pthread
+	${STRIP} --strip-debug ./attr_setget
+	objcopy --add-gnu-debuglink=./attr_setget_dbg ./attr_setget
 
-debug: mt_fork_exec.c
+debug: attr_setget.c
 	@echo
 	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
 	@echo
-	${CC} ${CFLAGS_DBG} mt_fork_exec.c -o mt_fork_exec_dbg -pthread
+	${CC} ${CFLAGS_DBG} attr_setget.c -o attr_setget_dbg -pthread
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} mt_fork_exec.c -o mt_fork_exec_dbg_asan -pthread
-	${CC} ${CFLAGS_DBG_UB} mt_fork_exec.c -o mt_fork_exec_dbg_ub -pthread
-#	${CC} ${CFLAGS_DBG_MSAN} mt_fork_exec.c -o mt_fork_exec_dbg_msan -pthread
+	${CC} ${CFLAGS_DBG_ASAN} attr_setget.c -o attr_setget_dbg_asan -pthread
+	${CC} ${CFLAGS_DBG_UB} attr_setget.c -o attr_setget_dbg_ub -pthread
+#	${CC} ${CFLAGS_DBG_MSAN} attr_setget.c -o attr_setget_dbg_msan -pthread
 
 
 #--------------- More (useful) targets! -------------------------------
@@ -155,16 +155,16 @@ valgrind:
 	@echo
 	@echo "--- dynamic analysis with valgrind ---"
 	@echo
-	${VALGRIND} --tool=memcheck --trace-children=yes ./mt_fork_exec_dbg
+	${VALGRIND} --tool=memcheck --trace-children=yes ./attr_setget_dbg
 
 # Testing: line coverage with gcov(1)
 covg:
 	@echo
 	@echo "=== Code coverage with gcov ==="
 	@echo
-	${CC} ${CFLAGS_GCOV} mt_fork_exec.c -o mt_fork_exec_gcov -pthread
+	${CC} ${CFLAGS_GCOV} attr_setget.c -o attr_setget_gcov -pthread
 # update as required (param)
-	./mt_fork_exec_gcov 5
+	./attr_setget_gcov 5
 	gcov ${SRC_FILES}
 	@echo "Examine the *.c.gcov file(s)"
 
