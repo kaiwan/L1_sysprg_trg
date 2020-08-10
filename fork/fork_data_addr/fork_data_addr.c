@@ -86,5 +86,10 @@ int main(int argc, char **argv)
 
 		break;
 	}
+	/* The pause() allows you to see the detailed process VAS via /proc/PID/maps or via the
+	 * procmap util!
+	 * https://github.com/kaiwan/procmap
+	 */
+	pause(); 
 	exit(0);
 }

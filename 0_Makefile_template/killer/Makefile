@@ -86,7 +86,7 @@ prod_2part: killer.c
 	@echo
 	@echo "--- building 'production'-ready 2-part target (-O2, no debug, strip-debug) ---"
 	@echo
-# We reuire the 'debug' build for the 2part, so do that first
+# We require the 'debug' build for the 2part, so do that first
 	make debug
 	${CC} ${CFLAGS} killer.c -o killer
 	${STRIP} --strip-debug ./killer
