@@ -121,6 +121,11 @@ int main(int argc, char **argv)
 	act.sa_sigaction = myfault;
 	act.sa_flags = SA_RESTART | SA_SIGINFO;
 	sigemptyset(&act.sa_mask);
+
+	/* TODO :: use a separate stack for signal handling via the SA_ONSTACK
+	 * (See the program handle_segv_altstack !)
+	 */
+
 	if (sigaction(SIGSEGV, &act, 0) == -1) {
 		perror("sigaction");
 		exit(1);
