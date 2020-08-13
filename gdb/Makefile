@@ -1,47 +1,223 @@
 # Makefile
-# for Linux Debugging trg for 1_buggy.c
-# 
-# To build normally, for x86[_64]:
-# make x86_all
+# A 'better' Makefile template for Linux system programming
 #
-# For ARM cross compilation, set the env var
-# CROSS_COMPILE to the cross compiler prefix when invoking make, for eg. :
-# make CROSS_COMPILE=arm-none-linux-gnueabi- arm_all
+# Besides the 'usual' targets to build production and debug versions of the
+# code and cleanup, we incorporate targets to do useful (and indeed required)
+# stuff like:
+#  - prod_2part: build a '2-part' production target 'prod_2part'; it's
+#     -O2, no debug symbolic info, strip-debug;
+#     Excellent for production as it gives ability to debug as and when required!
+#  - indent: adhering to (Linux kernel) coding style guidelines (indent+checkpatch)
+#  - sa: static analysis target (via flawfinder, cppcheck)
+#  - dynamic analysis target: via valgrind
+#  -         + code coverage via gcov
+#  - a packaging (.tar.xz) target and
+#  - a help target.
 #
-# Kaiwan NB, kaiwanTECH.
+# You will require these utils installed:
+#  indent, flawfinder, valgrind, kernel-headers package -or- simply the
+#  checkpatch.pl script, gcov, tar; + libasan
+#
+# To get started, just type:
+#  make help
+#
+# (c) 2020 Kaiwan N Billimoria, kaiwanTECH
+# License: MIT
 
-CC := ${CROSS_COMPILE}gcc
-DBG_FLAGS := -g -ggdb -gdwarf-4 -O0 -DDEBUG
-x86_ALL := 1_buggy_nosym 1_buggy_sym buggy-CORRECTED 1_buggy_sym_32 1_buggy_nosym_32 
-x86_all: ${x86_ALL}
-ARM_ALL := arm_1_buggy_nosym arm_1_buggy_sym arm_buggy_CORRECTED
-arm_all: ${ARM_ALL}
+## Pl check and keep or remove <foo>_dbg_[asan|ub|msan] targets
+## (where <foo> is the program name) as desired.
+ALL :=  prod prod_2part
 
-1_buggy_sym: 1_buggy.c
-	${CC} ${DBG_FLAGS} 1_buggy.c -o 1_buggy_sym -Wall
-1_buggy_nosym: 1_buggy.c
-	${CC} -O2 1_buggy.c -o 1_buggy_nosym -Wall
-	strip --strip-all 1_buggy_nosym
-buggy-CORRECTED: buggy_CORRECTED.c
-	${CC} ${DBG_FLAGS} buggy_CORRECTED.c -o buggy_CORRECTED -Wall
+###
+# Update as required
+# Simply replace the '1_buggy' program name with your program name!
+# f.e. with sed:
+#   sed --in-place "s/1_buggy/myprg/g" Makefile
+# Of course, if you have >1 C program to build, you must add  it manually,
+# or better, keep one Makefile per program in separate directories.
+###
+ALL_NM :=  1_buggy 1_buggy_dbg 1_buggy_dbg_asan 1_buggy_dbg_ub 1_buggy_gcov
 
-1_buggy_sym_32: 1_buggy.c
-	${CC} ${DBG_FLAGS} -m32 1_buggy.c -o 1_buggy_sym_32 -Wall
-1_buggy_nosym_32: 1_buggy.c
-	${CC}  -m32 -O2 1_buggy.c -o 1_buggy_nosym_32 -Wall
-	strip --strip-all 1_buggy_nosym_32
+CC=${CROSS_COMPILE}gcc
+CL=${CROSS_COMPILE}clang
+STRIP=${CROSS_COMPILE}strip
 
-arm_1_buggy_sym: 1_buggy.c
-	${CC} ${DBG_FLAGS} 1_buggy.c -o arm_1_buggy_sym -Wall
-arm_1_buggy_nosym: 1_buggy.c
-	${CC} -O2 1_buggy.c -o arm_1_buggy_nosym -Wall
-	${CROSS_COMPILE}strip --strip-all arm_1_buggy_nosym
-arm_buggy_CORRECTED: buggy_CORRECTED.c
-	${CC} ${DBG_FLAGS} buggy_CORRECTED.c -o arm_buggy_CORRECTED -Wall
+PROD_OPTLEVEL=-O2
+  # or -O3 or -Os
+CFLAGS=-Wall -UDEBUG ${PROD_OPTLEVEL}
+# Dynamic analysis includes the compiler itself!
+# Especially the powerful Address Sanitizer (ASAN) toolset
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG
+CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
+CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
+#CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
 
-disas_arm_sym:
-	$(info Invoking helper script ./disas_arm.sh now..)
-	./disas_arm.sh arm_1_buggy_sym
+CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage
+
+# Required vars
+all: ${ALL}
+SRC_FILES := *.[ch]
+INDENT := indent
+FLAWFINDER := flawfinder
+CPPCHECK := cppcheck
+VALGRIND := valgrind
+# update as required
+PKG_NAME := 1_buggy
+CHECKPATCH := ../../checkpatch.pl
+
+# Targets and their rules
+# Three types:
+# 1. 'regular' production target 'prod': -O2, no debug symbolic info, stripped
+# 2. '2-part' production target 'prod_2part': -O2, no debug symbolic info, strip-debug;
+#     excellent for production as it gives ability to debug as and when required!
+#     (internally invokes the 'debug' target as it requires the debug binary as well
+# 3. 'debug' target(s): -O0, debug symbolic info (-g -ggdb), not stripped
+prod: 1_buggy.c
+	@echo
+	@echo "--- building 'production'-ready target (-O2, no debug, stripped) ---"
+	@echo
+	${CC} ${CFLAGS} 1_buggy.c -o 1_buggy
+	${STRIP} --strip-all ./1_buggy
+
+# The '2-part executable' solution : use strip and objcopy to generate a
+# binary executable that has the ability to retrieve debug symbolic information
+# from the 'debug' binary!
+prod_2part: 1_buggy.c
+	@echo
+	@echo "--- building 'production'-ready 2-part target (-O2, no debug, strip-debug) ---"
+	@echo
+# We require the 'debug' build for the 2part, so do that first
+	make debug
+	${CC} ${CFLAGS} 1_buggy.c -o 1_buggy
+	${STRIP} --strip-debug ./1_buggy
+	objcopy --add-gnu-debuglink=./1_buggy_dbg ./1_buggy
+
+debug: 1_buggy.c
+	@echo
+	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
+	@echo
+	${CC} ${CFLAGS_DBG} 1_buggy.c -o 1_buggy_dbg
+#-- Sanitizers (use clang or gcc)
+	${CC} ${CFLAGS_DBG_ASAN} 1_buggy.c -o 1_buggy_dbg_asan
+	${CC} ${CFLAGS_DBG_UB} 1_buggy.c -o 1_buggy_dbg_ub
+#	${CC} ${CFLAGS_DBG_MSAN} 1_buggy.c -o 1_buggy_dbg_msan
+
+
+#--------------- More (useful) targets! -------------------------------
+
+# indent- "beautifies" C code - to conform to the the Linux kernel
+# coding style guidelines.
+# Note! original source file(s) is overwritten, so we back it up.
+# code-style : "wrapper" target over the following kernel code style targets
+code-style:
+	make indent
+	make checkpatch
+
+indent: ${SRC_FILES}
+	make clean
+	@echo
+	@echo "--- applying Linux kernel code-style indentation with indent ---"
+	@echo
+	mkdir bkp 2> /dev/null; cp -f ${SRC_FILES} bkp/
+	${INDENT} -linux ${SRC_FILES}
+
+checkpatch:
+	make clean
+	@echo
+	@echo "--- applying Linux kernel code-style checking with checkpatch.pl ---"
+	@echo
+	${CHECKPATCH} -f --no-tree --max-line-length=95 ${SRC_FILES}
+
+# sa : "wrapper" target over the following static analyzer targets
+sa:   # static analysis
+	make sa_flawfinder
+	make sa_cppcheck
+
+# static analysis with flawfinder
+sa_flawfinder:
+	make clean
+	@echo
+	@echo "--- static analysis with flawfinder ---"
+	@echo
+	${FLAWFINDER} --neverignore --context *.[ch]
+
+# static analysis with cppcheck
+sa_cppcheck:
+	make clean
+	@echo
+	@echo "--- static analysis with cppcheck ---"
+	@echo
+	${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
+
+# dynamic analysis with valgrind
+valgrind:
+	make debug
+	@echo
+	@echo "--- dynamic analysis with valgrind ---"
+	@echo
+	${VALGRIND} --tool=memcheck --trace-children=yes ./1_buggy_dbg
+
+# Testing: line coverage with gcov(1)
+covg:
+	@echo
+	@echo "=== Code coverage with gcov ==="
+	@echo
+	${CC} ${CFLAGS_GCOV} 1_buggy.c -o 1_buggy_gcov
+	./1_buggy_gcov
+	gcov ${SRC_FILES}
+	@echo "Examine the *.c.gcov file(s)"
+
+# packaging
+package:
+	@echo
+	@echo "--- packaging ---"
+	@echo
+	rm -f ../${PKG_NAME}.tar.xz
+	make clean
+	tar caf ../${PKG_NAME}.tar.xz *
+	ls -l ../${PKG_NAME}.tar.xz
+	@echo "=== $(PKG_NAME).tar.xz package created ==="
 
 clean:
-	rm -f *.o ${x86_ALL} ${ARM_ALL}
+	@echo
+	@echo "--- cleaning ---"
+	@echo
+	rm -vf ${ALL_NM} core* vgcore* *.o *~ *.c.gcov *.gcda *.gcno
+
+help:
+	@echo '=== Makefile Help : additional targets available ==='
+	@echo
+	@echo 'TIP: type make <tab><tab> to show all valid targets'
+	@echo
+
+	@echo 'Regular targets ::'
+	@echo ' 1. 'prod'  : regular production target: -O2, no debug symbolic info, stripped'
+	@echo ' 2. 'debug' : -O0, debug symbolic info (-g -ggdb), not stripped'
+	@echo ' 3. 'prod_2part': production target : -O2, no debug symbolic info, strip-debug; \
+    Excellent for production as it gives ability to debug as and when required! \
+    (shown as third option as it *requires* the 'debug' build'
+	@echo
+	@echo 'Doing a 'make' will build all three shown above.'
+
+	@echo
+	@echo '--- code style targets ---'
+	@echo 'code-style : "wrapper" target over the following kernel code style targets'
+	@echo ' indent     : run the $(INDENT) utility on source file(s) to indent them as per the kernel code style'
+	@echo ' checkpatch : run the kernel code style checker tool on source file(s)'
+
+	@echo
+	@echo '--- static analyzer targets ---'
+	@echo 'sa          : "wrapper" target over the following static analyzer targets'
+	@echo ' sa_flawfinder : run the static analysis flawfinder tool on the source file(s)'
+	@echo ' sa_cppcheck   : run the static analysis cppcheck tool on the source file(s)'
+
+	@echo
+	@echo '--- dynamic analysis targets ---'
+	@echo ' valgrind   : run the dynamic analysis tool ($(VALGRIND)) on the binary executable'
+	@echo ' covg       : run the gcov code coverage tool on the source'
+
+	@echo
+	@echo '--- misc targets ---'
+	@echo ' clean      : cleanup - remove all the binaries, core files, etc'
+	@echo ' package    : tar and compress the source files into the dir above'
+	@echo ' help       : this 'help' target'
