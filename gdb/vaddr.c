@@ -10,7 +10,7 @@
 	#define FMTSPC "%08x"
 	#define TYPECST unsigned int
 #else /*64-bit*/
-	#define FMTSPC "%08lx"
+	#define FMTSPC "%16lx"
 	#define TYPECST unsigned long
 #endif
 typedef unsigned int u32;
