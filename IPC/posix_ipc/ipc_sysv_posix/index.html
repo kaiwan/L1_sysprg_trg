@@ -1,0 +1,76 @@
+<html>
+<head>
+<title>Linux System V and POSIX IPC Examples</title>
+</head>
+<body>
+<!--#include virtual="/menu.html"-->
+<h1>Linux System V and POSIX IPC Examples</h1>
+
+<a href="#introduction">Introduction</a><br>
+<a href="#sysv_private.c">System V Private IPC</a><br>
+<a href="#shared_memory">Shared Memory</a><br>
+<a href="#semaphores">Semaphores</a><br>
+<a href="#message_queues">Message Queues</a><br>
+<a href="#Makefile">Makefile</a><br>
+
+<a name="introduction"><h2>Introduction</h2>
+Some recent tasks at work highlighted some obvious gaps in my working knowledge of Linux inter-process communication (IPC). I spent some personal time brushing up on things I had used before and learning about some mechanisms that I had not used before. I am not discussing pipes or sockets here; I am discussing message queues, semaphores, and shared memory. The System V and POSIX specifications have different APIs for using basically the same three IPC mechanisms. I am not exploring every nuance of each API or comparing performance. My goal was simply to demonstrate each IPC mechanism for each API in a set of very simple programs. I show the programs side by side where appropriate, but the code is also available in <a href="ipc_sysv_posix.zip">ipc_sysv_posix.zip</a>.<br>
+<br>
+My test system runs Fedora 20 Linux with the latest updates as of August 9, 2015. The Makefile at the end shows the compile commands.<br>
+
+<a name="sysv_private"><h2>System V Private IPC</h2>
+The System V API allows for private, unnamed, in-memory IPC mechanisms to be shared between parent and identical forked child processes. The processes must be the same and the IPC mechanisms will not be passed along to different exec'd processes. System V IPC among different processes requries a file system path name and a project name to identify a shared IPC resource. So, System V IPC mechanisms can all be named or unnamed. POSIX supports named (sem_open) and unnamed (sem_init) semaphores, but message queues (mq_open) and shared memory (shm_open) must be named. Here I demonstrate private unnamed System V shared memory IPC between a parent process and a forked child process. The same key=IPC_PRIVATE approach also applies to the other System V IPC mechanisms, so I only wrote an example program for private unnamed shared memory.<br>
+<!--#include virtual="sysv_shared_memory_private.c"-->
+
+<a name="shared_memory"><h2>Shared Memory</h2>
+<table border=1>
+<tr><th>process<th>System V<th>POSIX</tr>
+<tr>
+<td>parent</td>
+<td><!--#include virtual="sysv_shared_memory_file_parent.c"--></td>
+<td><!--#include virtual="posix_shared_memory_parent.c"--></td>
+</tr>
+<tr>
+<td>child</td>
+<td><!--#include virtual="sysv_shared_memory_file_child.c"--></td>
+<td><!--#include virtual="posix_shared_memory_child.c"--></td>
+</tr>
+</table>
+
+<a name="semaphores"><h2>Semaphores</h2>
+<table border=1>
+<tr><th>process<th>System V<th>POSIX</tr>
+<tr>
+<td>parent</td>
+<td><!--#include virtual="sysv_semaphore_file_parent.c"--></td>
+<td><!--#include virtual="posix_semaphore_parent.c"--></td>
+</tr>
+<tr>
+<td>child</td>
+<td><!--#include virtual="sysv_semaphore_file_child.c"--></td>
+<td><!--#include virtual="posix_semaphore_child.c"--></td>
+</tr>
+</table>
+
+<a name="message_queues"><h2>Message Queues</h2>
+<table border=1>
+<tr><th>process<th>System V<th>POSIX</tr>
+<tr>
+<td>parent</td>
+<td><!--#include virtual="sysv_message_queue_file_parent.c"--></td>
+<td><!--#include virtual="posix_message_queue_parent.c"--></td>
+</tr>
+<tr>
+<td>child</td>
+<td><!--#include virtual="sysv_message_queue_file_child.c"--></td>
+<td><!--#include virtual="posix_message_queue_child.c"--></td>
+</tr>
+</table>
+
+<a name="Makefile"><h2>Makefile</h2>
+<!--#include virtual="Makefile"-->
+
+
+</body>
+</html>
+
