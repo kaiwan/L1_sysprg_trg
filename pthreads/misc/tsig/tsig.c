@@ -118,6 +118,10 @@ static void *signal_handler(void *arg)
 			/* clean up */
 			exit(1);
 		}
+		/*
+		 * Can use the sigwaitinfo(2) (or even the sigtimedwait(2)) syscalls
+		 * to get detailed info on what happened from the kernel !
+		 */
 		if (sigwait(&sigset, &sig) < 0) {
 			perror("signal_handler: sigwait failed");
 			/* clean up */

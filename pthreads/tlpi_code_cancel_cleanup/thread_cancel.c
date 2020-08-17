@@ -26,6 +26,10 @@ threadFunc(void *arg)
         sleep(1);                       /* A cancellation point */
     }
 
+	/* If no cancellation point is available/invoked, use the
+	 * pthread_testcancel() - a guaranteed cancellation point
+	 */
+
     /* NOTREACHED */
     return NULL;
 }
