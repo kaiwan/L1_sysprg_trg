@@ -30,13 +30,13 @@ ALL :=  prod prod_2part
 
 ###
 # Update as required
-# Simply replace the 'killer' program name with your program name!
-# f.e. with sed:
-#   sed --in-place "s/killer/myprg/g" Makefile
-# Of course, if you have >1 C program to build, you must add  it manually,
-# or better, keep one Makefile per program in separate directories.
+# Simply replace the variable ${FNAME_C} below (currently set to 'killer'),
+# with your program name!
+# Of course, if you have >1 C program to build, you must add it manually.
+# Also, it's recommended to keep one Makefile per program in separate directories.
 ###
-ALL_NM :=  killer killer_dbg killer_dbg_asan killer_dbg_ub killer_gcov
+FNAME_C = killer
+ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov
 
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
@@ -62,7 +62,7 @@ FLAWFINDER := flawfinder
 CPPCHECK := cppcheck
 VALGRIND := valgrind
 # update as required
-PKG_NAME := killer
+PKG_NAME := ${FNAME_C}
 CHECKPATCH := ../../checkpatch.pl
 
 # Targets and their rules
@@ -72,35 +72,35 @@ CHECKPATCH := ../../checkpatch.pl
 #     excellent for production as it gives ability to debug as and when required!
 #     (internally invokes the 'debug' target as it requires the debug binary as well
 # 3. 'debug' target(s): -O0, debug symbolic info (-g -ggdb), not stripped
-prod: killer.c
+prod: ${FNAME_C}.c
 	@echo
 	@echo "--- building 'production'-ready target (-O2, no debug, stripped) ---"
 	@echo
-	${CC} ${CFLAGS} killer.c -o killer
-	${STRIP} --strip-all ./killer
+	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C}
+	${STRIP} --strip-all ./${FNAME_C}
 
 # The '2-part executable' solution : use strip and objcopy to generate a
 # binary executable that has the ability to retrieve debug symbolic information
 # from the 'debug' binary!
-prod_2part: killer.c
+prod_2part: ${FNAME_C}.c
 	@echo
 	@echo "--- building 'production'-ready 2-part target (-O2, no debug, strip-debug) ---"
 	@echo
 # We require the 'debug' build for the 2part, so do that first
 	make debug
-	${CC} ${CFLAGS} killer.c -o killer
-	${STRIP} --strip-debug ./killer
-	objcopy --add-gnu-debuglink=./killer_dbg ./killer
+	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C}
+	${STRIP} --strip-debug ./${FNAME_C}
+	objcopy --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
 
-debug: killer.c
+debug: ${FNAME_C}.c
 	@echo
 	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
 	@echo
-	${CC} ${CFLAGS_DBG} killer.c -o killer_dbg
+	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} killer.c -o killer_dbg_asan
-	${CC} ${CFLAGS_DBG_UB} killer.c -o killer_dbg_ub
-#	${CC} ${CFLAGS_DBG_MSAN} killer.c -o killer_dbg_msan
+	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan
+	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub
+#	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan
 
 
 #--------------- More (useful) targets! -------------------------------
@@ -155,15 +155,15 @@ valgrind:
 	@echo
 	@echo "--- dynamic analysis with valgrind ---"
 	@echo
-	${VALGRIND} --tool=memcheck --trace-children=yes ./killer_dbg
+	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg
 
 # Testing: line coverage with gcov(1)
 covg:
 	@echo
 	@echo "=== Code coverage with gcov ==="
 	@echo
-	${CC} ${CFLAGS_GCOV} killer.c -o killer_gcov
-	./killer_gcov
+	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov
+	./${FNAME_C}_gcov
 	gcov ${SRC_FILES}
 	@echo "Examine the *.c.gcov file(s)"
 
