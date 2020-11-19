@@ -18,7 +18,6 @@
 #include <string.h>
 #include <sys/wait.h>
 
-#define NUM 5000
 #define FEW   16
 static char *p;
 
@@ -30,9 +29,9 @@ printf ("   i=%d j=%d\n" \
 int main(int argc, char **argv)
 {
 	pid_t ret = 0;
-	int i = 5, j = 6;
+	int i = 5, j = 6, pgsz = getpagesize();
 
-	p = malloc(NUM);
+	p = malloc(pgsz);
 	if (!p) {
 		printf("malloc failed, aborting!\n");
 		exit(1);
@@ -50,7 +49,7 @@ int main(int argc, char **argv)
 		printf("Child: after var update: ");
 		PR(i, j);
 
-		memset(p, 'c', NUM);
+		memset(p, 'c', pgsz);
 		printf("\nChild: malloc ret: %p\n", p);
 		{
 			int k;
@@ -73,7 +72,7 @@ int main(int argc, char **argv)
 		j--;
 		PR(i, j);
 
-		memset(p, 'p', NUM);
+		memset(p, 'p', pgsz);
 		printf("\nParent: malloc ret: %p\n", p);
 		{
 			int k;
