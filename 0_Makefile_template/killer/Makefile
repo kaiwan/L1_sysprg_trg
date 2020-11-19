@@ -63,7 +63,8 @@ CPPCHECK := cppcheck
 VALGRIND := valgrind
 # update as required
 PKG_NAME := ${FNAME_C}
-CHECKPATCH := ../../checkpatch.pl
+CHECKPATCH := /lib/modules/$(shell uname -r)/build/scripts/checkpatch.pl
+ #../../checkpatch.pl
 
 # Targets and their rules
 # Three types:
