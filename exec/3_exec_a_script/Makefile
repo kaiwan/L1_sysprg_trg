@@ -28,6 +28,7 @@
 ## (where <foo> is the program name) as desired.
 ALL :=  prod prod_2part
 FNAME_C := exec_a_script
+ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov
 
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
@@ -82,17 +83,17 @@ prod_2part: ${FNAME_C}.c
 	make debug
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C}
 	${STRIP} --strip-debug ./${FNAME_C}
-	objcopy --add-gnu-debuglink=./${FNAME_C} ./${FNAME_C}
+	objcopy --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
 
 debug: ${FNAME_C}.c
 	@echo
 	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
 	@echo
-	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}
+	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}
-	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}
-#	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}
+	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan
+	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub
+#	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan
 
 
 #--------------- More (useful) targets! -------------------------------
