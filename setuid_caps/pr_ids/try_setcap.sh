@@ -13,7 +13,16 @@ PRG_CAP=pr_ids_capdumb
   exit 1
 }
 rm ${PRG_CAP} 2>/dev/null # rm stale instance
-make  # build binary
+#make  # build binary
+
+gcc pr_ids.c -o ${PRG_SR}
+sudo chown root:root ${PRG_SR}
+sudo chmod u+s ${PRG_SR}
+
+[ ! -f ${PRG_SR} ] && {
+  fecho "$0: file ${PRG_SR} not present, aborting..."
+  exit 1
+}
 
 aecho "1. Traditional setuid-root binary:"
 ls -l ${PRG_SR}

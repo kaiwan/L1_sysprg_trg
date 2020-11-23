@@ -79,6 +79,7 @@ static void displayChildStatus(int stat, pid_t cpid)
 
 static void show_resusage(const struct rusage *rusage)
 {
+	/* Tip: refer the man page on getrusage(2) to see the rusage structure */
 	printf("Resource usage stats ::\n"
 	       " time in user   mode       : %6ld.%06ld [s.us]\n"
 	       " time in kernel mode       : %6ld.%06ld [s.us]\n"
