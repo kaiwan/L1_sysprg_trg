@@ -178,6 +178,9 @@ package:
 	tar caf ../${PKG_NAME}.tar.xz *
 	ls -l ../${PKG_NAME}.tar.xz
 	@echo "=== $(PKG_NAME).tar.xz package created ==="
+	@echo 'Tip: when extracting, to extract into a dir of the same name as the tar file,'
+	@echo ' do: tar -xvf ${PKG_NAME}.tar.xz --one-top-level'
+
 
 clean:
 	@echo
@@ -221,4 +224,7 @@ help:
 	@echo '--- misc targets ---'
 	@echo ' clean      : cleanup - remove all the binaries, core files, etc'
 	@echo ' package    : tar and compress the source files into the dir above'
+	@echo '  Tip: when extracting, to extract into a dir of the same name as the tar file, do:'
+	@echo '       tar -xvf ${PKG_NAME}.tar.xz --one-top-level'
+
 	@echo ' help       : this 'help' target'

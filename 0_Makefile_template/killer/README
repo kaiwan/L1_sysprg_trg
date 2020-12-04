@@ -3,7 +3,7 @@ Meant for participants in the kaiwanTECH 'Linux System Programming' training cou
 This directory serves as a 'template' for submitting assignments. Please do go 
 through it carefully and follow the conventions and style; particularly, see and
 follow the various Makefile targets. In general, follow all guidelines you have
-been given in the "Grading Methodology" PDF sent earlier to you.
+been given in the "Grading Methodology" PDF made avaiable to you.
 
 IMPORTANT ::
 
