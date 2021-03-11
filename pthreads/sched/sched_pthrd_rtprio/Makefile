@@ -78,6 +78,8 @@ prod: sched_pthrd_rtprio.c
 	@echo
 	${CC} ${CFLAGS} sched_pthrd_rtprio.c -o sched_pthrd_rtprio -pthread
 	${STRIP} --strip-all ./sched_pthrd_rtprio
+	sudo setcap CAP_SYS_NICE+eip ./sched_pthrd_rtprio
+	getcap ./sched_pthrd_rtprio
 
 # The '2-part executable' solution : use strip and objcopy to generate a
 # binary executable that has the ability to retrieve debug symbolic information
@@ -91,15 +93,23 @@ prod_2part: sched_pthrd_rtprio.c
 	${CC} ${CFLAGS} sched_pthrd_rtprio.c -o sched_pthrd_rtprio -pthread
 	${STRIP} --strip-debug ./sched_pthrd_rtprio
 	objcopy --add-gnu-debuglink=./sched_pthrd_rtprio_dbg ./sched_pthrd_rtprio
+	sudo setcap CAP_SYS_NICE+eip ./sched_pthrd_rtprio
+	getcap ./sched_pthrd_rtprio
 
 debug: sched_pthrd_rtprio.c
 	@echo
 	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
 	@echo
 	${CC} ${CFLAGS_DBG} sched_pthrd_rtprio.c -o sched_pthrd_rtprio_dbg -pthread -pthread
+	sudo setcap CAP_SYS_NICE+eip ./sched_pthrd_rtprio_dbg
+	getcap ./sched_pthrd_rtprio
 #-- Sanitizers (use clang or gcc)
 	${CC} ${CFLAGS_DBG_ASAN} sched_pthrd_rtprio.c -o sched_pthrd_rtprio_dbg_asan -pthread
+	sudo setcap CAP_SYS_NICE+eip ./sched_pthrd_rtprio_dbg_asan
+	getcap ./sched_pthrd_rtprio_asan
 	${CC} ${CFLAGS_DBG_UB} sched_pthrd_rtprio.c -o sched_pthrd_rtprio_dbg_ub -pthread
+	sudo setcap CAP_SYS_NICE+eip ./sched_pthrd_rtprio_dbg_ub
+	getcap ./sched_pthrd_rtprio_ub
 #	${CC} ${CFLAGS_DBG_MSAN} sched_pthrd_rtprio.c -o sched_pthrd_rtprio_dbg_msan -pthread
 
 
