@@ -176,6 +176,7 @@ static int process_client(int sd, char *prg)
 		strncat(reply, tmpbuf, LINESZ);
 	}
 
+	// TODO : make the write() run in a loop guaranteeing that all data is transferred
 	if ((write(sd, reply, strlen(reply))) == -1) {
 		free(reply);
 		ErrExit(prg, "socket write error", 6);
@@ -193,7 +194,7 @@ int main(int argc, char *argv[])
 	socklen_t clilen;
 	struct sockaddr_in svr_addr, cli_addr;
 	struct sigaction act;
-	short port=6100;
+	int port = 49161;  //6100;
 
 	if (argc < 3) {
 		fprintf(stderr, "Usage: %s server-ip-addr port-num [-v]\n", argv[0]);
@@ -218,7 +219,7 @@ int main(int argc, char *argv[])
 	// Initialize server's address & bind it
 	// Required to be in Network-Byte-Order
 	svr_addr.sin_family = AF_INET;
-	svr_addr.sin_addr.s_addr = inet_addr(argv[1]); //SERV_IP);
+	svr_addr.sin_addr.s_addr = inet_addr(argv[1]);
 //      svr_addr.sin_addr.s_addr = INADDR_ANY;
 	svr_addr.sin_port = htons(port);
 

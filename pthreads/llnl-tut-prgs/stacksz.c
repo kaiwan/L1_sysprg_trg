@@ -39,8 +39,8 @@ static void *dowork(void *tag)
 	 */
 	QP;
 	foo(1, 2);
-	pthread_attr_getstacksize(&attr, &mystacksize);
-	MSG("Thread # %zu : stack size = %zu bytes \n", (u64)tag, mystacksize);
+	//pthread_attr_getstacksize(&attr, &mystacksize);
+	//MSG("Thread # %zu : stack size = %zu bytes \n", (u64)tag, mystacksize);
 
 	for (i = 0; i < N; i++)
 		for (j = 0; j < N; j++)
@@ -69,6 +69,7 @@ int main(int argc, char **argv)
 	    atoi(argv[1]));
 
 	stacksize = atoi(argv[1]) * 1024;
+		// use better APIs in production; like stroul() etc... check for IoF !
 	if (pthread_attr_setstacksize(&attr, stacksize)) {
 		MSG("pthread_attr_setstacksize (%lu bytes) failed!\n", stacksize);
 		exit(1);

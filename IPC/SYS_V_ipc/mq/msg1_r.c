@@ -9,6 +9,9 @@
 #include "mqapp.h"
 int READMAX=80;
 
+/* Manually restart the syscall if interrupted by a signal ! 
+ * The SA_RESTART flag has no effect on these legacy SysV APIs...
+ */
 static ssize_t msgrcv_r(int msqid, void *msgp, size_t msgsz, long msgtyp,
                       int msgflg)
 {
@@ -42,7 +45,7 @@ int main( int argc, char **argv )
 	 ssize_t msgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp,
                       int msgflg);
 	*/
-	if( (n=(msgrcv_r (id, &msg, READMAX, 0, 0)))== -1 ) 
+	if( (n=(msgrcv_r(id, &msg, READMAX, 0, 0)))== -1 )  // type 0 => fetch the first msg on the MQ !
 		perror("msgrcv"), exit(1);
 	printf("%s [%d]: Type 0 msg read of %d bytes; Type %ld: Msg: \"%.*s\"\n",
 				 argv[0], pid, n, msg.mtype, n, msg.mtext);

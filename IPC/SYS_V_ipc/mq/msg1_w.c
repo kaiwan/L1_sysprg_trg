@@ -22,11 +22,11 @@ int main( int argc, char **argv )
        msgget function fails if msgflg asserts both IPC_CREAT and IPC_EXCL
        and a message queue already exists for key.
 	 */  
-	if( (id=msgget( KEY_VAL, IPC_CREAT|IPC_EXCL|0600 ))== -1 ) {
+	if( (id = msgget(KEY_VAL, IPC_CREAT|IPC_EXCL|0600 ))== -1 ) {
 		if (EEXIST == errno) {
 			printf("MQ exists, try to fetch it...\n");
 			/* Retry without attempting to create the MQ */
-			id=msgget(KEY_VAL,0);
+			id=msgget(KEY_VAL, 0);
 			if( -1 == id )
 				perror("msgget failure"),exit(1);
 		}

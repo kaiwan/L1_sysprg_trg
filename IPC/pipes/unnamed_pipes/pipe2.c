@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 	int fd[2];		/* Pipe file descriptor array		*/
 	char line[80], buffer[80];	/* buffers for user input	*/
 
-	if (argc > 2) {
+	if (argc < 2) {
 		fprintf(stderr, "Usage: %s child_exit_flag=[0]|1\n\
 where child_exit_flag = 0 : normal execution (default)\n\
 child_exit_flag = 1 : child process dies immd. (resulting in SIGPIPE to \

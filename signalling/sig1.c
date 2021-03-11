@@ -34,7 +34,12 @@ int main()
 	sigemptyset(&act.sa_mask);	/* allow all signals while in the handler 
 					 * (with the execption of the signal being handled) */
 #else
-	sigfillset(&act.sa_mask);	/* block all signals while in the handler */
+	sigfillset(&act.sa_mask);	/* block all signals while in the handler
+					 * (with the execption of the signal being handled)
+		sigaddset() : selectively allow 1 signal
+		sigdelset() : selectively clear 1 signal
+	 */
+
 #endif
 	act.sa_flags = 0;	/* the sigemptyset() and flags init to 0 are redundant 
 				 * due to the memset(), but we're just showing proper form */
