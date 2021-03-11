@@ -8,7 +8,7 @@
 # Also note that a multithreaded process shows up as several same PIDs
 #  (resolve these using ps -eLf - to see actual PIDs of threads).
 
-for p in `ps -A -To pid`
+for p in $(ps -A -To pid)
 do
 	chrt -p $p 2>/dev/null
 	taskset -p $p

@@ -21,7 +21,7 @@ extern int errno;
 
 void sig(int signum)
 {
-	MSG("**Signal %d interruption!**\n", signum);
+	printf("**Signal %d interruption!**\n", signum);
 }
 
 int main(int argc, char **argv)

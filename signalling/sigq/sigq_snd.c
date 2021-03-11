@@ -49,8 +49,8 @@ int main(int argc, char **argv)
 	printf("%s: integer being transmitted: %d%s\n",
 		argv[0], sv.sival_int, sv.sival_int == -1 ? " !WARNING! it's -1 (possible IoF)" : "");
 
-	if (sigqueue(atol(argv[1]), SIGRTMIN+3, sv) == -1) {
-	//if (sigqueue(atol(argv[1]), SIGINT, sv) == -1) {
+	//if (sigqueue(atol(argv[1]), SIGRTMIN+3, sv) == -1) {
+	if (sigqueue(atol(argv[1]), SIGINT, sv) == -1) {
 		perror("sigqueue failed");
 		exit (1);
 	}

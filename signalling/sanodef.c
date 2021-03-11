@@ -41,7 +41,7 @@ static void sighdlr(int signum)
 	static int s = 0;
 	int saved;
 
-	MSG_SHORT("\nsighdlr: caught signal %d,", signum);
+	printf("\nsighdlr: caught signal %d,", signum);
 
 	switch (signum) {
 	case SIGINT:
@@ -50,9 +50,9 @@ static void sighdlr(int signum)
 			s = 1;
 		saved = s;
 
-		MSG_SHORT(" s=%d ; stack %p :", s, stack());
+		printf(" s=%d ; stack %p :", s, stack());
 		DELAY_LOOP(saved + 48, 30);	/* +48 to get the equivalent ASCII value */
-		MSG_SHORT("*");
+		printf("*");
 		(void)fflush(stdout);
 		break;
 

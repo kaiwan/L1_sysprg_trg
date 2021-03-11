@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 	char cmd[LEN];
 	char *exit_str = "q";
 
-	if ((argc > 1) && (strcmp(argv[1], "-D") == 0))
+	if ((argc > 1) && (strcmp(argv[1], "-d") == 0))
 		MYDEBUG = ON;
 
 	while (1) {

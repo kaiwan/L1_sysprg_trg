@@ -94,9 +94,10 @@ int main(int argc, char **argv)
 		exit(1);
 	case 0:		// Child
 		printf("child: %d\n", getpid());
-		DELAY_LOOP('c', 25);
+		DELAY_LOOP('c', 250);
 		exit(0);
 	default:		// Parent
+		/* don't call wait*(); implies the child will become a zombie on exit */
 		while (1)
 			pause();
 	}

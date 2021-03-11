@@ -12,10 +12,15 @@
 
 static void catcher(int signo)
 {
+#if 0
+	printf("** Ouch! Received SIGINT. **\n");
+		// why?? ...it will be covered! :-)
+#else
 	if (write(STDOUT_FILENO, "** Ouch! Received SIGINT. **", 28) == -1) {
 		perror("sig1: write() failed");
 		exit(1);
 	}
+#endif
 	(void)sleep(1);
 }
 
@@ -25,8 +30,12 @@ int main()
 
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = catcher;
+#if 0
 	sigemptyset(&act.sa_mask);	/* allow all signals while in the handler 
 					 * (with the execption of the signal being handled) */
+#else
+	sigfillset(&act.sa_mask);	/* block all signals while in the handler */
+#endif
 	act.sa_flags = 0;	/* the sigemptyset() and flags init to 0 are redundant 
 				 * due to the memset(), but we're just showing proper form */
 #if 1

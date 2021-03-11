@@ -23,7 +23,6 @@ int main()
 
 	for (j = 0; j < NFORKS; j++) {
 
-  /*** error handling ***/
 		if ((pid = fork()) < 0) {
 			printf("fork failed with error code= %d\n", pid);
 			exit(1);
