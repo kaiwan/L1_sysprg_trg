@@ -1,7 +1,5 @@
 # Makefile
 # For 'Linux System Programming' training session from Kaiwan (kaiwanTECH)
-# held on ______________
-# Organization: ____________
 
 ## Pl check and keep or remove <foo>_dbg_[asan|ub|msan] targets
 ## as desired.
@@ -17,6 +15,7 @@ CLANG_CHK=$(shell which clang)
 ifeq (${CLANG_CHK},)
   CXX=${GCC}
 endif
+$(info === Compiler : $(shell $(CXX) --version|head -n1) )
 
 CFLAGS=-Wall -UDEBUG
 # Dynamic analysis includes the compiler itself!
