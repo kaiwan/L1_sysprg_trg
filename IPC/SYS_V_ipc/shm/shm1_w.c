@@ -42,7 +42,7 @@ int main( int argc, char **argv )
 	printf("%s: key=%d, size=%lu\n", argv[0], shm_key, shmsz);
 
 	/* Create and initialize the shared memory */
-	shm_id = shmget( shm_key, shmsz, (IPC_CREAT|IPC_EXCL|MODE) );
+	shm_id = shmget(shm_key, shmsz, (IPC_CREAT|IPC_EXCL|MODE));
 	if (shm_id < 0 ) {
 		if( errno == EEXIST ) {
 			printf("%s: shmem segment already exists, will attempt \
@@ -63,7 +63,7 @@ to access it...\n",
 	*/
 	shm_addr = shmat( shm_id, 0, 0);
 	if( shm_addr == (void *)-1) {
-		perror( "shmat failed"); 
+		perror( "shmat failed");
 		exit(1);
 	}
 	printf ("%s: Attached successfully to shmem segment at %p\n",
@@ -85,7 +85,10 @@ to access it...\n",
  	 */
 
 	printf("Before fork: Executing \"ipcs -m\" - see nattch..\n");
-	system( "ipcs -m" );
+	if (system( "ipcs -m" ) < 0) {
+		perror( "system ipcs -m failed");
+		exit(1);
+	}
 
 	// now fork and see ipcs -m in child..is it also attached?
 	fflush(stdout);
@@ -93,7 +96,10 @@ to access it...\n",
 		case -1: perror("fork failed"),exit(1);
 		case 0 : // child
 			printf("CHILD:: Executing \"ipcs -m\" - see nattch..\n");
-			system( "ipcs -m" );
+			if (system( "ipcs -m" ) < 0) {
+				perror( "system ipcs -m failed");
+				exit(1);
+			}
 			sleep(10);
 			exit( 0 );
 
