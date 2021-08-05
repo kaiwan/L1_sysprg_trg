@@ -4,7 +4,7 @@
 #include <pthread.h>
 
 #define n 1024  //5120			// global space
-#define nthreads 4              // 'n' => # cores on the box
+#define nthreads 4 //12              // 'n' => # cores on the box
 int a[n][n], b[n][n], c[n][n];
 
 void *threadfun(void *arg)	// Each Thread Will do this.

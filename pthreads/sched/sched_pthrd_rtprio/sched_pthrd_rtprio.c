@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 	}
 	MSG("SCHED_FIFO priority range is %d to %d\n", min, max);
 
-	rt_pri = atoi(argv[1]);
+	rt_pri = atoi(argv[1]); // better to use strtoul(3) for better checking/IoF ...
 	if ((rt_pri < min) || (rt_pri > (max - 10))) {
 		fprintf(stderr,
 			"%s: Priority value passed (%ld) out of range [%d-%d].\n",
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 	}
 
 	printf("\nNote: to create true RT threads, you need to run this \
-program as superuser\n");
+program as superuser -OR- have the capability CAP_SYS_NICE (better!)\n");
 	printf("%s() thread (%d): now creating realtime pthread p2..\n",
 	       __func__, getpid());
 	r = pthread_create(&p2,	// thread id

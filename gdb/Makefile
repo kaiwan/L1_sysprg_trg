@@ -163,7 +163,7 @@ covg:
 	@echo "=== Code coverage with gcov ==="
 	@echo
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov
-	./${FNAME_C}_gcov
+	./${FNAME_C}_gcov /etc
 	gcov ${SRC_FILES}
 	@echo "Examine the *.c.gcov file(s)"
 

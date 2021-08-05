@@ -188,7 +188,7 @@ Worker thread #%ld (pid %d)...\n", this, getpid());
 
 int main(int argc, char **argv)
 {
-	sigset_t sigset;
+	sigset_t sigset; // used for signal mask
 	pthread_t pthrd[NUM_THREADS + 1];
 	pthread_attr_t attr;
 	long t = 0;

@@ -42,7 +42,9 @@ CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
 STRIP=${CROSS_COMPILE}strip
 
-PROD_OPTLEVEL=-O2
+# keep optimization 0 to enable the DELAY_LOOP() macro to run properly...
+PROD_OPTLEVEL=-O0
+#PROD_OPTLEVEL=-O2
   # or -O3 or -Os
 CFLAGS=-Wall -UDEBUG ${PROD_OPTLEVEL}
 # Dynamic analysis includes the compiler itself!
@@ -101,7 +103,7 @@ debug: sched_pthrd_rtprio.c
 	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
 	@echo
 	${CC} ${CFLAGS_DBG} sched_pthrd_rtprio.c -o sched_pthrd_rtprio_dbg -pthread -pthread
-	sudo setcap CAP_SYS_NICE+eip ./sched_pthrd_rtprio_dbg
+	#sudo setcap CAP_SYS_NICE+eip ./sched_pthrd_rtprio_dbg
 	getcap ./sched_pthrd_rtprio
 #-- Sanitizers (use clang or gcc)
 	${CC} ${CFLAGS_DBG_ASAN} sched_pthrd_rtprio.c -o sched_pthrd_rtprio_dbg_asan -pthread

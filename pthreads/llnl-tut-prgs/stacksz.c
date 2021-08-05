@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 	    atoi(argv[1]));
 
 	stacksize = atoi(argv[1]) * 1024;
-		// use better APIs in production; like stroul() etc... check for IoF !
+		// use better APIs in production; like strtoul() etc... check for IoF !
 	if (pthread_attr_setstacksize(&attr, stacksize)) {
 		MSG("pthread_attr_setstacksize (%lu bytes) failed!\n", stacksize);
 		exit(1);

@@ -50,7 +50,7 @@ threadFunc(void *arg)
     pthread_cleanup_push(cleanupHandler, buf);
 
     while (glob == 0) {
-        s = pthread_cond_wait(&cond, &mtx);     /* A cancellation point */
+        s = pthread_cond_wait(&cond, &mtx);     /* A cancellation point ; blocks on the pthread_cond_signal() */
         if (s != 0)
             fatalError(s, "pthread_cond_wait");
     }
