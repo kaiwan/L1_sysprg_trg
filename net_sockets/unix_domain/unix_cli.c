@@ -13,6 +13,11 @@ int main(int argc, char **argv)
 	char buf[80];
 	struct sockaddr_un cli_addr;
 
+	if (geteuid() != 0 || getuid() != 0) {
+		fprintf(stderr, "%s: requires root (to create sock file under /run).\n", argv[0]);
+		exit (1);
+	}
+
 	// Create UNIX domain socket
 	if ((sd = socket(PF_UNIX, SOCK_STREAM, 0)) == -1)
 		perror("socket error"), exit(1);

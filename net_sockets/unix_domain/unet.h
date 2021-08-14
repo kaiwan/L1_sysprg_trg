@@ -12,4 +12,4 @@
 #include <sys/wait.h>
 #include <errno.h>
 
-#define	SOCKET_NAME    "./sockname"
+#define	SOCKET_NAME    "/run/sockname.sk"

@@ -5,6 +5,7 @@
 */
 #include "unet.h"
 
+/* clear any zombies */
 static void sig_child(int signum)
 {
 	int status;
@@ -17,6 +18,11 @@ int main(int argc, char *argv[])
 	socklen_t fromlen;
 	struct sockaddr_un svr_addr, cli_addr;
 	struct sigaction act;
+
+	if (geteuid() != 0 || getuid() != 0) {
+		fprintf(stderr, "%s: requires root (to create sock file under /run).\n", argv[0]);
+		exit (1);
+	}
 
 	unlink(SOCKET_NAME);
 
