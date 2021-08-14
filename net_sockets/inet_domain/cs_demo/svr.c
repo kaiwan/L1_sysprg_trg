@@ -197,6 +197,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	port=atoi(argv[2]);
+	  /* TODO: use strto[u]l() instead of atoi() to do proper IoF checks ! */
 
 	if ((argc == 4) && (strcmp(argv[3], "-v") == 0))
 		verbose = 1;
@@ -204,7 +205,7 @@ int main(int argc, char *argv[])
 	/* Ignore SIGPIPE, so that server does not recieve it if it attempts
 	   to write to a socket whose peer has closed; the write fails with EPIPE instead..
 	 */
-	if (signal (SIGPIPE, SIG_IGN) == SIG_ERR)
+	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
 		ErrExit(argv[0], "signal", 1);
 
 	if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
