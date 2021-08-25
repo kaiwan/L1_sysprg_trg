@@ -24,4 +24,5 @@ cb: ${CB_FILES}
 
 clean:
 	rm -f ${ALL}
+	sudo rm -f /run/sockname.sk
 
