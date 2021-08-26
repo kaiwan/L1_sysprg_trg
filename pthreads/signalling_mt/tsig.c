@@ -17,13 +17,17 @@
  * <kaiwan -at- kaiwantech -dot- com>
  * License: MIT
  */
-#define _POSIX_C_SOURCE    200112L	/* or earlier: 199506L */
+//#define _POSIX_C_SOURCE    200112L	/* or earlier: 199506L */
+// causes issue w/ SA_RESTART etc ! Don't use it! Use this:
+#define _POSIX_C_SOURCE    200809L
+// ref: https://stackoverflow.com/questions/9828733/sa-restart-not-defined-under-linux-compiles-fine-in-solaris
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
+#include <sys/types.h> // gettid(2)
 #include <string.h>
 
 #define	NUM_THREADS	2
@@ -89,6 +93,78 @@ static inline void beep(int what)
 
 static int signal_handled = -1;
 static pthread_mutex_t sig_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int g_opt;
+
+/* 
+ * Handler for the synchronous signals:
+ * SIGSEGV / SIGBUS / SIGABRT / SIGFPE / SIGILL / SIGIOT
+ */
+static void sync_sigs_handler(int signum, siginfo_t * siginfo, void *rest)
+{
+	static int c = 0;
+
+	printf("*** %s: [%d] PID %d", __func__, ++c);
+#ifdef __linux__
+	printf(" (TID %d)", gettid());
+#endif
+	printf("	received signal %d. errno=%d\n"
+	       " Cause/Origin: (si_code=%d): ",
+		   signum, siginfo->si_errno, siginfo->si_code);
+
+	switch (siginfo->si_code) {
+	case SI_USER:
+		printf("user\n");
+		break;
+	case SI_KERNEL:
+		printf("kernel\n");
+		break;
+	case SI_QUEUE:
+		printf("queue\n");
+		break;
+	case SI_TIMER:
+		printf("timer\n");
+		break;
+	case SI_MESGQ:
+		printf("mesgq\n");
+		break;
+	case SI_ASYNCIO:
+		printf("async io\n");
+		break;
+	case SI_SIGIO:
+		printf("sigio\n");
+		break;
+	case SI_TKILL:
+		printf("t[g]kill\n");
+		break;
+		// other poss values si_code can have for SIGSEGV
+	case SEGV_MAPERR:
+		printf("SEGV_MAPERR: address not mapped to object\n");
+		break;
+	case SEGV_ACCERR:
+		printf("SEGV_ACCERR: invalid permissions for mapped object\n");
+		break;
+		/* SEGV_BNDERR and SEGV_PKUERR result in compile failure ??
+		 * Qs asked on SO here:
+		 * https://stackoverflow.com/questions/45229308/attempting-to-make-use-of-segv-bnderr-and-segv-pkuerr-in-a-sigsegv-signal-handle
+		 */
+#if 0
+	case SEGV_BNDERR:	/* 3.19 onward */
+		printf("SEGV_BNDERR: failed address bound checks\n");
+	case SEGV_PKUERR:	/* 4.6 onward */
+		printf
+		    ("SEGV_PKUERR: access denied by memory-protection keys\n");
+#endif
+	default:
+		printf("-none-\n");
+	}
+	printf(" Faulting addr=%p\n", siginfo->si_addr);
+
+#if 1
+	exit(1);
+#else
+	abort();
+#endif
+}
 
 /*
  * signal_handler() is the thread that handles all signal catching
@@ -175,10 +251,21 @@ static void *signal_handler(void *arg)
 static void *work(void *id)
 {
 	long this = (long)id;
+
 	printf("+++++++++++++++++++++++++++++++++++++++++\n\
 Worker thread #%ld (pid %d)...\n", this, getpid());
 	if (this == 1) {
 		DELAY_LOOP('1', 2000);
+		if (g_opt == 1) {
+			int *pi = 0x0;
+			printf("pi = %p\n", (void *)*pi);  
+	/* BUG ! 
+	 * Causes a fault at the level of the MMU (as all bytes in virtual page 0
+     * have no permission '---'); thus, causing the MMU to raise a fault, leading
+	 * the OS's fault handling code to send SIGSEGV to the offending *thread*, the
+	 * one that caused this to occur!
+	 */
+		}
 	} else if (this == 2) {
 		DELAY_LOOP('2', 2000);
 	}
@@ -189,18 +276,65 @@ Worker thread #%ld (pid %d)...\n", this, getpid());
 int main(int argc, char **argv)
 {
 	sigset_t sigset; // used for signal mask
+	struct sigaction act;
 	pthread_t pthrd[NUM_THREADS + 1];
 	pthread_attr_t attr;
 	long t = 0;
 
+	if (argc != 2) {
+		fprintf(stderr, "Usage: %s <option>\n\
+	0 = do NOT cause a segfault\n\
+	1 = do cause a segfault\n", argv[0]);
+		exit(1);
+	}
+	g_opt = atoi(argv[1]);
+	if (g_opt != 0 && g_opt != 1) {
+		fprintf(stderr, "<option>: bad value passed\n");
+		exit(1);
+	}
+
 	/* 
-	 * Block *all* signals here in the main thread.
+	 * Block all, well, most, signals here in the main thread.
 	 * Now all subsequently created threads also block all signals.
 	 */
-	sigfillset(&sigset);
+	if (sigfillset(&sigset) < 0) {
+		perror("sigfillset"); exit(1);
+	}
+	/* Do NOT block the synchronous signals - the ones sent to the faulting thread
+	 * on a fault/bug:
+     * SIGSEGV / SIGBUS / SIGABRT / SIGFPE / SIGILL / SIGIOT
+	 */
+	if (sigdelset(&sigset, SIGSEGV) < 0) {
+		perror("sigdelset"); exit(1);
+	}
+	if (sigdelset(&sigset, SIGBUS) < 0) {
+		perror("sigdelset"); exit(1);
+	}
+	if (sigdelset(&sigset, SIGABRT) < 0) {
+		perror("sigdelset"); exit(1);
+	}
+	if (sigdelset(&sigset, SIGFPE) < 0) {
+		perror("sigdelset"); exit(1);
+	}
+	if (sigdelset(&sigset, SIGILL) < 0) {
+		perror("sigdelset"); exit(1);
+	}
+	if (sigdelset(&sigset, SIGIOT) < 0) { // synonym for SIGABRT
+		perror("sigdelset"); exit(1);
+	}
 	if (pthread_sigmask(SIG_BLOCK, &sigset, NULL)) {
 		perror("main: pthread_sigmask failed");
 		/* clean up */
+		exit(1);
+	}
+
+	/* Handle synchronous signals - the SIGSEGV, etc. as a special case */
+	memset(&act, 0, sizeof(act));
+	act.sa_sigaction = sync_sigs_handler;
+	act.sa_flags = SA_RESTART | SA_SIGINFO; // | SA_ONSTACK;
+	sigemptyset(&act.sa_mask);
+	if (sigaction(SIGSEGV, &act, 0) == -1) {
+		perror("sigaction");
 		exit(1);
 	}
 
