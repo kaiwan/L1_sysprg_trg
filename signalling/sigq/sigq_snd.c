@@ -47,13 +47,14 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 	printf("%s: integer being transmitted: %d%s\n",
-		argv[0], sv.sival_int, sv.sival_int == -1 ? " !WARNING! it's -1 (possible IoF)" : "");
+		argv[0], sv.sival_int, sv.sival_int < 0 ? " !WARNING! it's -ve (possible IoF)" : "");
 
 	/* Use the sigqueue(3) to send a signal to a process, 'piggy-backing'
 	 * some data along with it... 
+	 * int sigqueue(pid_t pid, int sig, const union sigval value);
 	 */
-	//if (sigqueue(atol(argv[1]), SIGRTMIN+3, sv) == -1) {
-	if (sigqueue(atol(argv[1]), SIGINT, sv) == -1) {
+	if (sigqueue(atol(argv[1]), SIGRTMIN+3, sv) == -1) {
+	//if (sigqueue(atol(argv[1]), SIGINT, sv) == -1) {
 		perror("sigqueue failed");
 		exit (1);
 	}
