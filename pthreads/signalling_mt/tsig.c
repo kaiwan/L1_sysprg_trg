@@ -159,6 +159,8 @@ static void sync_sigs_handler(int signum, siginfo_t * siginfo, void *rest)
 	}
 	printf(" Faulting addr=%p\n", siginfo->si_addr);
 
+	// Can reset action to default and raise it on ourself, to get the kernel
+	// to emit a core dump
 #if 1
 	exit(1);
 #else
@@ -258,7 +260,7 @@ Worker thread #%ld (pid %d)...\n", this, getpid());
 		DELAY_LOOP('1', 2000);
 		if (g_opt == 1) {
 			int *pi = 0x0;
-			printf("pi = %p\n", (void *)*pi);  
+			printf("pi = %p\n", (void *)*pi);  // NULL-ptr dereference bug!
 	/* BUG ! 
 	 * Causes a fault at the level of the MMU (as all bytes in virtual page 0
      * have no permission '---'); thus, causing the MMU to raise a fault, leading
@@ -329,13 +331,28 @@ int main(int argc, char **argv)
 	}
 
 	/* Handle synchronous signals - the SIGSEGV, etc. as a special case */
+	// TODO: use an alternate signal stack
 	memset(&act, 0, sizeof(act));
 	act.sa_sigaction = sync_sigs_handler;
 	act.sa_flags = SA_RESTART | SA_SIGINFO; // | SA_ONSTACK;
 	sigemptyset(&act.sa_mask);
 	if (sigaction(SIGSEGV, &act, 0) == -1) {
-		perror("sigaction");
-		exit(1);
+		perror("sigaction"); exit(1);
+	}
+	if (sigaction(SIGBUS, &act, 0) == -1) {
+		perror("sigaction"); exit(1);
+	}
+	if (sigaction(SIGABRT, &act, 0) == -1) {
+		perror("sigaction"); exit(1);
+	}
+	if (sigaction(SIGFPE, &act, 0) == -1) {
+		perror("sigaction"); exit(1);
+	}
+	if (sigaction(SIGILL, &act, 0) == -1) {
+		perror("sigaction"); exit(1);
+	}
+	if (sigaction(SIGIOT, &act, 0) == -1) {
+		perror("sigaction"); exit(1);
 	}
 
 	if (pthread_attr_init(&attr)) {

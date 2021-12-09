@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 		printf("%s", PROMPT);
 		fflush(stdout);
 
-		/* fsgets is safe; gets is not */
+		/* fgets is safe; gets is not */
 		if (!fgets(cmd, LEN, stdin))
 			continue;	// no input?
 		cmd[strlen(cmd) - 1] = '\0';	/* remove trailing \n */

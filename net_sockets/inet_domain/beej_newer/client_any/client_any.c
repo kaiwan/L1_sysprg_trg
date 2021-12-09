@@ -84,8 +84,9 @@ int main(int argc, char *argv[])
 	...	
 	*/
 
-	// Loop (over the linked list) through all the results
-	// and connect to the first we can..
+	/* Iterate over the addrinfo linked list through all the results
+	 * and connect to the first we can..
+	 */
 	for (p = servinfo; p != NULL; p = p->ai_next) {
 		if ((sockfd = socket(p->ai_family, p->ai_socktype,
 				     p->ai_protocol)) == -1) {

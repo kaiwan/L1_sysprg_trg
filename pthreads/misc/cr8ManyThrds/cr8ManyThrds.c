@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define MAX_THREADS     50000	// arbitrary
+#define MAX_THREADS    127000 // 50000	// arbitrary
 typedef unsigned int u32;
 typedef unsigned long u64;
 

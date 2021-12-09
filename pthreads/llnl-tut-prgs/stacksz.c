@@ -32,16 +32,18 @@ static void *dowork(void *tag)
 {
 	double arr[N][N];
 	int i, j;
-	size_t mystacksize = 0;
 
 	/* If enough stack memory is provided, all will be fine here.
 	 * If *not*, *any* function being called below will fail and cause a segfault!
 	 */
 	QP;
+	printf("sizeof(double) = %ld; so stack mem = %ld\n",
+		sizeof(double), sizeof(double)*N*N);
 	foo(1, 2);
 	//pthread_attr_getstacksize(&attr, &mystacksize);
 	//MSG("Thread # %zu : stack size = %zu bytes \n", (u64)tag, mystacksize);
 
+	// Do something with arr[][] so that compiler keeps it...
 	for (i = 0; i < N; i++)
 		for (j = 0; j < N; j++)
 			arr[i][j] = ((i * j) / 3.452) + (N - i);
@@ -68,10 +70,12 @@ int main(int argc, char **argv)
 		stacksize, stacksize/1024, stacksize/(1024*1024), 
 	    atoi(argv[1]));
 
+	// TODO: use strtol() and check for overflow !
 	stacksize = atoi(argv[1]) * 1024;
 		// use better APIs in production; like strtoul() etc... check for IoF !
 	if (pthread_attr_setstacksize(&attr, stacksize)) {
 		MSG("pthread_attr_setstacksize (%lu bytes) failed!\n", stacksize);
+		//perror("pthread_attr_setstacksize() failed");
 		exit(1);
 		//perror("pthread_attr_setstacksize");
 	}

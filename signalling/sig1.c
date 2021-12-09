@@ -16,6 +16,8 @@ static void catcher(int signo)
 	printf("** Ouch! Received SIGINT. **\n");
 		// why?? ...it will be covered! :-)
 #else
+	printf("%s():signo = %d\n", __func__, signo);
+	// ssize_t write(int fd, const void *buf, size_t count);
 	if (write(STDOUT_FILENO, "** Ouch! Received SIGINT. **", 28) == -1) {
 		perror("sig1: write() failed");
 		exit(1);
@@ -45,6 +47,10 @@ int main()
 				 * due to the memset(), but we're just showing proper form */
 #if 1
 	if (sigaction(SIGINT, &act, 0) == -1) {
+		perror("sigaction failure");
+		exit(1);
+	}
+	if (sigaction(SIGQUIT, &act, 0) == -1) {
 		perror("sigaction failure");
 		exit(1);
 	}

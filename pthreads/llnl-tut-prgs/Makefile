@@ -35,6 +35,11 @@ cb: ${CB_FILES}
 	mkdir bkp 2>/dev/null; cp -f ${CB_FILES} bkp/
 	indent -linux ${CB_FILES}
 
+manythrds: manythrds.c
+	gcc ${CFLAGS} -UDEBUG manythrds.c -o manythrds ${LINKIN}
+	gcc ${CFLAGS_DBG} -DDEBUG manythrds.c -o manythrds_dbg ${LINKIN}
+	gcc ${CFLAGS_DBG} -fsanitize=address -DDEBUG manythrds.c -o manythrds_dbg_asan ${LINKIN}
+
 clean:
-	rm -f ${OUT} *.o
+	rm -f ${OUT} *.o corefile*
 	touch *.c *.h

@@ -29,7 +29,7 @@ printf ("   i=%d j=%d\n" \
 int main(int argc, char **argv)
 {
 	pid_t ret = 0;
-	int i = 5, j = 6, pgsz = getpagesize();
+	int i = 5, j = 6, pgsz = getpagesize(); // typically returns 4096
 
 	p = malloc(pgsz);
 	if (!p) {
@@ -58,12 +58,13 @@ int main(int argc, char **argv)
 				printf("%c ", p[k]);
 			printf("\n");
 		}
+		pause();
 #if 1
 		free(p);
 #endif
 		exit(0);
 	default:		// the Parent process
-		wait(0);	// synchronize: let the child run first
+//		wait(0);	// synchronize: let the child run first
 
 		printf("\nParent: before var update: ");
 		PR(i, j);
@@ -81,6 +82,7 @@ int main(int argc, char **argv)
 				printf("%c ", p[k]);
 			printf("\n");
 		}
+		pause();
 		free(p);
 
 		break;
