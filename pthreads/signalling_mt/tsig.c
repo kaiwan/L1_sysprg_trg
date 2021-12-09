@@ -19,7 +19,7 @@
  */
 //#define _POSIX_C_SOURCE    200112L	/* or earlier: 199506L */
 // causes issue w/ SA_RESTART etc ! Don't use it! Use this:
-#define _POSIX_C_SOURCE    200809L
+//#define _POSIX_C_SOURCE    200809L
 // ref: https://stackoverflow.com/questions/9828733/sa-restart-not-defined-under-linux-compiles-fine-in-solaris
 
 #include <stdio.h>
@@ -29,6 +29,7 @@
 #include <signal.h>
 #include <sys/types.h> // gettid(2)
 #include <string.h>
+#include <errno.h>
 
 #define	NUM_THREADS	2
 #define FATAL		1
@@ -103,7 +104,7 @@ static void sync_sigs_handler(int signum, siginfo_t * siginfo, void *rest)
 {
 	static int c = 0;
 
-	printf("*** %s: [%d] PID %d", __func__, ++c);
+	printf("\n*** %s(): [%d] PID %d", __func__, ++c, getpid());
 #ifdef __linux__
 	printf(" (TID %d)", gettid());
 #endif
@@ -275,6 +276,34 @@ Worker thread #%ld (pid %d)...\n", this, getpid());
 	pthread_exit(NULL);
 }
 
+/**
+ * setup_altsigstack - Helper function to set alternate stack for sig-handler
+ * @stack_sz:	required stack size
+ *
+ * Return: 0 on success, -ve errno on failure
+ */
+int setup_altsigstack(size_t stack_sz)
+{
+	stack_t ss;
+
+	printf("Alt signal stack size = %zu bytes\n", stack_sz);
+	ss.ss_sp = malloc(stack_sz);
+	if (!ss.ss_sp){
+		printf("malloc(%zu) for alt sig stack failed\n", stack_sz);
+		return -ENOMEM;
+	}
+
+	ss.ss_size = stack_sz;
+	ss.ss_flags = 0;
+	if (sigaltstack(&ss, NULL) == -1){
+		printf("sigaltstack for size %zu failed!\n", stack_sz);
+		return -errno;
+	}
+	printf("Alt signal stack uva (user virt addr) = %p\n", ss.ss_sp);
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	sigset_t sigset; // used for signal mask
@@ -331,10 +360,21 @@ int main(int argc, char **argv)
 	}
 
 	/* Handle synchronous signals - the SIGSEGV, etc. as a special case */
-	// TODO: use an alternate signal stack
+	/* Use a separate stack for signal handling via the SA_ONSTACK;
+	 * This is critical, especially for handling the SIGSEGV; think on it, what
+	 * if this process crashes due to stack overflow; then it will receive the
+	 * SIGSEGV from the kernel (when it attempts to eat into unmapped memory
+	 * following the end of the stack)! The SIGSEGV signal handler must now run
+	 * But where? It cannot on the old stack - it's now corrupt! Hence, the
+	 * need for an alternate signal stack !
+	 */
+	if (setup_altsigstack(10*1024*1024) < 0) {
+		fprintf(stderr, "%s: setting up alt sig stack failed\n", argv[0]);
+		exit(1);
+	}
 	memset(&act, 0, sizeof(act));
 	act.sa_sigaction = sync_sigs_handler;
-	act.sa_flags = SA_RESTART | SA_SIGINFO; // | SA_ONSTACK;
+	act.sa_flags = SA_RESTART | SA_SIGINFO | SA_ONSTACK;
 	sigemptyset(&act.sa_mask);
 	if (sigaction(SIGSEGV, &act, 0) == -1) {
 		perror("sigaction"); exit(1);
