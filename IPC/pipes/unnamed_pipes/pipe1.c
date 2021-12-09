@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 		case -1: perror(argv[0]);
 			 exit (1);
 
-		case 0 :	// Child process
+		case 0 :	// Child process : i'll be the reader
 	   		 close(fd[1]);			/* Close write end of pipe  */
    	  		 n = read( fd[0], buffer, MAX);
 			 if( n==-1 ) {
@@ -40,12 +40,13 @@ int main(int argc, char **argv)
    	  		 close(fd[0]);			/* Close read end of pipe  */
    	  		 exit( 0 );
 
-		default: 	// Parent process
+		default: 	// Parent process : i'll be the writer
 	   		close(fd[0]);			/* Close read side of pipe */
  		  	printf( "Enter line: " );	/* Accept line of input	*/	
    	  		fgets(line,MAX,stdin);						
 
   			printf( "Parent: Writing your line to child with pipe...\n" );
+			/* TODO: must check that all bytes are actually written ! */
   	  		n=write( fd[1], line, strlen(line) ); /* Write line to pipe */
 			if( n==-1 ) {
 				perror("parent write"); close(fd[1]); exit(1);

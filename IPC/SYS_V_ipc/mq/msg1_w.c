@@ -3,9 +3,7 @@
 *
 * Simple producer-consumer MQ demo app.
 * Producer: writes messages into a Message Queue and exits.
-*
 */
-
 #include "mqapp.h"
 
 int main( int argc, char **argv )
@@ -38,7 +36,8 @@ int main( int argc, char **argv )
 
 	/* Send a message of Type 2 */
 	msg.mtype=2;
-	strcpy(msg.mtext, "Message of type 2");
+	/* security: use strncpy */
+	strncpy(msg.mtext, "Message of type 2", MSGSZ_MAX);
 	n=msgsnd(id, &msg, strlen(msg.mtext), 0);
 	if( -1 == n )
 		perror("msgsnd"), exit(1);
@@ -46,12 +45,14 @@ int main( int argc, char **argv )
 
 	/* Send a message of Type 5 */
 	msg.mtype=5;
-	strcpy(msg.mtext, "Message of type 5!");
+	/* security: use strncpy */
+	strncpy(msg.mtext, "Message of type 5!", MSGSZ_MAX);
 	n=msgsnd(id, &msg, strlen(msg.mtext), 0);
 	if( -1 == n )
 		perror("msgsnd"), exit(1);
 	printf("%s [%d] : type 5 msg sent\n", argv[0], pid);
 
 	exit(0);
+	/* The MQ object is persistent.. it remains in kernel memory */
 }
 

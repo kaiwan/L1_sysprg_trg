@@ -18,7 +18,7 @@
 #define PROJECT_ID	0
 
 #define SHMSZ_OUR_MAX	(100*1024*1024)	// 100 MB
-//#define SHM_SZ		512	// in bytes
+//#define SHM_SZ                512     // in bytes
 #define MODE		0600
 #define LINELENGTH	132
 #define NUM		 10
@@ -30,27 +30,26 @@
  */
 key_t get_key()
 {
-	char *pathmem=NULL, *path=NULL;
-	key_t key=0L;
+	char *pathmem = NULL, *path = NULL;
+	key_t key = 0L;
 
 	/* App logic: the pathname for ftok() is stored in the environment 
 	 * variable PROJM_SHM_PATH . Look it up...
 	 */
-	if( (pathmem=malloc(PATH_MAX)) == NULL ) {
-		fprintf(stderr,"get_key() failure: malloc failed\n");
+	if ((pathmem = malloc(PATH_MAX)) == NULL) {
+		fprintf(stderr, "get_key() failure: malloc failed\n");
 		exit(1);
 	}
-	path=pathmem;
-	path=getenv("PROJM_SHM_PATH");
-	if( path == NULL ) {
-		fprintf(stderr,"Set environment variable PROJM_SHM_PATH to \
+	path = pathmem;
+	path = getenv("PROJM_SHM_PATH");
+	if (path == NULL) {
+		fprintf(stderr, "Set environment variable PROJM_SHM_PATH to \
 pathname of shm path file..\n");
-		free (pathmem);
+		free(pathmem);
 		exit(1);
 	}
-	
-	key = ftok (path, PROJECT_ID);
-	free (pathmem);
+
+	key = ftok(path, PROJECT_ID);
+	free(pathmem);
 	return key;
 }
-

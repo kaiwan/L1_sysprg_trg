@@ -5,9 +5,7 @@
  * Simple producer-consumer MQ demo app.
  * Consumer: reads messages from an MQ and exits.
  */
-
 #include "mqapp.h"
-int READMAX=80;
 
 /* Manually restart the syscall if interrupted by a signal ! 
  * The SA_RESTART flag has no effect on these legacy SysV APIs...
@@ -45,13 +43,13 @@ int main( int argc, char **argv )
 	 ssize_t msgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp,
                       int msgflg);
 	*/
-	if( (n=(msgrcv_r(id, &msg, READMAX, 0, 0)))== -1 )  // type 0 => fetch the first msg on the MQ !
+	if( (n=(msgrcv_r(id, &msg, MSGSZ_MAX, 0, 0)))== -1 )  // type 0 => fetch the first msg on the MQ !
 		perror("msgrcv"), exit(1);
 	printf("%s [%d]: Type 0 msg read of %d bytes; Type %ld: Msg: \"%.*s\"\n",
 				 argv[0], pid, n, msg.mtype, n, msg.mtext);
 
 	// Read msg type 5 on the Q..; msgtype, flags are last 2 params..
-	if( (n=(msgrcv_r(id, &msg, READMAX, 5, 0)))== -1 ) 
+	if( (n=(msgrcv_r(id, &msg, MSGSZ_MAX, 5, 0)))== -1 ) 
 		perror("msgrcv"), exit(1);
 	printf("%s [%d]: Type 5 msg read of %d bytes; Type %ld: Msg: \"%.*s\"\n",
 				 argv[0], pid, n, msg.mtype, n, msg.mtext);
@@ -70,4 +68,3 @@ Type %ld: Msg: \"%.*s\"\n",
 
 	exit(0);
 }
-

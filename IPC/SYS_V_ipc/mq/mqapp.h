@@ -13,12 +13,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "convenient.h"
 
 #define KEY_VAL		154326
+#define MSGSZ_MAX		   180
 
+/* Node on the list */
 struct msgbuf {
-	long int mtype;		/* type of received/sent message */
-    char mtext[80];		/* text of the message */
+    long int mtype;		/* Mandatory: type of received/sent message */
+    char mtext[MSGSZ_MAX];		/* text of the message */
 };
 
