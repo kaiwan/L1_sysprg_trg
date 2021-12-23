@@ -1,0 +1,26 @@
+# svc1.service
+[Unit]
+Description=My test app to launch at boot
+#---------------------
+# After=<xxx.target>
+# See all targets with 
+#  ls /lib/systemd/system/*.target
+# See all dependencies on a given target with
+#  systemctl list-dependencies <target>
+After=mount.target
+
+[Service]
+# the script that launches the app
+ExecStart=/home/letsdebug/L1_sysprg_trg/systemd_svcunit/svc1.sh
+WorkingDirectory=/home/letsdebug
+#RemainAfterExit=true
+#Restart=always
+
+# If this user is there, it runs as him/her user else as root
+User=letsdebug
+#--- Hey, DON'T keep a comment on the right of a statement!
+# I got this error:
+# "svc1.service: Failed to determine user credentials: No such process" yada yada... :-)
+
+[Install]
+WantedBy=multi-user.target
