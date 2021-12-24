@@ -6,6 +6,8 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <sys/types.h>
+#include <signal.h>
 
 #define MAX    10000000		// 10 million
 
@@ -38,13 +40,19 @@ static void simple_primegen(int limit)
 	printf("\n");
 }
 
+static void buzz(int signo)
+{
+	printf("%s:%s()\n", __FILE__, __func__);
+	kill(getpid(), SIGTERM);
+}
+
 int main(int argc, char **argv)
 {
 	int limit;
 
 	if (argc < 2) {
 		fprintf(stderr,
-			"Usage: %s limit-to-generate-primes-upto\n"
+			"Usage: %s limit-to-generate-primes-upto (in 1s)\n"
 			" max is %d\n", argv[0], MAX);
 		exit(EXIT_FAILURE);
 	}
@@ -56,6 +64,12 @@ int main(int argc, char **argv)
 			"the range [4 - %d].\n", argv[0], limit, MAX);
 		exit(EXIT_FAILURE);
 	}
+	if (signal(SIGALRM, buzz) < 0) {
+		perror("signal");
+		exit(EXIT_FAILURE);
+	}
+
+	alarm(1);
 	simple_primegen(limit);
 	exit(EXIT_SUCCESS);
 }
