@@ -4,5 +4,5 @@
 
 # If all's running well, the echo (stdout/stderr) automatically goes to the syslog !
 echo "$0: am running!"
-/home/letsdebug/L1_sysprg_trg/systemd_svcunit/primegen/primegen 100
+/home/kaiwan/gitL1/wip/systemd_svcunit/primegen/primegen 100000
 exit 0

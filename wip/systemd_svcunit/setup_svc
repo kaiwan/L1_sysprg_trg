@@ -1,3 +1,22 @@
 #!/bin/bash
-sudo cp svc1.service /lib/systemd/system/
-sudo systemctl enable svc1.service
+name=$(basename $0)
+[ $# -ne 1 ] && {
+  echo "Usage: ${name} systemd-unit-file"
+  exit 1
+}
+
+DEFAULT_TGT=multi-user.target
+
+die()
+{
+  echo "$1"; exit 1
+}
+
+UNITFILE=$1
+[ ! -f ${UNITFILE} ] && die "${UNITFILE} not found"
+sudo cp ${UNITFILE} /lib/systemd/system/
+echo "Enable and run it NOW"
+sudo systemctl enable --now ${UNITFILE} || die "enabling svc failed"
+#journalctl -k -f
+#ls -l /lib/systemd/system/${DEFAULT_TGT}.wants/${UNITFILE}
+exit 0
