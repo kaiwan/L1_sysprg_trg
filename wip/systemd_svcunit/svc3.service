@@ -1,0 +1,41 @@
+# svc3.service
+# stress memory
+# See the man page systemd.resource-control(5) for details
+[Unit]
+Description=My test app to launch at boot; memory test
+#---------------------
+# After=<xxx.target>
+# See all targets with 
+#  ls /lib/systemd/system/*.target
+# See all dependencies on a given target with
+#  systemctl list-dependencies <target>
+After=mount.target
+
+[Service]
+# still good case:
+# run the stressor allocing upto 400 MB with 1 worker for upto 10s
+#ExecStart=/usr/bin/stress-ng --malloc-bytes 400M --malloc 1 --timeout 10
+# Bad case: triggers the OOM killer!
+# run the stressor allocing upto 1Gb with 5 workers for upto 10s
+ExecStart=/usr/bin/stress-ng --malloc-bytes 1G --malloc 5 --timeout 10
+WorkingDirectory=/home/kaiwan
+
+# set mem high to 512M
+MemoryHigh=512M
+# set mem max to 756M
+MemoryHigh=756M
+
+#CPUQuota=10%
+#AllowedCPUs=1
+
+#RemainAfterExit=true
+#Restart=always
+
+# If this user is there, it runs as him/her user else as root
+User=kaiwan
+#--- Hey, DON'T keep a comment on the right of a statement!
+# I got this error:
+# "svc1.service: Failed to determine user credentials: No such process" yada yada... :-)
+
+[Install]
+WantedBy=multi-user.target
