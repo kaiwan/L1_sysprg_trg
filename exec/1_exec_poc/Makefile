@@ -30,13 +30,15 @@ ALL :=  prod prod_2part
 
 ###
 # Update as required
-# Simply replace the 'exec_poc' program name with your program name!
+### Simply change the variable PKG 's value to filename required !
+#--older--
+# Simply replace the 'envp' program name with your program name!
 # f.e. with sed:
-#   sed --in-place "s/exec_poc/myprg/g" Makefile
-# Of course, if you have >1 C program to build, you must add  it manually,
+#   sed --in-place "s/envp/myprg/g" Makefile
+# Of course, if you have >1 C program to build, you must add it manually,
 # or better, keep one Makefile per program in separate directories.
 ###
-ALL_NM :=  exec_poc exec_poc_dbg exec_poc_dbg_asan exec_poc_dbg_ub exec_poc_gcov
+ALL_NM :=  exec_poc
 
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
@@ -44,10 +46,14 @@ STRIP=${CROSS_COMPILE}strip
 
 PROD_OPTLEVEL=-O2
   # or -O3 or -Os
-CFLAGS=-Wall -UDEBUG ${PROD_OPTLEVEL}
+CSTD=-std=c18
+POSIX_STD=199309L
+ # deliberately using the older one for max compatibility
+
+CFLAGS=-Wall -pedantic -UDEBUG ${PROD_OPTLEVEL} ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD}
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -pedantic -Wextra -DDEBUG ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD}
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
 #CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
@@ -61,9 +67,8 @@ INDENT := indent
 FLAWFINDER := flawfinder
 CPPCHECK := cppcheck
 VALGRIND := valgrind
-
 # update as required
-PKG_NAME := exec_poc
+PKG := exec_poc
 CHECKPATCH := ../../checkpatch.pl
 
 # Targets and their rules
@@ -73,35 +78,35 @@ CHECKPATCH := ../../checkpatch.pl
 #     excellent for production as it gives ability to debug as and when required!
 #     (internally invokes the 'debug' target as it requires the debug binary as well
 # 3. 'debug' target(s): -O0, debug symbolic info (-g -ggdb), not stripped
-prod: exec_poc.c
+prod: ${PKG}.c
 	@echo
 	@echo "--- building 'production'-ready target (-O2, no debug, stripped) ---"
 	@echo
-	${CC} ${CFLAGS} exec_poc.c -o exec_poc
-	${STRIP} --strip-all ./exec_poc
+	${CC} ${CFLAGS} ${PKG}.c -o ${PKG}
+	${STRIP} --strip-all ./${PKG}
 
 # The '2-part executable' solution : use strip and objcopy to generate a
 # binary executable that has the ability to retrieve debug symbolic information
 # from the 'debug' binary!
-prod_2part: exec_poc.c
+prod_2part: ${PKG}.c
 	@echo
 	@echo "--- building 'production'-ready 2-part target (-O2, no debug, strip-debug) ---"
 	@echo
 # We reuire the 'debug' build for the 2part, so do that first
 	make debug
-	${CC} ${CFLAGS} exec_poc.c -o exec_poc
-	${STRIP} --strip-debug ./exec_poc
-	objcopy --add-gnu-debuglink=./exec_poc_dbg ./exec_poc
+	${CC} ${CFLAGS} ${PKG}.c -o ${PKG}
+	${STRIP} --strip-debug ./${PKG}
+	objcopy --add-gnu-debuglink=./${PKG}_dbg ./envp
 
-debug: exec_poc.c
+debug: ${PKG}.c
 	@echo
 	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
 	@echo
-	${CC} ${CFLAGS_DBG} exec_poc.c -o exec_poc_dbg
+	${CC} ${CFLAGS_DBG} ${PKG}.c -o ${PKG}_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} exec_poc.c -o exec_poc_dbg_asan
-	${CC} ${CFLAGS_DBG_UB} exec_poc.c -o exec_poc_dbg_ub
-#	${CC} ${CFLAGS_DBG_MSAN} exec_poc.c -o exec_poc_dbg_msan
+	${CC} ${CFLAGS_DBG_ASAN} ${PKG}.c -o ${PKG}_dbg_asan
+	${CC} ${CFLAGS_DBG_UB} ${PKG}.c -o ${PKG}_dbg_ub
+#	${CC} ${CFLAGS_DBG_MSAN} ${PKG}.c -o ${PKG}_dbg_msan
 
 
 #--------------- More (useful) targets! -------------------------------
@@ -156,15 +161,15 @@ valgrind:
 	@echo
 	@echo "--- dynamic analysis with valgrind ---"
 	@echo
-	${VALGRIND} --tool=memcheck --trace-children=yes ./exec_poc_dbg
+	${VALGRIND} --tool=memcheck --trace-children=yes ./${PKG}_dbg
 
 # Testing: line coverage with gcov(1)
 covg:
 	@echo
 	@echo "=== Code coverage with gcov ==="
 	@echo
-	${CC} ${CFLAGS_GCOV} exec_poc.c -o exec_poc_gcov
-	./exec_poc_gcov
+	${CC} ${CFLAGS_GCOV} ${PKG}.c -o ${PKG}_gcov
+	./${PKG}_gcov
 	gcov ${SRC_FILES}
 	@echo "Examine the *.c.gcov file(s)"
 
@@ -173,11 +178,11 @@ package:
 	@echo
 	@echo "--- packaging ---"
 	@echo
-	rm -f ../${PKG_NAME}.tar.xz
+	rm -f ../${PKG}.tar.xz
 	make clean
-	tar caf ../${PKG_NAME}.tar.xz *
-	ls -l ../${PKG_NAME}.tar.xz
-	@echo "=== $(PKG_NAME).tar.xz package created ==="
+	tar caf ../${PKG}.tar.xz *
+	ls -l ../${PKG}.tar.xz
+	@echo "=== $(PKG).tar.xz package created ==="
 
 clean:
 	@echo

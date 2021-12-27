@@ -44,10 +44,14 @@ STRIP=${CROSS_COMPILE}strip
 
 PROD_OPTLEVEL=-O2
   # or -O3 or -Os
-CFLAGS=-Wall -UDEBUG ${PROD_OPTLEVEL}
+CSTD=-std=c18
+POSIX_STD=199309L
+ # deliberately using the older one for max compatibility
+
+CFLAGS=-Wall -pedantic -UDEBUG ${PROD_OPTLEVEL} ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD}
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -pedantic -Wextra -DDEBUG ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD}
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
 #CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
