@@ -2,8 +2,8 @@
 # for the demo Internet domain C/S app...
 
 CC=gcc
-CFLAGS_DBG=-D_REENTRANT -DDBG -g -ggdb -O0 -Wall
-CFLAGS=-D_REENTRANT -Wall
+CFLAGS_DBG=-DDBG -g -ggdb -O0 -Wall
+CFLAGS=-Wall -O2 -UDBG
 
 ALL := client_any
 all: ${ALL}
