@@ -38,7 +38,7 @@ void *stack(void)
 
 static void sighdlr(int signum)
 {
-	static int s = 0;
+	static sig_atomic_t s = 0;
 	int saved;
 
 	printf("\nsighdlr: caught signal %d,", signum);
