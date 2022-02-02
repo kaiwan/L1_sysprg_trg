@@ -1,5 +1,12 @@
 /*
  * cr8ManyThrds.c
+ *
+ * Write a Pthreads MT (multithreaded) app to spawn threads; the number of
+ * threads to spawn is to be given as a command-line parameter. You must
+ * have a validity check on the maximum number of threads to create, based on
+ * both the resource limit RLIMIT_NPROC (use the prlimit(2) API to query it)
+ * and the overall system limit.
+ *
  * (c) Kaiwan NB, kaiwanTECH
  * License: MIT
  */
@@ -19,7 +26,14 @@ char gbuf[100];
 void *PrintStuff(void *threadnum)
 {
 	printf("Thread %05ld\n", (long)threadnum);
+#if 1
+	// we want the worker threads alive...
 	pause();
+#else
+	/* Detaching them allows creation of more threads IFF we allow the
+     * workers to die! */
+	pthread_detach(pthread_self());
+#endif
 	pthread_exit(NULL);
 }
 
@@ -47,6 +61,7 @@ int main(int argc, char **argv)
 
 	for (t = 0; t < numthrds; t++) {
 		int rc;
+		// TODO : Assumption: they're joinable...
 		rc = pthread_create(&threads[t], NULL, PrintStuff, (void *)t);
 		if (rc) {
 			printf

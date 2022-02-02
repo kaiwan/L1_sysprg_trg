@@ -120,7 +120,11 @@ int main(int argc, char *argv[])
 
 	freeaddrinfo(servinfo);	// all done with this structure
 
-	// recv(2) will work for both tcp stream and datagram sockets
+	/* After this it's your call! Here we do something quite silly;
+	 * we just attempt to receive data - assuming the server is sending data to us...
+	 * A case of YMMV!   Your Mileage May Vary   :-)
+	 * recv(2) will work for both tcp stream and datagram sockets
+	 */
 	if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
 		perror("recv");
 		exit(1);
