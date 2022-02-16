@@ -90,7 +90,7 @@ prod_2part: sched_pthrd_rtprio.c
 	@echo
 	@echo "--- building 'production'-ready 2-part target (-O2, no debug, strip-debug) ---"
 	@echo
-# We reuire the 'debug' build for the 2part, so do that first
+# We require the 'debug' build for the 2part, so do that first
 	make debug
 	${CC} ${CFLAGS} sched_pthrd_rtprio.c -o sched_pthrd_rtprio -pthread
 	${STRIP} --strip-debug ./sched_pthrd_rtprio

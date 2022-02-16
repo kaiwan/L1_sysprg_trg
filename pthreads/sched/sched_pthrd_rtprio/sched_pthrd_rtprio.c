@@ -30,9 +30,7 @@ void *thrd_p2(void *msg)
 				getpid(), __func__, (long)msg);
 	sleep(2);
 
-	/* pthread_setschedparam(3) internally becomes the syscall
-	 * sched_setscheduler(2) (or sched_setattr(2)).
-	 */
+	/* pthread_setschedparam(3) internally becomes the syscall sched_setscheduler(2)) */
 	p.sched_priority = (long)msg;
 	if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &p))
 		perror("pthread_setschedparam");
@@ -59,13 +57,14 @@ void *thrd_p3(void *msg)
 	       " setting sched policy to SCHED_FIFO and RT priority HIGHER to %ld in 4 seconds..\n",
 	       getpid(), __func__, pri);
 
-	/* pthread_setschedparam(3) internally becomes the syscall
-	 * sched_setscheduler(2) (or sched_setattr(2)).
+	/* pthread_setschedparam(3) internally becomes the syscall sched_setscheduler(2))
+	 * Used strace to figure this out!
+     *  sudo taskset 02 strace -f ./sched_pthrd_rtprio 7 2>strc.txt
 	 */
 	p.sched_priority = pri;
 	if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &p))
 		perror("pthread_setschedparam");
-	sleep(4);
+	sleep(4); /* blocking call; allow other thread(s) to run... */
 
 	puts("  p3: working");
 	DELAY_LOOP('3', 210);
@@ -95,7 +94,7 @@ int main(int argc, char **argv)
 	}
 	MSG("SCHED_FIFO priority range is %d to %d\n", min, max);
 
-	rt_pri = atoi(argv[1]); // better to use strtoul(3) for better checking/IoF ...
+	rt_pri = atoi(argv[1]); // TODO: better to use strtoul(3) for better checking/IoF ...
 	if ((rt_pri < min) || (rt_pri > (max - 10))) {
 		fprintf(stderr,
 			"%s: Priority value passed (%ld) out of range [%d-%d].\n",
