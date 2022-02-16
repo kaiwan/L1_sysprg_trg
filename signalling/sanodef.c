@@ -7,7 +7,7 @@
  * (reentering the handler code) over & over again until all signals
  * are handled.
  *
- * Remember to compile with optimization Off (-O0) so as to have the 
+ * Remember to compile with optimization Off (-O0) so as to have the
  * delay loop work correctly.
  *
  * Author :  Kaiwan N Billimoria, kaiwanTECH
@@ -20,9 +20,6 @@
 #include <string.h>
 #include <sys/file.h>
 #include "../convenient.h"
-
-int indx = 0;
-unsigned char buf[] = { '0', '1', '2', '3', '4', '5', '6', '7' };
 
 #define		MAX		8
 
@@ -38,7 +35,7 @@ void *stack(void)
 
 static void sighdlr(int signum)
 {
-	static sig_atomic_t s = 0;
+	static sig_atomic_t s;
 	int saved;
 
 	printf("\nsighdlr: caught signal %d,", signum);
@@ -56,9 +53,9 @@ static void sighdlr(int signum)
 		(void)fflush(stdout);
 		break;
 
-	default:;
+	default:
+		;
 	}
-	return;
 }
 
 int main(int argc, char **argv)
