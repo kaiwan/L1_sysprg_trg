@@ -1,12 +1,12 @@
 #!/bin/bash
-
+name=${0##*/}
 die()
 {
-  echo $@
+  echo -e >&2 "${name}:FATAL: $*"
   exit 1
 }
 
-[ $# -ne 2 ] && die "Usage: $0 PID name-of-mapping
+[ $# -ne 2 ] && die "Usage: ${name} PID name-of-mapping
   Eg. $0 1001 stack"
 kill -0 $1 || die "process PID $1 doesn't exist?"
 grep -q $2 /proc/$1/maps || die "no match for $2 in process maps file"
