@@ -62,6 +62,10 @@ VALGRIND := valgrind
 # update as required
 PKG_NAME := ${FNAME_C}
 CHECKPATCH := ../../checkpatch.pl
+GCOV := gcov
+LCOV := lcov
+GENINFO := geninfo
+GENHTML := genhtml
 
 # Targets and their rules
 # Three types:
@@ -161,10 +165,15 @@ covg:
 	@echo "=== Code coverage with gcov ==="
 	@echo
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov -pthread
-# update as required (param)
-	./${FNAME_C}_gcov 5
-	gcov ${SRC_FILES}
-	@echo "Examine the *.c.gcov file(s)"
+# update the test run below as required (params)
+	@echo "= Running test case ..."
+	./${FNAME_C}_gcov
+	${GCOV} ${SRC_FILES}
+# generate .info from the .gcno and .gcda file(s) in .
+	${GENINFO} ./ -o ./${FNAME_C}.info
+# generate HTML report in output directory lcov_html/
+	${GENHTML} ./${FNAME_C}.info --output-directory lcov_html/
+	@echo "Display lcov html report: google-chrome lcov_html/index.html"
 
 # packaging
 package:
@@ -181,7 +190,8 @@ clean:
 	@echo
 	@echo "--- cleaning ---"
 	@echo
-	rm -vf ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov core* vgcore* *.o *~ *.c.gcov *.gcda *.gcno
+	rm -vf ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov core* vgcore* *.o *~
+	rm -rfv *.c.gcov *.gcda *.gcno *.info lcov_html/
 
 help:
 	@echo '=== Makefile Help : additional targets available ==='
