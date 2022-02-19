@@ -199,7 +199,8 @@ clean:
 	@echo
 	@echo "--- cleaning ---"
 	@echo
-	rm -vf ${ALL_NM} core* vgcore* *.o *~ *.c.gcov *.gcda *.gcno
+	rm -vf ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov core* vgcore* *.o *~
+	rm -rfv *.c.gcov *.gcda *.gcno *.info lcov_html/
 
 help:
 	@echo '=== Makefile Help : additional targets available ==='
