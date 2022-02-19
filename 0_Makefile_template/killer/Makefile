@@ -68,7 +68,10 @@ VALGRIND := valgrind
 # update as required
 PKG_NAME := ${FNAME_C}
 CHECKPATCH := /lib/modules/$(shell uname -r)/build/scripts/checkpatch.pl
- #../../checkpatch.pl
+GCOV := gcov
+LCOV := lcov
+GENINFO := geninfo
+GENHTML := genhtml
 
 # Targets and their rules
 # Three types:
@@ -167,10 +170,16 @@ covg:
 	@echo
 	@echo "=== Code coverage with gcov ==="
 	@echo
-	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov
+	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov -pthread
+# update the test run below as required (more tests + params)
+	@echo "= Running test case(s) ..."
 	./${FNAME_C}_gcov
-	gcov ${SRC_FILES}
-	@echo "Examine the *.c.gcov file(s)"
+	${GCOV} ${SRC_FILES}
+# generate .info from the .gcno and .gcda file(s) in .
+	${GENINFO} ./ -o ./${FNAME_C}.info
+# generate HTML report in output directory lcov_html/
+	${GENHTML} ./${FNAME_C}.info --output-directory lcov_html/
+	@echo "Display lcov html report: google-chrome lcov_html/index.html"
 
 # packaging
 package:
