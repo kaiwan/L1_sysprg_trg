@@ -165,11 +165,23 @@ valgrind:
 	@echo
 	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg
 
-# Testing: line coverage with gcov(1)
+# Testing: line coverage with gcov(1), lcov(1)
+# ref: https://backstreetcoder.com/code-coverage-using-gcov-lcov-in-linux/
 covg:
 	@echo
-	@echo "=== Code coverage with gcov ==="
+	@echo "=== Code coverage (funcs/lines/branches) with gcov+lcov ==="
 	@echo
+
+# Set up the ~/.lcovrc to include branch coverage
+# ref: https://stackoverflow.com/questions/12360167/generating-branch-coverage-data-for-lcov
+ifneq (,$(wildcard ~/.lcovrc))
+	@echo "~/.lcovrc in place"
+else
+	cp /etc/lcovrc ~/.lcovrc
+	sed -i 's/^#genhtml_branch_coverage = 1/genhtml_branch_coverage = 1/' ~/.lcovrc
+	sed -i 's/^lcov_branch_coverage = 0/lcov_branch_coverage = 1/' ~/.lcovrc
+endif
+
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov -pthread
 # update the test run below as required (more tests + params)
 	@echo "= Running test case(s) ..."
@@ -232,7 +244,7 @@ help:
 	@echo
 	@echo '--- dynamic analysis targets ---'
 	@echo ' valgrind   : run the dynamic analysis tool ($(VALGRIND)) on the binary executable'
-	@echo ' covg       : run the gcov code coverage tool on the source'
+	@echo ' covg       : run the gcov+lcov code coverage tooling on the source (generates html output!)'
 
 	@echo
 	@echo '--- misc targets ---'
