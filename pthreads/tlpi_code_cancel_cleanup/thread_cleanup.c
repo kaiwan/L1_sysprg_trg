@@ -56,6 +56,11 @@ threadFunc(void *arg)
     }
 
     printf("thread:  condition wait loop completed\n");
+	/* You must get the cleanup handler to execute. It can be done in one of 2 ways:
+	 * a) call pthread_cleanup_pop() with a positive arg
+	 * -OR-
+	 * b) call pthread_cleanup_pop(0) AND call pthread_exit()
+	 */
     pthread_cleanup_pop(1);             /* Executes cleanup handler */
     return NULL;
 }
