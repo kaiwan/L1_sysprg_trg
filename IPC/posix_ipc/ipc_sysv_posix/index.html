@@ -27,8 +27,11 @@ The System V API allows for private, unnamed, in-memory IPC mechanisms to be sha
 <tr><th>process<th>System V<th>POSIX</tr>
 <tr>
 <td>parent</td>
-<td><!--#include virtual="sysv_shared_memory_file_parent.c"--></td>
+<td>virtual="sysv_shared_memory_file_parent.c"</td>
+<td>virtual="posix_shared_memory_parent.c"</td>
+<!-- <td><!--#include virtual="sysv_shared_memory_file_parent.c"--></td>
 <td><!--#include virtual="posix_shared_memory_parent.c"--></td>
+-->
 </tr>
 <tr>
 <td>child</td>
