@@ -1,5 +1,5 @@
 # Makefile
-# A 'better' Makefile template for Linux Pthreads programming
+# A 'better' Makefile template for Linux system programming
 #
 # Besides the 'usual' targets to build production and debug versions of the
 # code and cleanup, we incorporate targets to do useful (and indeed required)
@@ -30,11 +30,13 @@ ALL :=  prod prod_2part
 
 ###
 # Update as required
-# Simply replace the FNAME_C program name with your program name!
-# Of course, if you have >1 C program to build, you must add  it manually,
-# or better, keep one Makefile per program in separate directories.
+# Simply replace the variable ${FNAME_C} below (currently set to 'killer'),
+# with your program name!
+# Of course, if you have >1 C program to build, you must add it manually.
+# Also, it's recommended to keep one Makefile per program in separate directories.
 ###
-FNAME_C := prcs_matrixmul
+FNAME_C = prcs_matrixmul
+ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov
 
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
@@ -42,10 +44,14 @@ STRIP=${CROSS_COMPILE}strip
 
 PROD_OPTLEVEL=-O2
   # or -O3 or -Os
-CFLAGS=-Wall -UDEBUG ${PROD_OPTLEVEL}
+  # or -O3 or -Os
+CSTD=-std=c18
+POSIX_STD=201101 #199309L
+
+CFLAGS=-Wall -pedantic -UDEBUG ${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD}
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -pedantic -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD}
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
 #CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
@@ -61,7 +67,11 @@ CPPCHECK := cppcheck
 VALGRIND := valgrind
 # update as required
 PKG_NAME := ${FNAME_C}
-CHECKPATCH := ../../checkpatch.pl
+CHECKPATCH := /lib/modules/$(shell uname -r)/build/scripts/checkpatch.pl
+GCOV := gcov
+LCOV := lcov
+GENINFO := geninfo
+GENHTML := genhtml
 
 # Targets and their rules
 # Three types:
@@ -74,7 +84,7 @@ prod: ${FNAME_C}.c
 	@echo
 	@echo "--- building 'production'-ready target (-O2, no debug, stripped) ---"
 	@echo
-	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} -pthread
+	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C}
 	${STRIP} --strip-all ./${FNAME_C}
 
 # The '2-part executable' solution : use strip and objcopy to generate a
@@ -84,9 +94,9 @@ prod_2part: ${FNAME_C}.c
 	@echo
 	@echo "--- building 'production'-ready 2-part target (-O2, no debug, strip-debug) ---"
 	@echo
-# We reuire the 'debug' build for the 2part, so do that first
+# We require the 'debug' build for the 2part, so do that first
 	make debug
-	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} -pthread
+	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C}
 	${STRIP} --strip-debug ./${FNAME_C}
 	objcopy --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
 
@@ -94,11 +104,11 @@ debug: ${FNAME_C}.c
 	@echo
 	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
 	@echo
-	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg -pthread
+	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan -pthread
-	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub -pthread
-#	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan -pthread
+	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan
+	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub
+#	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan
 
 
 #--------------- More (useful) targets! -------------------------------
@@ -161,10 +171,15 @@ covg:
 	@echo "=== Code coverage with gcov ==="
 	@echo
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov -pthread
-# update as required (param)
-	./${FNAME_C}_gcov 5
-	gcov ${SRC_FILES}
-	@echo "Examine the *.c.gcov file(s)"
+# update the test run below as required (more tests + params)
+	@echo "= Running test case(s) ..."
+	./${FNAME_C}_gcov
+	${GCOV} ${SRC_FILES}
+# generate .info from the .gcno and .gcda file(s) in .
+	${GENINFO} ./ -o ./${FNAME_C}.info
+# generate HTML report in output directory lcov_html/
+	${GENHTML} ./${FNAME_C}.info --output-directory lcov_html/
+	@echo "Display lcov html report: google-chrome lcov_html/index.html"
 
 # packaging
 package:
@@ -176,12 +191,16 @@ package:
 	tar caf ../${PKG_NAME}.tar.xz *
 	ls -l ../${PKG_NAME}.tar.xz
 	@echo "=== $(PKG_NAME).tar.xz package created ==="
+	@echo 'Tip: when extracting, to extract into a dir of the same name as the tar file,'
+	@echo ' do: tar -xvf ${PKG_NAME}.tar.xz --one-top-level'
+
 
 clean:
 	@echo
 	@echo "--- cleaning ---"
 	@echo
-	rm -vf ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov core* vgcore* *.o *~ *.c.gcov *.gcda *.gcno
+	rm -vf ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov core* vgcore* *.o *~
+	rm -rfv *.c.gcov *.gcda *.gcno *.info lcov_html/
 
 help:
 	@echo '=== Makefile Help : additional targets available ==='
@@ -213,10 +232,13 @@ help:
 	@echo
 	@echo '--- dynamic analysis targets ---'
 	@echo ' valgrind   : run the dynamic analysis tool ($(VALGRIND)) on the binary executable'
-	@echo ' covg       : run the gcov code coverage tool on the source'
+	@echo ' covg       : run the gcov+lcov code coverage tooling on the source (generates html output!)'
 
 	@echo
 	@echo '--- misc targets ---'
 	@echo ' clean      : cleanup - remove all the binaries, core files, etc'
 	@echo ' package    : tar and compress the source files into the dir above'
+	@echo '  Tip: when extracting, to extract into a dir of the same name as the tar file, do:'
+	@echo '       tar -xvf ${PKG_NAME}.tar.xz --one-top-level'
+
 	@echo ' help       : this 'help' target'
