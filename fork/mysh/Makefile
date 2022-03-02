@@ -30,13 +30,12 @@ ALL :=  prod prod_2part
 
 ###
 # Update as required
-# Simply replace the 'mysh' program name with your program name!
-# f.e. with sed:
-#   sed --in-place "s/mysh/myprg/g" Makefile
+# Simply replace the FNAME_C variable with your program name!
 # Of course, if you have >1 C program to build, you must add  it manually,
 # or better, keep one Makefile per program in separate directories.
 ###
-ALL_NM :=  mysh mysh_dbg mysh_dbg_asan mysh_dbg_ub mysh_gcov
+FNAME_C := mysh
+ALL_NM :=  ${FNAME} ${FNAME}_dbg ${FNAME}_dbg_asan ${FNAME}_dbg_ub ${FNAME}_gcov
 
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
@@ -62,8 +61,12 @@ FLAWFINDER := flawfinder
 CPPCHECK := cppcheck
 VALGRIND := valgrind
 # update as required
-PKG_NAME := mysh
+PKG_NAME := ${FNAME}
 CHECKPATCH := ../../checkpatch.pl
+GCOV := gcov
+LCOV := lcov
+GENINFO := geninfo
+GENHTML := genhtml
 
 # Targets and their rules
 # Three types:
@@ -72,35 +75,35 @@ CHECKPATCH := ../../checkpatch.pl
 #     excellent for production as it gives ability to debug as and when required!
 #     (internally invokes the 'debug' target as it requires the debug binary as well
 # 3. 'debug' target(s): -O0, debug symbolic info (-g -ggdb), not stripped
-prod: mysh.c
+prod: ${FNAME}.c
 	@echo
 	@echo "--- building 'production'-ready target (-O2, no debug, stripped) ---"
 	@echo
-	${CC} ${CFLAGS} mysh.c -o mysh
-	${STRIP} --strip-all ./mysh
+	${CC} ${CFLAGS} ${FNAME}.c -o ${FNAME}
+	${STRIP} --strip-all ./${FNAME}
 
 # The '2-part executable' solution : use strip and objcopy to generate a
 # binary executable that has the ability to retrieve debug symbolic information
 # from the 'debug' binary!
-prod_2part: mysh.c
+prod_2part: ${FNAME}.c
 	@echo
 	@echo "--- building 'production'-ready 2-part target (-O2, no debug, strip-debug) ---"
 	@echo
 # We reuire the 'debug' build for the 2part, so do that first
 	make debug
-	${CC} ${CFLAGS} mysh.c -o mysh
-	${STRIP} --strip-debug ./mysh
-	objcopy --add-gnu-debuglink=./mysh_dbg ./mysh
+	${CC} ${CFLAGS} ${FNAME}.c -o ${FNAME}
+	${STRIP} --strip-debug ./${FNAME}
+	objcopy --add-gnu-debuglink=./${FNAME}_dbg ./${FNAME}
 
-debug: mysh.c
+debug: ${FNAME}.c
 	@echo
 	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
 	@echo
-	${CC} ${CFLAGS_DBG} mysh.c -o mysh_dbg
+	${CC} ${CFLAGS_DBG} ${FNAME}.c -o ${FNAME}_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} mysh.c -o mysh_dbg_asan
-	${CC} ${CFLAGS_DBG_UB} mysh.c -o mysh_dbg_ub
-#	${CC} ${CFLAGS_DBG_MSAN} mysh.c -o mysh_dbg_msan
+	${CC} ${CFLAGS_DBG_ASAN} ${FNAME}.c -o ${FNAME}_dbg_asan
+	${CC} ${CFLAGS_DBG_UB} ${FNAME}.c -o ${FNAME}_dbg_ub
+#	${CC} ${CFLAGS_DBG_MSAN} ${FNAME}.c -o ${FNAME}_dbg_msan
 
 
 #--------------- More (useful) targets! -------------------------------
@@ -155,17 +158,35 @@ valgrind:
 	@echo
 	@echo "--- dynamic analysis with valgrind ---"
 	@echo
-	${VALGRIND} --tool=memcheck --trace-children=yes ./mysh_dbg
+	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME}_dbg
 
-# Testing: line coverage with gcov(1)
+# Testing: line coverage with gcov(1), lcov(1)
+# ref: https://backstreetcoder.com/code-coverage-using-gcov-lcov-in-linux/
 covg:
 	@echo
-	@echo "=== Code coverage with gcov ==="
+	@echo "=== Code coverage (funcs/lines/branches) with gcov+lcov ==="
 	@echo
-	${CC} ${CFLAGS_GCOV} mysh.c -o mysh_gcov
-	./mysh_gcov
-	gcov ${SRC_FILES}
-	@echo "Examine the *.c.gcov file(s)"
+
+# Set up the ~/.lcovrc to include branch coverage
+# ref: https://stackoverflow.com/questions/12360167/generating-branch-coverage-data-for-lcov
+ifneq (,$(wildcard ~/.lcovrc))
+	@echo "~/.lcovrc in place"
+else
+	cp /etc/lcovrc ~/.lcovrc
+	sed -i 's/^#genhtml_branch_coverage = 1/genhtml_branch_coverage = 1/' ~/.lcovrc
+	sed -i 's/^lcov_branch_coverage = 0/lcov_branch_coverage = 1/' ~/.lcovrc
+endif
+
+	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov -pthread
+# update the test run below as required (more tests + params)
+	@echo "= Running test case(s) ..."
+	./${FNAME_C}_gcov
+	${GCOV} ${SRC_FILES}
+# generate .info from the .gcno and .gcda file(s) in .
+	${GENINFO} ./ -o ./${FNAME_C}.info
+# generate HTML report in output directory lcov_html/
+	${GENHTML} ./${FNAME_C}.info --output-directory lcov_html/
+	@echo "Display lcov html report: google-chrome lcov_html/index.html"
 
 # packaging
 package:
@@ -214,7 +235,7 @@ help:
 	@echo
 	@echo '--- dynamic analysis targets ---'
 	@echo ' valgrind   : run the dynamic analysis tool ($(VALGRIND)) on the binary executable'
-	@echo ' covg       : run the gcov code coverage tool on the source'
+	@echo ' covg       : run the gcov+lcov code coverage tooling on the source (generates html output!)'
 
 	@echo
 	@echo '--- misc targets ---'
