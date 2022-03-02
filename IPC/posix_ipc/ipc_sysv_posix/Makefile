@@ -64,22 +64,22 @@ posix_message_queue_parent \
 posix_message_queue_child
 
 posix_shared_memory_parent: posix_shared_memory_parent.c
-	gcc -o posix_shared_memory_parent posix_shared_memory_parent.c -lrt -Wall
+	gcc -o posix_shared_memory_parent posix_shared_memory_parent.c -Wall -lrt
 
 posix_shared_memory_child: posix_shared_memory_child.c
-	gcc -o posix_shared_memory_child posix_shared_memory_child.c -lrt -Wall
+	gcc -o posix_shared_memory_child posix_shared_memory_child.c -Wall -lrt
 
 posix_semaphore_parent: posix_semaphore_parent.c
-	gcc -pthread -o posix_semaphore_parent posix_semaphore_parent.c -Wall
+	gcc -pthread -o posix_semaphore_parent posix_semaphore_parent.c -Wall -lrt
 
 posix_semaphore_child: posix_semaphore_child.c
-	gcc -pthread -o posix_semaphore_child posix_semaphore_child.c -Wall
+	gcc -pthread -o posix_semaphore_child posix_semaphore_child.c -Wall -lrt
 
 posix_message_queue_parent: posix_message_queue_parent.c
-	gcc -o posix_message_queue_parent posix_message_queue_parent.c -lrt -Wall
+	gcc -o posix_message_queue_parent posix_message_queue_parent.c -Wall -lrt
 
 posix_message_queue_child: posix_message_queue_child.c
-	gcc -o posix_message_queue_child posix_message_queue_child.c -lrt -Wall
+	gcc -o posix_message_queue_child posix_message_queue_child.c -Wall -lrt
 
 posix_clean:
 	rm -f posix_shared_memory_parent

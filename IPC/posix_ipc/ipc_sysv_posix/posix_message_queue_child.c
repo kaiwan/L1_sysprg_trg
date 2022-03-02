@@ -5,7 +5,6 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
@@ -30,8 +29,6 @@ int main(int argc, char **argv)
         perror("mq_open");
         goto cleanup;
     }
-	system("ls -la /dev/mqueue");
-
     printf("execve'd child pid is %d\n", getpid());
     printf("execve'd child waiting for message\n");
     rv = mq_receive(msgid, msg, 1024, NULL);

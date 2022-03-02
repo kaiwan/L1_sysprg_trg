@@ -11,6 +11,8 @@
 #include <malloc.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 struct msgbuf {
     long mtype;
@@ -44,7 +46,7 @@ int main(int argc, char **argv)
     }
     else if (cpid == 0) {
         printf("child pid is %d\n", getpid());
-        exec = execve("sysv_message_queue_file_child", NULL, NULL);
+        exec = execl("sysv_message_queue_file_child", "sysv_message_queue_file_child", (char *)NULL);
         if (exec < 0) {
             perror("execve");
             goto cleanup;

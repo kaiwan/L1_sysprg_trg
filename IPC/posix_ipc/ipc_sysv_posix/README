@@ -1,1 +1,3 @@
-Src: http://www.hildstrom.com/projects/ipc_sysv_posix/index.html
+Original src: http://www.hildstrom.com/projects/ipc_sysv_posix/index.html
+
+Small mods by me (Kaiwan) to have them build cleanly (as of Feb 2022).

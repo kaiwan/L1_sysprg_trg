@@ -11,9 +11,9 @@
 #include <malloc.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 int main(int argc, char **argv)
 {
@@ -24,16 +24,12 @@ int main(int argc, char **argv)
     size_t buffer_size = 4096;
     int exec = 0;
     int rv = 0;
-
-	// 'named' shm pbject; on Linux, it's under a tmpfs /dev/shm/<somename>
     shmfd = shm_open("/shmname", O_RDWR | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
     if (shmfd < 0) {
         perror("shm_open");
         goto cleanup;
     }
     rv = ftruncate(shmfd, buffer_size);
-	system("ls -l /dev/shm/");
-
     if (rv < 0) {
         perror("ftruncate");
         goto cleanup;
@@ -43,8 +39,6 @@ int main(int argc, char **argv)
         perror("mmap");
         goto cleanup;
     }
-	printf("shmem region uva = %p\n", buffer);
-
     cpid = fork();
     if (cpid < 0) {
         perror("fork");
@@ -52,9 +46,9 @@ int main(int argc, char **argv)
     }
     else if (cpid == 0) {
         printf("child pid is %d\n", getpid());
-        exec = execlp("./posix_shared_memory_child", "posix_shared_memory_child", NULL);
+        exec = execl("posix_shared_memory_child", "posix_shared_memory_child", (char *)NULL);
         if (exec < 0) {
-            perror("execl failed");
+            perror("execve");
             goto cleanup;
         }
     }
@@ -69,10 +63,8 @@ cleanup:
         munmap(buffer, buffer_size);
     if (shmfd > 0) {
         close(shmfd);
-//        shm_unlink("/shmname");
+        shm_unlink("/shmname");
     }
-	while(1)
-		pause();
     return rc;
 }
 

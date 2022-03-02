@@ -11,9 +11,9 @@
 #include <malloc.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <mqueue.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <mqueue.h>
 
 int main(int argc, char **argv)
 {
@@ -24,7 +24,6 @@ int main(int argc, char **argv)
     char *msg = NULL;
     int rv = 0;
     int exec = 0;
-
     msg = (char*)malloc(1024);
     if (!msg) {
         perror("msg");
@@ -39,8 +38,6 @@ int main(int argc, char **argv)
         perror("mq_open");
         goto cleanup;
     }
-	// the POSIX mq pseudo-file "/msgname" is created under /dev/mqueue on Linux
-
     cpid = fork();
     if (cpid < 0) {
         perror("fork");
@@ -48,7 +45,7 @@ int main(int argc, char **argv)
     }
     else if (cpid == 0) {
         printf("child pid is %d\n", getpid());
-        exec = execl("./posix_message_queue_child", "posix_message_queue_child", NULL);
+        exec = execl("posix_message_queue_child", "posix_message_queue_child", (char *)0);
         if (exec < 0) {
             perror("execve");
             goto cleanup;

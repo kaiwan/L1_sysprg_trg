@@ -11,6 +11,8 @@
 #include <malloc.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 int main(int argc, char **argv)
 {
@@ -46,7 +48,7 @@ int main(int argc, char **argv)
     }
     else if (cpid == 0) {
         printf("child pid is %d\n", getpid());
-        exec = execve("sysv_semaphore_file_child", NULL, NULL);
+        exec = execl("sysv_semaphore_file_child", "sysv_semaphore_file_child", (char *)NULL);
         if (exec < 0) {
             perror("execve");
             goto cleanup;

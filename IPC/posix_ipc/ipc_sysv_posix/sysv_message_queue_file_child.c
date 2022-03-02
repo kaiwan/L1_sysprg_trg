@@ -20,10 +20,11 @@ struct msgbuf {
 int main(int argc, char **argv)
 {
     int rc = 1;
-    key_t key = 0;
     int msgid = 0;
     struct msgbuf msg;
     ssize_t rv = 0;
+	key_t key;
+
     key = ftok("msgfile", 'R');
     if (key < 0) {
         perror("ftok");
@@ -41,7 +42,7 @@ int main(int argc, char **argv)
         perror("msgrcv");
         goto cleanup;
     }
-    printf("execve'd child received message type %d\n", msg.mtype);
+    printf("execve'd child received message type %ld\n", msg.mtype);
     rc = 0;
 cleanup:
     return rc;

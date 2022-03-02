@@ -20,6 +20,7 @@
 /* Node on the list */
 struct msgbuf {
     long int mtype;		/* Mandatory: type of received/sent message */
+	/* ... you're free to put ANYTHING here ... */
     char mtext[MSGSZ_MAX];		/* text of the message */
 };
 

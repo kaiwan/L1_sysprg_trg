@@ -5,14 +5,13 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <semaphore.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <semaphore.h>
 
 int main(int argc, char **argv)
 {
@@ -21,15 +20,11 @@ int main(int argc, char **argv)
     sem_t *sem = NULL;
     int rv = 0;
     int exec = 0;
-
-	// 'named' semaphore; on Linux, it's under a tmpfs /dev/shm/sem.<somename>
     sem = sem_open("/semname", O_RDWR | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO, 0);
     if (sem == SEM_FAILED) {
         perror("sem_open");
         goto cleanup;
     }
-	system("ls -l /dev/shm/sem*");
-
     cpid = fork();
     if (cpid < 0) {
         perror("fork");
@@ -37,9 +32,9 @@ int main(int argc, char **argv)
     }
     else if (cpid == 0) {
         printf("child pid is %d\n", getpid());
-        exec = execlp("./posix_semaphore_child", "posix_semaphore_child", NULL);
+        exec = execl("posix_semaphore_child", "posix_semaphore_child", (char *)NULL);
         if (exec < 0) {
-            perror("execlp");
+            perror("execve");
             goto cleanup;
         }
     }
