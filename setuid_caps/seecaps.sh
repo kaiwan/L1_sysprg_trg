@@ -40,12 +40,12 @@ show_files_with_caps()
  ShowTitle "Scanning various folders for binaries with (modern) 'capabilities' embedded ..."
  aecho "Scanning /bin ..."
  scanforcaps /bin
- aecho "Scanning /usr/bin ..."
- scanforcaps /usr/bin
+ #aecho "Scanning /usr/bin ..."
+ #scanforcaps /usr/bin
  aecho "Scanning /sbin ..."
  scanforcaps /sbin
- aecho "Scanning /usr/sbin ..."
- scanforcaps /usr/sbin
+ #aecho "Scanning /usr/sbin ..."
+ #scanforcaps /usr/sbin
  aecho "Scanning /usr/local/bin ..."
  scanforcaps /usr/local/bin
  aecho "Scanning /usr/local/sbin ..."
@@ -57,12 +57,13 @@ show_traditional_setuid_root()
  ShowTitle "Scanning various folders for traditional setuid-root binaries ..."
  aecho "Scanning /bin ..."
  ls -l /bin/  |grep "^-..s" |awk '$3=="root" {print $0}'
- aecho "Scanning /usr/bin ..."
- ls -l /usr/bin/  |grep "^-..s" |awk '$3=="root" {print $0}'
+ # /bin -> /usr/bin
+ #aecho "Scanning /usr/bin ..."
+ #ls -l /usr/bin/  |grep "^-..s" |awk '$3=="root" {print $0}'
  aecho "Scanning /sbin ..."
  ls -l /sbin/  |grep "^-..s" |awk '$3=="root" {print $0}'
- aecho "Scanning /usr/sbin ..."
- ls -l /usr/sbin/  |grep "^-..s" |awk '$3=="root" {print $0}'
+ #aecho "Scanning /usr/sbin ..."
+ #ls -l /usr/sbin/  |grep "^-..s" |awk '$3=="root" {print $0}'
  aecho "Scanning /usr/local/bin ..."
  ls -l /usr/local/bin/  |grep "^-..s" |awk '$3=="root" {print $0}'
  aecho "Scanning /usr/local/sbin ..."
