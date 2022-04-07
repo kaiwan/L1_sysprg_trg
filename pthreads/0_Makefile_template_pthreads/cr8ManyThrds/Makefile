@@ -41,6 +41,7 @@ ALL_NM :=  cr8ManyThrds cr8ManyThrds_dbg cr8ManyThrds_dbg_asan cr8ManyThrds_dbg_
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
 STRIP=${CROSS_COMPILE}strip
+OBJCOPY=${CROSS_COMPILE}objcopy
 
 PROD_OPTLEVEL=-O2
   # or -O3 or -Os
@@ -90,7 +91,7 @@ prod_2part: cr8ManyThrds.c
 	make debug
 	${CC} ${CFLAGS} cr8ManyThrds.c -o cr8ManyThrds -pthread
 	${STRIP} --strip-debug ./cr8ManyThrds
-	objcopy --add-gnu-debuglink=./cr8ManyThrds_dbg ./cr8ManyThrds
+	${OBJCOPY} --add-gnu-debuglink=./cr8ManyThrds_dbg ./cr8ManyThrds
 
 debug: cr8ManyThrds.c
 	@echo
