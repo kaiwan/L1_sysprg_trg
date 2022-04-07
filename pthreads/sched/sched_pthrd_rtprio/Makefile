@@ -41,6 +41,7 @@ ALL_NM :=  sched_pthrd_rtprio sched_pthrd_rtprio_dbg sched_pthrd_rtprio_dbg_asan
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
 STRIP=${CROSS_COMPILE}strip
+OBJCOPY=${CROSS_COMPILE}objcopy
 
 # keep optimization 0 to enable the DELAY_LOOP() macro to run properly...
 PROD_OPTLEVEL=-O0
@@ -94,7 +95,7 @@ prod_2part: sched_pthrd_rtprio.c
 	make debug
 	${CC} ${CFLAGS} sched_pthrd_rtprio.c -o sched_pthrd_rtprio -pthread
 	${STRIP} --strip-debug ./sched_pthrd_rtprio
-	objcopy --add-gnu-debuglink=./sched_pthrd_rtprio_dbg ./sched_pthrd_rtprio
+	${OBJCOPY} --add-gnu-debuglink=./sched_pthrd_rtprio_dbg ./sched_pthrd_rtprio
 	sudo setcap CAP_SYS_NICE+eip ./sched_pthrd_rtprio
 	getcap ./sched_pthrd_rtprio
 

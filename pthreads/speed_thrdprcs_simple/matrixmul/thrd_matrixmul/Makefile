@@ -39,6 +39,7 @@ FNAME_C := thrd_matrixmul
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
 STRIP=${CROSS_COMPILE}strip
+OBJCOPY=${CROSS_COMPILE}objcopy
 
 PROD_OPTLEVEL=-O2
   # or -O3 or -Os
@@ -92,7 +93,7 @@ prod_2part: ${FNAME_C}.c
 	make debug
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} -pthread
 	${STRIP} --strip-debug ./${FNAME_C}
-	objcopy --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
+	${OBJCOPY} --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
 
 debug: ${FNAME_C}.c
 	@echo

@@ -102,8 +102,9 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	printf("\nNote: to create true RT threads, you need to run this \
-program as superuser -OR- have the capability CAP_SYS_NICE (better!)\n");
+	printf("\nNote: to create true (soft) RT threads, and have it run as expected, you need to:\n\
+	1. run this program as superuser -OR- have the capability CAP_SYS_NICE (better!)\n\
+	2. ensure it runs on a single CPU core (use taskset -c02 <prg-name>)\n");
 	printf("%s() thread (%d): now creating realtime pthread p2..\n",
 	       __func__, getpid());
 	r = pthread_create(&p2,	// thread id
