@@ -26,10 +26,14 @@ int main(int argc, char **argv)
 		     getpid(), p);
 		exit(0);
 	default:		// Parent
+#if 0
+		wait(0); // no zombie as am waiting...
+#endif
 		printf("Parent pid %d : p=%d; sleeping now for 300s without wait()-ing \
 (resulting in an orphaned child)..\n", getpid(),
 		       p);
 		sleep(300); // lets take a nap
+		// Unless you kill the parent, the child remains a zombie!
 		printf("Parent: sleep done, exiting. Notice how (on Linux) the \
 zombie is now cleared!\n");
 		exit(0);

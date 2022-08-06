@@ -47,7 +47,8 @@ PROD_OPTLEVEL=-O2
 CFLAGS=-Wall -UDEBUG ${PROD_OPTLEVEL}
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG -fno-omit-frame-pointer
+ # Added the '-fno-omit-frame-pointer' for good observability via CPU FlameGraph generation!
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
 #CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory

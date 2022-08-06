@@ -8,7 +8,15 @@ pgrep ${svr} && {
  exit 1
 }
 ./${svr} 0.0.0.0 60001 -v &
-# now connect from the client like this:
+
+#--- Client:
+# Now connect from the client to the server process like this:
+# 1. On the local network (LAN):
+#  nc <any-ipaddr-on-client> <port#>
+# f.e.
+#  nc 192.168.1.201 60001
+#
+# 2. If using an IoT service (like remote.it)
 #  nc -v proxy72.rt3.io 30193   
 # -or-
 #  ./client_any proxy72.rt3.io 30193   

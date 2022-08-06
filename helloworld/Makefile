@@ -1,7 +1,15 @@
-ALL := helloworld
+ALL := hello armhello
 all: ${ALL}
 
-helloworld: helloworld.c
-	gcc helloworld.c -o helloworld -Wall -O3
+CL := gcc
+OUT := hello
+ifeq ($(ARCH),arm)
+  @echo "Building for ARM"
+  CL := ${CROSS_COMPILE}gcc
+  OUT := armhello
+endif
+
+hello: helloworld.c
+	${CL} helloworld.c -o ${OUT} -Wall -Os
 clean:
-	rm -f helloworld
+	rm -f ${OUT}
