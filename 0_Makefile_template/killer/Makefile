@@ -61,6 +61,7 @@ CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage
 
 # Required vars
 all: ${ALL}
+#--- USER CHECK: set SRC_FILES as required
 SRC_FILES := *.[ch]
 INDENT := indent
 FLAWFINDER := flawfinder
@@ -148,6 +149,7 @@ sa_flawfinder:
 	@echo
 	@echo "--- static analysis with flawfinder ---"
 	@echo
+#--- USER CHECK: set parameters as required
 	${FLAWFINDER} --neverignore --context *.[ch]
 
 # static analysis with cppcheck
@@ -156,6 +158,7 @@ sa_cppcheck:
 	@echo
 	@echo "--- static analysis with cppcheck ---"
 	@echo
+#--- USER CHECK: set parameters as required
 	${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
 
 # dynamic analysis with valgrind
@@ -164,7 +167,8 @@ valgrind:
 	@echo
 	@echo "--- dynamic analysis with valgrind ---"
 	@echo
-	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg
+#--- USER CHECK: set parameters to target as required
+	${VALGRIND} --tool=memcheck --trace-children=yes --track-origins=yes ./${FNAME_C}_dbg
 
 # Testing: line coverage with gcov(1), lcov(1)
 # ref: https://backstreetcoder.com/code-coverage-using-gcov-lcov-in-linux/
@@ -184,15 +188,26 @@ else
 endif
 
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov -pthread
-# update the test run below as required (more tests + params)
-	@echo "= Running test case(s) ..."
+#--- USER CHECK: set parameters to target as required
+# Update the test run below as required (more tests + params)
+	@echo "= Running test case(s) ... \n\
+NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it \n\
+and then invoke the	covg.sh script to complete the coverage analysis (don't forget to \n\
+update covg.sh:FNAME_C as well!"
+
 	./${FNAME_C}_gcov
+# ...As the PUT (prg under test) can run continually, it's possible that the
+# instructions below will have to be run manually...
+# Attempting to abort the PUT with ^C (or [p]kill) causes the entire chain - incl below-
+# to abort. So, we need a separate script to run the stuff below; that's precisely
+# the purpose behind the script covg.sh; run it if this code below doesn't run
+# automatically.
 	${GCOV} ${SRC_FILES}
 # generate .info from the .gcno and .gcda file(s) in .
 	${GENINFO} ./ -o ./${FNAME_C}.info
 # generate HTML report in output directory lcov_html/
 	${GENHTML} ./${FNAME_C}.info --output-directory lcov_html/
-	@echo "Display lcov html report: google-chrome lcov_html/index.html"
+	@echo "Display lcov html report:\ngoogle-chrome lcov_html/index.html"
 
 # packaging
 package:
