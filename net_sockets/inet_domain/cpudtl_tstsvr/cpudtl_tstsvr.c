@@ -88,8 +88,8 @@ $
  * SERV_IP as local loopback addr. Else, use the IP address of the 
  * machine it's on.
  */
-//#define	SERV_IP		"192.168.43.228" //"127.0.0.1" 
-//#define SERV_PORT	6100
+//#define       SERV_IP         "192.168.43.228" //"127.0.0.1" 
+//#define SERV_PORT     6100
 #define MAXBUF		5120
 #define RE_MAXLEN	100+256+48+8+8+1024+4096+128
 
@@ -102,13 +102,13 @@ static int verbose = 0;
 // Prevent zombies..
 static void sig_child(int signum)
 {
-#if 0 // not reqd on 2.6+ with SA_NOCLDWAIT flag..
+#if 0				// not reqd on 2.6+ with SA_NOCLDWAIT flag..
 	int status;
 	int pid;
 #endif
 	QP;
 	return;
-#if 0 // not reqd on 2.6+ with SA_NOCLDWAIT flag..
+#if 0				// not reqd on 2.6+ with SA_NOCLDWAIT flag..
 	while ((pid = wait3(&status, WNOHANG, 0)) > 0) {
 		if (verbose)
 			printf("parent server in SIGCHLD handler; pid=%d\n",
@@ -151,10 +151,35 @@ static int process_client(int sd, char *prg)
 		printf("%s: no memory for reply buffer\n", prg);
 		exit(1);
 	}
+#if 1   /*
+		 * Interesting!
+		 * Commenting out the memset(), has valgrind complain thus:
+		 * make valgrind
+		 * ...
+		 * valgrind --tool=memcheck --trace-children=yes \
+		--track-origins=yes ./cpudtl_tstsvr_dbg 0.0.0.0 60001
+ (notice how we include the '--track-origins=yes' to get to the src of the issue!)
+		 * ...
+==110529== Command: /usr/bin/lscpu
+==110529== 
+==110527== Conditional jump or move depends on uninitialised value(s)
+==110527==    at 0x483EDED: strncat (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==110527==    by 0x1099F3: process_client (cpudtl_tstsvr.c:176)
+==110527==    by 0x109F5D: main (cpudtl_tstsvr.c:293)
+==110527==  Uninitialised value was created by a heap allocation
+==110527==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+==110527==    by 0x1098BC: process_client (cpudtl_tstsvr.c:149)
+==110527==    by 0x109F5D: main (cpudtl_tstsvr.c:293)
+		 * 
+		 * Ah, the malloc() allocs memory but its uninitialized of course...
+		 * Once we init it (w/ the memset()), this err report disappears!
+		 */
+	memset(reply, 0, MAXBUF);
+#endif
 
 	/* !NOTE! SECURITY ALERT!
 	   Doing nonsense like an arbit 'popen' this can be deadly!!!
-            Esp in 'w' mode!
+	   Esp in 'w' mode!
 	 */
 	fp = popen("lscpu", "r");
 	if (!fp) {
@@ -194,13 +219,14 @@ int main(int argc, char *argv[])
 	socklen_t clilen;
 	struct sockaddr_in svr_addr, cli_addr;
 	struct sigaction act;
-	int port = 49161;  //6100;
+	int port = 49161;	//6100;
 
 	if (argc < 3) {
-		fprintf(stderr, "Usage: %s server-ip-addr port-num [-v]\n", argv[0]);
+		fprintf(stderr, "Usage: %s server-ip-addr port-num [-v]\n",
+			argv[0]);
 		exit(1);
 	}
-	port=atoi(argv[2]);
+	port = atoi(argv[2]);
 
 	if ((argc == 4) && (strcmp(argv[3], "-v") == 0))
 		verbose = 1;
@@ -208,7 +234,7 @@ int main(int argc, char *argv[])
 	/* Ignore SIGPIPE, so that server does not recieve it if it attempts
 	   to write to a socket whose peer has closed; the write fails with EPIPE instead..
 	 */
-	if (signal (SIGPIPE, SIG_IGN) == SIG_ERR)
+	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
 		ErrExit(argv[0], "signal", 1);
 
 	if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
@@ -219,12 +245,23 @@ int main(int argc, char *argv[])
 	// Initialize server's address & bind it
 	// Required to be in Network-Byte-Order
 	svr_addr.sin_family = AF_INET;
+#if 1
 	svr_addr.sin_addr.s_addr = inet_addr(argv[1]);
-//      svr_addr.sin_addr.s_addr = INADDR_ANY;
+#else
+	svr_addr.sin_addr.s_addr = INADDR_ANY;	// INADDR_ANY == "0.0.0.0" =>any available system IPaddr
+#endif
 	svr_addr.sin_port = htons(port);
 
 	if (bind(sd, (struct sockaddr *)&svr_addr, sizeof(svr_addr)) == -1)
 		ErrExit(argv[0], "socket bind error", 2);
+	/*
+	 * The (in)famous 'Address already in use' issue can crop up!
+	 * Explanation: http://www.softlab.ntua.gr/facilities/documentation/unix/unix-socket-faq/unix-socket-faq-4.html#ss4.2
+	 * One sol- use the SO_REUSEADDR socket option:
+	const int enable = 1;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+		// handle warn/error ...
+	 */
 	if (verbose)
 		printf("%s: bind done at IP %s port %d\n", argv[0], argv[1],
 		       port);
@@ -234,7 +271,7 @@ int main(int argc, char *argv[])
 	if (verbose)
 		printf("%s: listen q set up\n", argv[0]);
 
-#define	ZOMBIES		0   // make this 1 to generate zombies! :-)
+#define	ZOMBIES		0	// make this 1 to generate zombies! :-)
 #if(ZOMBIES==0)
 	act.sa_handler = sig_child;
 	sigemptyset(&act.sa_mask);
@@ -262,7 +299,7 @@ int main(int argc, char *argv[])
 port # %d\n", argv[0], inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 		fflush(stdout);
 
-		// Client connected; process..
+		// Client connected; process.. model: multiprocess concurrent (TCP) server
 		switch (fork()) {
 		case -1:
 			perror("fork error");
@@ -300,5 +337,3 @@ port # %d\n", argv[0], inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 		}		// switch
 	}			// while
 }				// main()
-
-// end svr.c
