@@ -9,7 +9,7 @@ DEFAULT_TGT=multi-user.target
 
 die()
 {
-  echo "$1"; exit 1
+  echo "$*"; exit 1
 }
 
 UNITFILE=$1
@@ -18,5 +18,5 @@ sudo cp ${UNITFILE} /lib/systemd/system/
 echo "Enable and run it NOW"
 sudo systemctl enable --now ${UNITFILE} || die "enabling svc failed"
 #journalctl -k -f
-#ls -l /lib/systemd/system/${DEFAULT_TGT}.wants/${UNITFILE}
+ls -l /lib/systemd/system/${DEFAULT_TGT}.wants/${UNITFILE}
 exit 0

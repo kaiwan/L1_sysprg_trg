@@ -23,7 +23,7 @@ WorkingDirectory=/home/kaiwan
 # set mem high to 512M
 MemoryHigh=512M
 # set mem max to 756M
-MemoryHigh=756M
+MemoryMax=756M
 
 #CPUQuota=10%
 #AllowedCPUs=1

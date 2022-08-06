@@ -25,7 +25,7 @@ AllowedCPUs=1
 # If this user is there, it runs as him/her user else as root
 User=kaiwan
 #--- Hey, DON'T keep a comment on the right of a statement!
-# I got this error:
+# I got this error when I did:
 # "svc1.service: Failed to determine user credentials: No such process" yada yada... :-)
 
 [Install]
