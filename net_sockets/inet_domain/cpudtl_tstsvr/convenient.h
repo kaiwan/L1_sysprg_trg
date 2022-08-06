@@ -45,10 +45,10 @@
 #undef USE_FTRACE_PRINT
 
 #ifdef USE_FTRACE_PRINT
- #define DBGPRINT(string, args...) \
+#define DBGPRINT(string, args...) \
      trace_printk(string, ##args);
 #else
- #define DBGPRINT(string, args...) do {                 \
+#define DBGPRINT(string, args...) do {                 \
      int USE_RATELIMITING=1;                            \
 	 /* Not supposed to use printk_ratelimit() now.. */ \
 	 if (USE_RATELIMITING) {                            \
@@ -63,11 +63,11 @@
 #ifdef DEBUG
 #ifdef __KERNEL__
 #define MSG(string, args...) do {                                     \
-		 DBGPRINT("%s:%d : " string, __FUNCTION__, __LINE__, ##args);      \
+		 DBGPRINT("%s:%d : " string, __func__, __LINE__, ##args);      \
 	 } while (0)
 #else
 #define MSG(string, args...) do {                                      \
-		fprintf(stderr, "%s:%d : " string, __FUNCTION__, __LINE__, ##args); \
+		fprintf(stderr, "%s:%d : " string, __func__, __LINE__, ##args); \
 	 } while (0)
 #endif
 
@@ -238,12 +238,10 @@ static inline void beep(int what)
  * Credits: Arkaitz Jimenez
  * http://stackoverflow.com/questions/1444428/time-stamp-in-the-c-programming-language
  */
-static int timeval_subtract(struct timeval *result, struct timeval *x,
-			    struct timeval *y);
 /* Subtract the `struct timeval' values X and Y,
     storing the result in RESULT.
     Return 1 if the difference is negative, otherwise 0.  */
-__attribute__ ((unused))
+#include <sys/time.h>
 int timeval_subtract(struct timeval *result, struct timeval *x,
 		     struct timeval *y)
 {
@@ -277,7 +275,7 @@ int timeval_subtract(struct timeval *result, struct timeval *x,
  * @binary  : the binary result as a string (OUT)
  *
  */
-__attribute__ ((unused))
+__attribute__((unused))
 static void dec2bin(long decimal, char *binary)
 {
 	int k = 0, n = 0;
@@ -335,7 +333,7 @@ static void dec2bin(long decimal, char *binary)
 #ifndef __KERNEL__
 
 #define MSG(string, args...) do {                                      \
-	fprintf(stderr, "%s:%d : " string, __FUNCTION__, __LINE__, ##args); \
+	fprintf(stderr, "%s:%d : " string, __func__, __LINE__, ##args); \
 } while (0)
 
 #define MSG_SHORT(string, args...) do { \
