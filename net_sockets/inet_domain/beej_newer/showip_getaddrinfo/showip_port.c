@@ -20,28 +20,28 @@ int main(int argc, char *argv[])
 	}
 
 	/*
-	From the man page on getaddrinfo(3):
-	...
-	Given node and service, which identify an Internet host and a service, 
-	getaddrinfo() returns one or more addrinfo structures, each of which
-        contains an Internet address that can be specified in a call to bind(2) or 
-	connect(2). The getaddrinfo() function combines the functionality provided 
-	by the getservbyname(3) and getservbyport(3) functions into a single interface, 
-	but unlike the latter functions, getaddrinfo() is reentrant and allows programs 
-	to eliminate IPv4-versus-IPv6 dependencies.
-	
-	...
+	   From the man page on getaddrinfo(3):
+	   ...
+	   Given node and service, which identify an Internet host and a service,
+	   getaddrinfo() returns one or more addrinfo structures, each of which
+	   contains an Internet address that can be specified in a call to bind(2) or
+	   connect(2). The getaddrinfo() function combines the functionality provided
+	   by the getservbyname(3) and getservbyport(3) functions into a single interface,
+	   but unlike the latter functions, getaddrinfo() is reentrant and allows programs
+	   to eliminate IPv4-versus-IPv6 dependencies.
 
-	 The hints argument points to an addrinfo structure that specifies criteria for 
-	 selecting the socket address structures returned in the list pointed  to by res.  
-	 If hints is not NULL it points to an addrinfo structure whose ai_family, 
-	 ai_socktype, and ai_protocol specify criteria that limit the set of socket 
-	 addresses returned by getaddrinfo(),
-	...
-	*/
-	memset(&hints, 0, sizeof hints);
+	   ...
+
+	   The hints argument points to an addrinfo structure that specifies criteria for
+	   selecting the socket address structures returned in the list pointed  to by res.
+	   If hints is not NULL it points to an addrinfo structure whose ai_family,
+	   ai_socktype, and ai_protocol specify criteria that limit the set of socket
+	   addresses returned by getaddrinfo(),
+	   ...
+	 */
+	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;	// AF_INET or AF_INET6 to force version
-	hints.ai_socktype = 0; //SOCK_STREAM;
+	hints.ai_socktype = 0;	//SOCK_STREAM;
 	hints.ai_flags = AI_CANONNAME;
 
 	if ((status = getaddrinfo(argv[1], argv[2], &hints, &res)) != 0) {
@@ -50,13 +50,13 @@ int main(int argc, char *argv[])
 	}
 
 	/*
-	...
- 	The getaddrinfo() function allocates and initializes a linked list of addrinfo 
-	structures, one for each network address that  matches  node and  service, 
-	subject to any restrictions imposed by hints, and returns a pointer to the start 
-	of the list in res.  The items in the linked list are linked by the ai_next field.
-	...	
-	*/
+	   ...
+	   The getaddrinfo() function allocates and initializes a linked list of addrinfo 
+	   structures, one for each network address that  matches  node and  service,
+	   subject to any restrictions imposed by hints, and returns a pointer to the start
+	   of the list in res.  The items in the linked list are linked by the ai_next field.
+	   ...
+	 */
 	printf("IP addresses for %s:\n\n", argv[1]);
 
 	for (p = res; p != NULL; p = p->ai_next) {
@@ -82,17 +82,17 @@ int main(int argc, char *argv[])
 		}
 
 // convert the IP to a string and print it:
-		inet_ntop(p->ai_family, addr, ipstr, sizeof ipstr);
+		inet_ntop(p->ai_family, addr, ipstr, sizeof(ipstr));
 		if (p->ai_protocol == 6)
-			proto="tcp";
+			proto = "tcp";
 		else if (p->ai_protocol == 17)
-			proto="udp";
+			proto = "udp";
 
 		printf(" %s: %s %s", ipver, ipstr, proto);
 		if (port)
-		  printf(" port %d\n", port);
+			printf(" port %d\n", port);
 		else
-		  printf("\n");
+			printf("\n");
 		if (p->ai_canonname)
 			printf(" canonname: %s\n", p->ai_canonname);
 	}
