@@ -37,7 +37,6 @@ void *get_in_addr(struct sockaddr *sa)
 	if (sa->sa_family == AF_INET) {
 		return &(((struct sockaddr_in*)sa)->sin_addr);
 	}
-
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
@@ -95,7 +94,6 @@ int main(void)
 			close(listener);
 			continue;
 		}
-
 		break;
 	}
 
@@ -104,7 +102,6 @@ int main(void)
 		fprintf(stderr, "selectserver: failed to bind\n");
 		exit(2);
 	}
-
 	freeaddrinfo(ai); // all done with this
 
     // listen
@@ -209,4 +206,3 @@ int main(void)
     
     return 0;
 }
-
