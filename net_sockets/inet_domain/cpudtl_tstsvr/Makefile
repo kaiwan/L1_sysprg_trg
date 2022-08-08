@@ -188,11 +188,12 @@ endif
 
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov -pthread
 # update the test run below as required (more tests + params)
-	@echo "= Running test case(s) ...
-		NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it
-	and then invoke the	covg.sh script to complete the coverage analysis (don't forget to
-	update covg.sh:FNAME_C as well!
-	"
+Update the test run below as required (more tests + params)
+	@echo "= Running test case(s) ... \n\
+NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it \n\
+and then invoke the	covg.sh script to complete the coverage analysis (don't forget to \n\
+update covg.sh:FNAME_C as well!"
+
 	./${FNAME_C}_gcov 0.0.0.0 60001
 # ...As the PUT (prg under test) can run continually, it's possible that the
 # instructions below will have to be run manually...
