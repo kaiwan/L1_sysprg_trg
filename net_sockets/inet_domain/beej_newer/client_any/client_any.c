@@ -4,7 +4,6 @@
  * (c) Beej's Guide
  * http://beej.us/guide/bgnet/examples/client.c
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -47,42 +46,42 @@ int main(int argc, char *argv[])
 	//hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_ALL;
 
-        /*
-	From the man page on getaddrinfo(3):
-	int getaddrinfo(const char *node, const char *service,
-                       const struct addrinfo *hints,
-                       struct addrinfo **res);
-	...
-	Given node and service, which identify an Internet host and a service, 
-	getaddrinfo() returns one or more addrinfo structures, each of which
-    contains an Internet address that can be specified in a call to bind(2) or 
-	connect(2). The getaddrinfo() function combines the functionality provided 
-	by the getservbyname(3) and getservbyport(3) functions into a single interface, 
-	but unlike the latter functions, getaddrinfo() is reentrant and allows programs 
-	to eliminate IPv4-versus-IPv6 dependencies.
-	
-	...
+	/*
+	   From the man page on getaddrinfo(3):
+	   int getaddrinfo(const char *node, const char *service,
+	   const struct addrinfo *hints,
+	   struct addrinfo **res);
+	   ...
+	   Given node and service, which identify an Internet host and a service, 
+	   getaddrinfo() returns one or more addrinfo structures, each of which
+	   contains an Internet address that can be specified in a call to bind(2) or 
+	   connect(2). The getaddrinfo() function combines the functionality provided 
+	   by the getservbyname(3) and getservbyport(3) functions into a single interface, 
+	   but unlike the latter functions, getaddrinfo() is reentrant and allows programs 
+	   to eliminate IPv4-versus-IPv6 dependencies.
 
-	 The hints argument points to an addrinfo structure that specifies criteria for 
-	 selecting the socket address structures returned in the list pointed to by res.  
-	 If hints is not NULL it points to an addrinfo structure whose ai_family, 
-	 ai_socktype, and ai_protocol specify criteria that limit the set of socket 
-	 addresses returned by getaddrinfo(),
-	...
-	*/
+	   ...
+
+	   The hints argument points to an addrinfo structure that specifies criteria for 
+	   selecting the socket address structures returned in the list pointed to by res.  
+	   If hints is not NULL it points to an addrinfo structure whose ai_family, 
+	   ai_socktype, and ai_protocol specify criteria that limit the set of socket 
+	   addresses returned by getaddrinfo(),
+	   ...
+	 */
 	printf("%s: issuing the getaddrinfo lib API now...\n", argv[0]);
 	if ((rv = getaddrinfo(argv[1], argv[2], &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
-    /*
-	...
- 	The getaddrinfo() function allocates and initializes a linked list of addrinfo 
-	structures, one for each network address that  matches  node and  service, 
-	subject to any restrictions imposed by hints, and returns a pointer to the start 
-	of the list in res.  The items in the linked list are linked by the ai_next field.
-	...	
-	*/
+	/*
+	   ...
+	   The getaddrinfo() function allocates and initializes a linked list of addrinfo 
+	   structures, one for each network address that  matches  node and  service, 
+	   subject to any restrictions imposed by hints, and returns a pointer to the start 
+	   of the list in res.  The items in the linked list are linked by the ai_next field.
+	   ...      
+	 */
 
 	/* Iterate over the addrinfo linked list through all the results
 	 * and connect to the first we can..
@@ -93,8 +92,8 @@ int main(int argc, char *argv[])
 			perror("client_any: socket");
 			continue;
 		}
-		printf(" %s: loop iteration #%d: got socket fd [%d]..\n", argv[0],
-		       ++i, sockfd);
+		printf(" %s: loop iteration #%d: got socket fd [%d]..\n",
+		       argv[0], ++i, sockfd);
 
 		printf(" %s: now attempting to connect to %s:%d...\n",
 		       argv[0], argv[1], atoi(argv[2]));
@@ -111,8 +110,8 @@ int main(int argc, char *argv[])
 		return 2;
 	}
 
-   // Convert the IP to a string and print it:
-   //  p = presentation (dotted-decimal str), n = network (numeric)
+	// Convert the IP to a string and print it:
+	//  p = presentation (dotted-decimal str), n = network (numeric)
 	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s,
 		  sizeof s);
 	printf("%s: connected to %s:%d, performing 'recv' now...\n", argv[0], s,
@@ -125,7 +124,7 @@ int main(int argc, char *argv[])
 	 * A case of YMMV!   Your Mileage May Vary   :-)
 	 * recv(2) will work for both tcp stream and datagram sockets
 	 */
-	if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+	if ((numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0)) == -1) {
 		perror("recv");
 		exit(1);
 	}
