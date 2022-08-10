@@ -1,17 +1,21 @@
 # Makefile
 # Also performs dependency tracking (for headers etc)
 # ref/credit: http://nuclear.mutantstargoat.com/articles/make/
+
+#---NOTE: keep this UPDATED---------------------------
 csrc = $(wildcard *.c) \
         $(wildcard engine/*.c) \
         $(wildcard audio/*.c)
+#-----------------------------------------------------
 obj = $(csrc:.c=.o)
 dep = $(obj:.o=.d)  # one dependency file for each source
 
 all: myapp
 CC=${CROSS_COMPILE}gcc
-CFLAGS = -Wall -MMD     # option to generate a .d file during compilation
+CFLAGS = -Os -Wall -MMD
 CFLAGS_DBG=-g -ggdb -gdwarf -O0 -Wall -Wextra -MMD
-LDFLAGS = -lm -lz  #-lGL -lglut -lpng
+  # -MMD: option to generate a .d file during compilation
+LDFLAGS = #-lm -lz -lGL -lglut -lpng
 
 myapp: $(obj)
 	@echo "obj = $(obj), @ = $@, ^ = $^"
