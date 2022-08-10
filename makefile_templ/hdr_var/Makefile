@@ -1,18 +1,16 @@
 # Makefile
+# Also performs dependency tracking (for headers etc)
 # ref/credit: http://nuclear.mutantstargoat.com/articles/make/
-csrc := $(wildcard src/*.c) \
-        $(wildcard src/engine/*.c) \
-        $(wildcard src/audio/*.c)
-
-# NOT working??
-#obj := $(csrc:.c=.o)
-# Let's explicitly specify the obj's
-obj := main.o s2.o engine/s3.o audio/s4.o
+csrc = $(wildcard *.c) \
+        $(wildcard engine/*.c) \
+        $(wildcard audio/*.c)
+obj = $(csrc:.c=.o)
+dep = $(obj:.o=.d)  # one dependency file for each source
 
 all: myapp
 CC=${CROSS_COMPILE}gcc
-CFLAGS_DBG=-g -ggdb -gdwarf -O0 -Wall -Wextra
-CFLAGS=-Wall
+CFLAGS = -Wall -MMD     # option to generate a .d file during compilation
+CFLAGS_DBG=-g -ggdb -gdwarf -O0 -Wall -Wextra -MMD
 LDFLAGS = -lm -lz  #-lGL -lglut -lpng
 
 myapp: $(obj)
@@ -20,6 +18,8 @@ myapp: $(obj)
 	@echo "build rule: \
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)"
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+-include $(dep)   # include all dep files in the makefile
 
 .PHONY: clean
 clean:
