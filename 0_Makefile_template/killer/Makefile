@@ -35,7 +35,7 @@ ALL :=  prod prod_2part
 # Of course, if you have >1 C program to build, you must add it manually.
 # Also, it's recommended to keep one Makefile per program in separate directories.
 ###
-FNAME_C = killer
+FNAME_C := killer
 ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov
 
 CC=${CROSS_COMPILE}gcc
@@ -46,7 +46,7 @@ OBJCOPY=${CROSS_COMPILE}objcopy
 PROD_OPTLEVEL=-O2
   # or -O3 or -Os
   # or -O3 or -Os
-CSTD=-std=c18
+CSTD=-ansi -std=c99 -std=c18  # the last one wins; else if unsupported, earlier ones...
 POSIX_STD=201101 #199309L
 
 CFLAGS=-Wall -pedantic -UDEBUG ${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD}
@@ -61,7 +61,6 @@ CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage
 
 # Required vars
 all: ${ALL}
-#--- USER CHECK: set SRC_FILES as required
 SRC_FILES := *.[ch]
 INDENT := indent
 FLAWFINDER := flawfinder
@@ -149,7 +148,6 @@ sa_flawfinder:
 	@echo
 	@echo "--- static analysis with flawfinder ---"
 	@echo
-#--- USER CHECK: set parameters as required
 	${FLAWFINDER} --neverignore --context *.[ch]
 
 # static analysis with cppcheck
@@ -158,7 +156,6 @@ sa_cppcheck:
 	@echo
 	@echo "--- static analysis with cppcheck ---"
 	@echo
-#--- USER CHECK: set parameters as required
 	${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
 
 # dynamic analysis with valgrind
@@ -167,8 +164,8 @@ valgrind:
 	@echo
 	@echo "--- dynamic analysis with valgrind ---"
 	@echo
-#--- USER CHECK: set parameters to target as required
-	${VALGRIND} --tool=memcheck --trace-children=yes --track-origins=yes ./${FNAME_C}_dbg
+	#--- USER CHECK: manually add params as required
+	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg
 
 # Testing: line coverage with gcov(1), lcov(1)
 # ref: https://backstreetcoder.com/code-coverage-using-gcov-lcov-in-linux/
@@ -177,6 +174,9 @@ covg:
 	@echo "=== Code coverage (funcs/lines/branches) with gcov+lcov ==="
 	@echo
 
+ifeq (,$(wildcard /etc/lcovrc))
+	$(error ERROR: install lcov first)
+endif
 # Set up the ~/.lcovrc to include branch coverage
 # ref: https://stackoverflow.com/questions/12360167/generating-branch-coverage-data-for-lcov
 ifneq (,$(wildcard ~/.lcovrc))
@@ -188,12 +188,10 @@ else
 endif
 
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov -pthread
-#--- USER CHECK: set parameters to target as required
-# Update the test run below as required (more tests + params)
+#Update the test run below as required (more tests + params)
 	@echo "= Running test case(s) ... \n\
-NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it \n\
-and then invoke the	covg.sh script to complete the coverage analysis (don't forget to \n\
-update covg.sh:FNAME_C as well!"
+ NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it \n\
+ and then invoke the covg.sh script to complete the coverage analysis"
 
 	./${FNAME_C}_gcov
 # ...As the PUT (prg under test) can run continually, it's possible that the
@@ -207,7 +205,7 @@ update covg.sh:FNAME_C as well!"
 	${GENINFO} ./ -o ./${FNAME_C}.info
 # generate HTML report in output directory lcov_html/
 	${GENHTML} ./${FNAME_C}.info --output-directory lcov_html/
-	@echo "Display lcov html report:\ngoogle-chrome lcov_html/index.html"
+	@echo "Display lcov html report: google-chrome lcov_html/index.html"
 
 # packaging
 package:
@@ -232,6 +230,10 @@ clean:
 
 help:
 	@echo '=== Makefile Help : additional targets available ==='
+	@echo
+	@echo 'This Makefile is appropriate for single-sourcefile program builds'
+	@echo 'If your purpose is to build an app with multiple source files (across'
+	@echo 'multiple dirs), then pl use the <src>/makefile_templ/hdr_var/Makefile template).'
 	@echo
 	@echo 'TIP: type make <tab><tab> to show all valid targets'
 	@echo
@@ -260,7 +262,7 @@ help:
 	@echo
 	@echo '--- dynamic analysis targets ---'
 	@echo ' valgrind   : run the dynamic analysis tool ($(VALGRIND)) on the binary executable'
-	@echo ' covg       : run the gcov+lcov code coverage tooling on the source (generates html output!)'
+	@echo ' covg       : run the gcov+lcov code coverage tooling on the source (generates html output!) NOTE- the covg.sh helper script is also available...'
 
 	@echo
 	@echo '--- misc targets ---'
