@@ -10,6 +10,10 @@ name=$(basename $0)
 	echo "Usage: ${name} src_filename (without the .c)"
 	exit 1
 }
+[[ "${1}" = *"."* ]] && {
+	echo "Usage: ${name} src-filename ONLY (do NOT put any extension)."
+	exit 1
+}
 [ ! -f Makefile ] && {
 	echo "${name}: Makefile not present? aborting..."
 	exit 1
