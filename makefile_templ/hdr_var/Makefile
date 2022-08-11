@@ -27,4 +27,4 @@ myapp: $(obj)
 
 .PHONY: clean
 clean:
-	rm -f $(obj) myapp
+	rm -f $(obj) *.d myapp
