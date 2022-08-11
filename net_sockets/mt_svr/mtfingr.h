@@ -15,4 +15,3 @@
 #define MAXBUF		512
 
 // end inet.h
-

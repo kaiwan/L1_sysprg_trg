@@ -21,27 +21,26 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <asm/param.h>	/* HZ */
+#include <asm/param.h>		/* HZ */
 
 /*------------------------ MSG ---------------------------------------*/
 #if(DEBUG == 1)
-	#define MSG(string, args...) \
+#define MSG(string, args...) \
 		fprintf(stderr, "%s:%s : " string, __FILE__, __FUNCTION__, ##args)
-	#define MSG_SHORT(string, args...) \
+#define MSG_SHORT(string, args...) \
 		fprintf(stderr, string, ##args)
 #else
-	#define MSG(string, args...)
-	#define MSG_SHORT(string, args...)
+#define MSG(string, args...)
+#define MSG_SHORT(string, args...)
 #endif
-
 
 /*------------------------ DELAY_LOOP --------------------------------*/
 static inline void beep(int what)
 {
 	char buf[2];
-	buf[0]=(char)(what);
-	buf[1]='\0';
-	(void)write(STDOUT_FILENO, buf, 1 );
+	buf[0] = (char)(what);
+	buf[1] = '\0';
+	(void)write(STDOUT_FILENO, buf, 1);
 }
 
 /* 

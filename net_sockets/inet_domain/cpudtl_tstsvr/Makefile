@@ -35,7 +35,7 @@ ALL :=  prod prod_2part
 # Of course, if you have >1 C program to build, you must add it manually.
 # Also, it's recommended to keep one Makefile per program in separate directories.
 ###
-FNAME_C = cpudtl_tstsvr
+FNAME_C := cpudtl_tstsvr
 ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov
 
 CC=${CROSS_COMPILE}gcc
@@ -176,6 +176,9 @@ covg:
 	@echo "=== Code coverage (funcs/lines/branches) with gcov+lcov ==="
 	@echo
 
+ifeq (,$(wildcard /etc/lcovrc))
+	$(error ERROR: install lcov)
+endif
 # Set up the ~/.lcovrc to include branch coverage
 # ref: https://stackoverflow.com/questions/12360167/generating-branch-coverage-data-for-lcov
 ifneq (,$(wildcard ~/.lcovrc))
@@ -187,12 +190,11 @@ else
 endif
 
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov -pthread
-# update the test run below as required (more tests + params)
-Update the test run below as required (more tests + params)
+#Update the test run below as required (more tests + params)
 	@echo "= Running test case(s) ... \n\
-NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it \n\
-and then invoke the	covg.sh script to complete the coverage analysis (don't forget to \n\
-update covg.sh:FNAME_C as well!"
+ NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it \n\
+ and then invoke the	covg.sh script to complete the coverage analysis (don't forget to \n\
+ update covg.sh:FNAME_C as well!"
 
 	./${FNAME_C}_gcov 0.0.0.0 60001
 # ...As the PUT (prg under test) can run continually, it's possible that the
