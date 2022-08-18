@@ -53,8 +53,12 @@ int main(int argc, char **argv)
 	if (atoi(argv[1]) == 0) {	/* sleep */
 		printf("sleep for %d s now...\n", nsec);
 		ret = sleep(nsec);
+		 /* Actually BUGGY !!
+		 Why? As the sleep can be aborted by a signal and we don't check
+		 the return value from sleep() - the # of seconds remaining to sleep!
+		 */
 		printf("sleep returned %u\n", ret);
-	} else if (atoi(argv[1]) == 1) {	/* nanosleep */
+	} else if (atoi(argv[1]) == 1) {	/* nanosleep - the RIGHT way */
 		req.tv_sec = nsec;
 		req.tv_nsec = 0;
 		while ((nanosleep(&req, &rem) == -1) && (errno == EINTR)) {

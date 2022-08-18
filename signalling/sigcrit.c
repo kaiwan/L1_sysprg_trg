@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 	}
 	fprintf(stderr, "Signals SIGINT and SIGQUIT trapped..\n");
 
-	/* Prevent SIGINT & SIGQUIT from occuring from now on..
+	/* Block SIGINT & SIGQUIT from occuring from now on..
 	 * sigblock  -- old interface
 	 * POSIX - compilant interface is:
 	 * int sigprocmask(int how, const sigset_t *set, 
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 
 	//------------- Critical code goes here..
 	printf("Entering critical section now...\n");
-	DELAY_LOOP(65, 50);	// prints ASCII 65 ("A") 50 times
+	DELAY_LOOP(65, 500);	// emulate processing: prints ASCII 65 ("A") 50 times
 	printf("Exiting critical section now...\n");
 	//------------- Critical code done; reset signal settings..
 

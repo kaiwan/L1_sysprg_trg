@@ -70,6 +70,7 @@ option=1 : use SA_NODEFER flag (will process signal immd)\n", argv[0]);
 		exit(1);
 	}
 
+	printf("SA_NODEFER used? %s\n", (atoi(argv[1])==0?"no":"yes"));
 	if (atoi(argv[1]) == 1)
 		flags = SA_NODEFER | SA_RESTART;
 	else if (atoi(argv[1]) == 0)
