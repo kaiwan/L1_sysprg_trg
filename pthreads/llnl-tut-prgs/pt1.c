@@ -12,7 +12,7 @@
 
 void *PrintHello(void *msg)
 {
-	printf("%ld: Hello World!\n", (long)msg);
+	printf("%ld: Hello World! (pid=%d)\n", (long)msg, getpid());
 	pthread_exit(NULL);
 }
 
