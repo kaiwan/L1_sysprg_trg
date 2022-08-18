@@ -1,5 +1,9 @@
 # Makefile
-# A 'better' Makefile template for Linux system programming
+# A 'better' Makefile template for Linux system programming.
+#
+# Meant for the case where a single C source file is built with various useful targets.
+# If you require to compile/link multiple C source files into one executable, refer the
+# <src>/makefile_templ/hdr_var/Makefile.
 #
 # Besides the 'usual' targets to build production and debug versions of the
 # code and cleanup, we incorporate targets to do useful (and indeed required)
@@ -16,7 +20,7 @@
 #
 # You will require these utils installed:
 #  indent, flawfinder, valgrind, kernel-headers package -or- simply the
-#  checkpatch.pl script, gcov, tar; + libasan
+#  checkpatch.pl script, gcov, lcov, tar; + libasan
 #
 # To get started, just type:
 #  make help
@@ -32,6 +36,7 @@ ALL :=  prod prod_2part
 # Update as required
 # Simply replace the variable ${FNAME_C} below (currently set to 'killer'),
 # with your program name!
+# We also provide the ../../mk script to trivially replace the value of FNAME_C.
 # Of course, if you have >1 C program to build, you must add it manually.
 # Also, it's recommended to keep one Makefile per program in separate directories.
 ###
@@ -131,8 +136,14 @@ indent: ${SRC_FILES}
 	@echo
 	@echo "--- applying Linux kernel code-style indentation with indent ---"
 	@echo
-	mkdir bkp 2> /dev/null; cp -f ${SRC_FILES} bkp/
+	mkdir bkp 2>/dev/null; cp -f ${SRC_FILES} bkp/
 	${INDENT} -linux ${SRC_FILES}
+# RELOOK
+# !WARNING!
+# I came across this apparent bug in indent when using it on Ubuntu 20.04:
+#  realloc(): invalid next size
+#  Aborted (core dumped)
+# Worse, it TRUNCATED the source file to 0 bytes !!! 
 
 checkpatch:
 	make clean
@@ -168,7 +179,7 @@ valgrind:
 	@echo
 	@echo "--- dynamic analysis with valgrind ---"
 	@echo
-	#--- USER CHECK: manually add params as required
+#--- USER CHECK: manually add params as required
 	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg
 
 # Testing: line coverage with gcov(1), lcov(1)
@@ -192,17 +203,16 @@ else
 endif
 
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov -pthread
-#Update the test run below as required (more tests + params)
-	@echo "= Running test case(s) ... \n\
- NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it \n\
- and then invoke the covg.sh script to complete the coverage analysis"
-
+# Update the test run below as required (more tests + params)
+	@echo "= Running test case(s) ..."
+	@echo "NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it"
+	@echo " and then invoke the covg.sh script to complete the coverage analysis"
 	./${FNAME_C}_gcov
-# ...As the PUT (prg under test) can run continually, it's possible that the
-# instructions below will have to be run manually...
+# ...As the PUT (prg under test) can run continually (without dying), it's possible
+# that the instructions below will have to be run manually...
 # Attempting to abort the PUT with ^C (or [p]kill) causes the entire chain - incl below-
 # to abort. So, we need a separate script to run the stuff below; that's precisely
-# the purpose behind the script covg.sh; run it if this code below doesn't run
+# the purpose behind the script <src>/covg.sh; run it if this code below doesn't run
 # automatically.
 	${GCOV} ${SRC_FILES}
 # generate .info from the .gcno and .gcda file(s) in .
@@ -230,7 +240,7 @@ clean:
 	@echo "--- cleaning ---"
 	@echo
 	rm -vf ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov core* vgcore* *.o *~
-	rm -rfv *.c.gcov *.gcda *.gcno *.info lcov_html/
+	rm -rfv *.[ch].gcov *.gcda *.gcno *.info lcov_html/
 
 help:
 	@echo '=== Makefile Help : additional targets available ==='
