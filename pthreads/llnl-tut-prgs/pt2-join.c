@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define NUM_THREADS	2
+#define NUM_THREADS	3
 
 void *BusyWork(void *n)
 {
@@ -54,7 +54,7 @@ int main()
 			exit(EXIT_FAILURE);
 		}
 		printf("main: completed join with thread %ld status %d\n", t, status);
-		sleep(1);
+		//sleep(1);
 	}
 
 	pthread_exit(NULL);
