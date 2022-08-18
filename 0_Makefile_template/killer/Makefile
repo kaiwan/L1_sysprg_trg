@@ -85,6 +85,7 @@ GENHTML := genhtml
 prod: ${FNAME_C}.c
 	@echo
 	@echo "--- building 'production'-ready target (-O2, no debug, stripped) ---"
+	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C}
 	${STRIP} --strip-all ./${FNAME_C}
@@ -95,6 +96,7 @@ prod: ${FNAME_C}.c
 prod_2part: ${FNAME_C}.c
 	@echo
 	@echo "--- building 'production'-ready 2-part target (-O2, no debug, strip-debug) ---"
+	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
 # We require the 'debug' build for the 2part, so do that first
 	make debug
@@ -105,6 +107,7 @@ prod_2part: ${FNAME_C}.c
 debug: ${FNAME_C}.c
 	@echo
 	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
+	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
 	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg
 #-- Sanitizers (use clang or gcc)
