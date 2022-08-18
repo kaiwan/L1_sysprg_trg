@@ -9,16 +9,132 @@
 
 #define	QLENGTH	5
 
-void process_client(void *arg);
-int thrd_err_exit(char *prg, char *err, int exitcode);
-int err_exit(char *prg, char *err, int exitcode);
-
 int verbose = 0;
 char *prg;
 
+int thrd_err_exit(char *prg, char *err, int exitcode)
+{
+	char *err_str, exitstr[4];
+
+	err_str = (char *)malloc(300);
+	if (!err_str)
+		printf("\n%s: malloc failed for err_str..", prg);
+
+	snprintf(err_str, 300, "%s: %s", prg, err);
+	perror(err_str);
+	free(err_str);
+
+	snprintf(exitstr, 4, "%d", exitcode);
+	pthread_exit(exitstr);
+}				// thrd_err_exit()
+
+int err_exit(char *prg, char *err, int exitcode)
+{
+	char *err_str;
+
+	err_str = (char *)malloc(strlen(prg) + strlen(err) + 2);
+	if (!err_str)
+		printf("\n%s: malloc failed for err_str..", prg);
+
+	snprintf(err_str, strlen(prg) + strlen(err) + 2, "%s: %s", prg, err);
+	perror(err_str);
+	free(err_str);
+
+	exit(exitcode);
+}				// err_exit()
+
+// Child thread p2 processes this function
+void * process_client(void *arg)
+{
+	char *username, *reply;
+	int sd, n;
+	struct passwd *p;
+#define PBUFLEN 8192
+	char pbuf[PBUFLEN];
+
+	sd = (long)arg;
+	if (verbose)
+		printf("%s: child thread (%d) on socket sd %d\n",
+		       prg, getpid(), sd);
+
+#ifdef DBG
+	printf("_child thread: in process_client()..arg=%d\n", (int)arg);
+	fflush(stdout);
+#endif
+	username = malloc(MAXBUF);
+	if (!username) {
+		printf("\n%s: no memory for username buffer", prg);
+		pthread_exit("enomem");
+	}
+	// Read username from client
+	if ((n = read(sd, username, MAXBUF)) == -1)
+		thrd_err_exit(prg, "socket read error", 6);
+	username[n] = '\0';
+#ifdef DBG
+	printf("_child thread: af read()..n=%d\n", n);
+	fflush(stdout);
+#endif
+
+	reply = (char *)malloc(MAXBUF);
+	if (!reply) {
+		printf("\n%s: no memory for reply buffer", prg);
+		free(username);
+		pthread_exit("1");
+	}
+	// TODO !!! MT-Unsafe! replace with getpwnam_r() !
+	//p = getpwnam(username);
+	/*int getpwnam_r(const char *name, struct passwd *pwd,
+	   char *buf, size_t buflen, struct passwd **result);
+	 */
+	p = malloc(sizeof(struct passwd));
+	if (!p) {
+		printf("\n%s: no memory for passwd structure", prg);
+		free(username);
+		free(reply);
+		pthread_exit("1");
+	}
+	if (getpwnam_r(username, p, pbuf, PBUFLEN, &p) || (p == NULL)) {
+		snprintf(reply, MAXBUF-1, "\n%s is unable to get info for %s\n", prg,
+			username);
+		if ((write(sd, reply, strlen(reply))) == -1)
+			thrd_err_exit(prg, "socket write error", 6);
+		close(sd);
+		free(p);
+		free(username);
+		free(reply);
+		pthread_exit("1");
+	}
+	// Got the info; send it to the client..
+	snprintf(reply, MAXBUF-1,
+	"\tUsername: %s\n\t(encrypted) password: %s\n\
+\tUID: %d\n\tGID: %d\n\tComment/FullName: %s\n\tHome dir: %s\n\tShell: %s\n",
+	p->pw_name, p->pw_passwd, p->pw_uid, p->pw_gid, p->pw_gecos, p->pw_dir, p->pw_shell);
+
+	if ((write(sd, reply, strlen(reply))) == -1)
+		thrd_err_exit(prg, "socket write error", 6);
+
+	free(p);
+	free(username);
+	free(reply);
+
+#ifdef TESTING
+	sleep(5);
+#endif
+
+	/* This is a thread: so normally we don't close the socket!
+	 * But the socket in question is a new socket allocated by the accept()
+	 * each time a thread is created; so here it's better to close the socket
+	 * as otherwise the file table will start getting filled v rapidly.
+	 */
+	close(sd);
+	pthread_exit("0");
+}				// process_client()
+
+
 int main(int argc, char *argv[])
 {
-	int sd, clilen, newsd, r;
+	int sd, newsd, r;
+	unsigned int clilen;
 	pthread_t p2;
 	struct sockaddr_in svr_addr, cli_addr;
 
@@ -66,7 +182,7 @@ port # %d\n", argv[0], inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 		// the client request
 		r = pthread_create(&p2,	// thread id
 				   NULL,	// thread attributes (use default)
-				   (void *)process_client,	// function to execute
+				   process_client,	// function to execute
 				   (void *)newsd);	// argument to function
 		if (r)
 			perror("pthread creation");
@@ -88,121 +204,5 @@ port # %d\n", argv[0], inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 	}			// while      
 
 }				// main()
-
-// Child thread p2 processes this function
-void process_client(void *arg)
-{
-	char *username, *reply;
-	int sd, n;
-	struct passwd *p;
-
-	sd = (int)arg;
-	if (verbose)
-		printf("%s: child thread (%d) on socket sd %d\n",
-		       prg, getpid(), sd);
-
-#ifdef DBG
-	printf("_child thread: in process_client()..arg=%d\n", (int)arg);
-	fflush(stdout);
-#endif
-	username = (char *)malloc(32);
-	if (!username) {
-		printf("\n%s: no memory for username buffer", prg);
-		pthread_exit("enomem");
-	}
-	// Read username from client
-	if ((n = read(sd, username, MAXBUF)) == -1)
-		thrd_err_exit(prg, "socket read error", 6);
-	username[n] = '\0';
-#ifdef DBG
-	printf("_child thread: af read()..n=%d\n", n);
-	fflush(stdout);
-#endif
-
-	reply = (char *)malloc(MAXBUF);
-	if (!reply) {
-		printf("\n%s: no memory for reply buffer", prg);
-		pthread_exit("1");
-	}
-
-	p = getpwnam(username);
-	if (p == NULL) {
-		sprintf(reply, "\n%s is unable to get info for %s\n", prg,
-	// TODO !!! MT-Unsafe! replace with getpwnam_r() !
-	//p = getpwnam(username);
-	/*int getpwnam_r(const char *name, struct passwd *pwd,
-	   char *buf, size_t buflen, struct passwd **result);
-	 */
-	p = malloc(sizeof(struct passwd));
-	if (!p) {
-		printf("\n%s: no memory for passwd structure", prg);
-		free(username);
-		free(reply);
-		pthread_exit("1");
-	}
-	if (getpwnam_r(username, p, pbuf, PBUFLEN, &p) || (p == NULL)) {
-		snprintf(reply, MAXBUF-1, "\n%s is unable to get info for %s\n", prg,
-			username);
-		if ((write(sd, reply, strlen(reply))) == -1)
-			thrd_err_exit(prg, "socket write error", 6);
-		close(sd);
-		free(p);
-		free(username);
-		free(reply);
-		pthread_exit("1");
-	}
-	// Got the info; send it to the client..
-	sprintf(reply, "\tUsername: %s\n\t(encrypted) password: %s\n\
-\tUID: %d\n\tGID: %d\n\tComment/FullName: %s\n\tHome dir: %s\n\tShell: %s\n", p->pw_name, p->pw_passwd, p->pw_uid, p->pw_gid, p->pw_gecos, p->pw_dir, p->pw_shell);
-
-	if ((write(sd, reply, strlen(reply))) == -1)
-		thrd_err_exit(prg, "socket write error", 6);
-
-	free(username);
-	free(reply);
-
-#ifdef TESTING
-	sleep(5);
-#endif
-
-	/* This is a thread: so normally we don't close the socket!
-	 * But the socket in question is a new socket allocated by the accept()
-	 * each time a thread is created; so here it's better to close the socket
-	 * as otherwise the file table will start getting filled v rapidly.
-	 */
-	close(sd);
-	pthread_exit("0");
-}				// process_client()
-
-int thrd_err_exit(char *prg, char *err, int exitcode)
-{
-	char *err_str, exitstr[4];
-
-	err_str = (char *)malloc(300);
-	if (!err_str)
-		printf("\n%s: malloc failed for err_str..", prg);
-
-	sprintf(err_str, "%s: %s", prg, err);
-	perror(err_str);
-	free(err_str);
-
-	sprintf(exitstr, "%d", exitcode);
-	pthread_exit(exitstr);
-}				// thrd_err_exit()
-
-int err_exit(char *prg, char *err, int exitcode)
-{
-	char *err_str;
-
-	err_str = (char *)malloc(strlen(prg) + strlen(err) + 2);
-	if (!err_str)
-		printf("\n%s: malloc failed for err_str..", prg);
-
-	sprintf(err_str, "%s: %s", prg, err);
-	perror(err_str);
-	free(err_str);
-
-	exit(exitcode);
-}				// err_exit()
 
 // end mt_sfingr.c
