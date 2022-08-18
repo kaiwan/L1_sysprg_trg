@@ -32,13 +32,14 @@ static void *dowork(void *tag)
 {
 	double arr[N][N];
 	int i, j;
+	long thrd = (long)tag;
 
 	/* If enough stack memory is provided, all will be fine here.
 	 * If *not*, *any* function being called below will fail and cause a segfault!
 	 */
 	QP;
-	printf("sizeof(double) = %ld; so stack mem = %ld\n",
-		sizeof(double), sizeof(double)*N*N);
+	printf("\nIn thread #%ld:\nsizeof(double) = %ld; so stack mem = %ld\n",
+		thrd, sizeof(double), sizeof(double)*N*N);
 	foo(1, 2);
 	//pthread_attr_getstacksize(&attr, &mystacksize);
 	//MSG("Thread # %zu : stack size = %zu bytes \n", (u64)tag, mystacksize);
@@ -54,7 +55,7 @@ static void *dowork(void *tag)
 int main(int argc, char **argv)
 {
 	int rc;
-    u64 j;
+    long j;
 	pthread_t tid;
 	size_t stacksize = 0;
 
@@ -66,7 +67,7 @@ int main(int argc, char **argv)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 	pthread_attr_getstacksize(&attr, &stacksize);
-	MSG("current stacksize = %zu (=%zu Kb =%zu Mb), setting stacksz to %d Kb\n",
+	MSG("platform default stacksize = %zu (=%zu Kb =%zu Mb), setting stacksz to %d Kb\n",
 		stacksize, stacksize/1024, stacksize/(1024*1024), 
 	    atoi(argv[1]));
 
