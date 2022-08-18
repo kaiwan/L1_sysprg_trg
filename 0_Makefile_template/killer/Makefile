@@ -45,14 +45,15 @@ OBJCOPY=${CROSS_COMPILE}objcopy
 
 PROD_OPTLEVEL=-O2
   # or -O3 or -Os
-  # or -O3 or -Os
-CSTD=-ansi -std=c99 -std=c18  # the last one wins; else if unsupported, earlier ones...
-POSIX_STD=201101 #199309L
+CSTD=-ansi -std=c99 -std=c11 -std=c18  # the last one wins; else if unsupported, earlier ones...
+# For the meaning of the following feature test macros, see feature_test_macros(7)
+POSIX_STD=201112L
+STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE
 
-CFLAGS=-Wall -pedantic -UDEBUG ${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD}
+CFLAGS=-Wall -pedantic -UDEBUG ${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -pedantic -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD}
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -pedantic -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
 #CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
