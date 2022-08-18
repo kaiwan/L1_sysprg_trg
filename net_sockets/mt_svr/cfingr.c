@@ -1,11 +1,29 @@
 /* cfingr.c
-*  Internet domain streams socket client
-*  Usage: cfingr username
-*/
+ *  Internet domain streams socket client
+ *  Usage: cfingr username
+ */
 #include "inet.h"
-int err_exit(char *prg, char *err, int exitcode);
-
 #define TESTING 0
+
+int err_exit(char *prg, char *err, int exitcode)
+{
+	char *err_str;
+
+	err_str = (char *)malloc(strlen(prg) + strlen(err) + 2);
+	if (!err_str) {
+		printf("\n%s: malloc failed for err_str..", prg);
+		printf("%s exiting with error code %d, perror shows:\n", prg,
+		       exitcode);
+		perror(prg);
+		exit(exitcode);
+	}
+
+	sprintf(err_str, "%s: %s", prg, err);
+	perror(err_str);
+	free(err_str);
+
+	exit(exitcode);
+}				// err_exit()
 
 int main(int argc, char *argv[])
 {
@@ -52,25 +70,5 @@ int main(int argc, char *argv[])
 	close(sd);
 	exit(0);
 }				// main()
-
-int err_exit(char *prg, char *err, int exitcode)
-{
-	char *err_str;
-
-	err_str = (char *)malloc(strlen(prg) + strlen(err) + 2);
-	if (!err_str) {
-		printf("\n%s: malloc failed for err_str..", prg);
-		printf("%s exiting with error code %d, perror shows:\n", prg,
-		       exitcode);
-		perror(prg);
-		exit(exitcode);
-	}
-
-	sprintf(err_str, "%s: %s", prg, err);
-	perror(err_str);
-	free(err_str);
-
-	exit(exitcode);
-}				// err_exit()
 
 // end cfingr.c
