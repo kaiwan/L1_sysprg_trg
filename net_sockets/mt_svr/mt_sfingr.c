@@ -128,10 +128,27 @@ void process_client(void *arg)
 	p = getpwnam(username);
 	if (p == NULL) {
 		sprintf(reply, "\n%s is unable to get info for %s\n", prg,
+	// TODO !!! MT-Unsafe! replace with getpwnam_r() !
+	//p = getpwnam(username);
+	/*int getpwnam_r(const char *name, struct passwd *pwd,
+	   char *buf, size_t buflen, struct passwd **result);
+	 */
+	p = malloc(sizeof(struct passwd));
+	if (!p) {
+		printf("\n%s: no memory for passwd structure", prg);
+		free(username);
+		free(reply);
+		pthread_exit("1");
+	}
+	if (getpwnam_r(username, p, pbuf, PBUFLEN, &p) || (p == NULL)) {
+		snprintf(reply, MAXBUF-1, "\n%s is unable to get info for %s\n", prg,
 			username);
 		if ((write(sd, reply, strlen(reply))) == -1)
 			thrd_err_exit(prg, "socket write error", 6);
 		close(sd);
+		free(p);
+		free(username);
+		free(reply);
 		pthread_exit("1");
 	}
 	// Got the info; send it to the client..
