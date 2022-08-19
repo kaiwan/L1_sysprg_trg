@@ -22,6 +22,8 @@
 //#define _POSIX_C_SOURCE    200809L
 // ref: https://stackoverflow.com/questions/9828733/sa-restart-not-defined-under-linux-compiles-fine-in-solaris
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -97,12 +99,12 @@ static pthread_mutex_t sig_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int g_opt;
 
 /* 
- * Handler for the synchronous signals:
+ * Handler for the synchronous / fatal signals:
  * SIGSEGV / SIGBUS / SIGABRT / SIGFPE / SIGILL / SIGIOT
  */
-static void sync_sigs_handler(int signum, siginfo_t * siginfo, void *rest)
+static void fatal_sigs_handler(int signum, siginfo_t * siginfo, void *rest)
 {
-	static int c = 0;
+	static volatile sig_atomic_t c = 0;
 
 	printf("\n*** %s(): [%d] PID %d", __func__, ++c, getpid());
 #ifdef __linux__
@@ -246,7 +248,7 @@ static void *signal_handler(void *arg)
 			MTX_UNLOCK(&sig_mutex, FATAL);
 			break;
 		}		// switch
-		printf("!!! signal_handler(): caught signal #%d !!!\n", sig);
+		printf("!!! %s(): caught signal #%d !!!\n", __func__, sig);
 	}			// while
 	return (void *)0;
 }
@@ -331,7 +333,7 @@ int main(int argc, char **argv)
 	if (sigfillset(&sigset) < 0) {
 		perror("sigfillset"); exit(1);
 	}
-	/* Do NOT block the synchronous signals - the ones sent to the faulting thread
+	/* Do NOT block the synchronous (or 'fatal') signals - the ones sent to the faulting thread
 	 * on a fault/bug:
      * SIGSEGV / SIGBUS / SIGABRT / SIGFPE / SIGILL / SIGIOT
 	 */
@@ -373,7 +375,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 	memset(&act, 0, sizeof(act));
-	act.sa_sigaction = sync_sigs_handler;
+	act.sa_sigaction = fatal_sigs_handler;
 	act.sa_flags = SA_RESTART | SA_SIGINFO | SA_ONSTACK;
 	sigemptyset(&act.sa_mask);
 	if (sigaction(SIGSEGV, &act, 0) == -1) {
