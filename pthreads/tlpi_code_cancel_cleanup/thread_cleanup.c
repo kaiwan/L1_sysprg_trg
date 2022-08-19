@@ -47,6 +47,9 @@ threadFunc(void *arg)
     if (s != 0)
         fatalError(s, "pthread_mutex_lock");
 
+	/* Setup/register our cleanup handler func; we're allowed to pass 1 parameter
+	 * The associated mutex is automatically & atomically unlocked...
+	 */
     pthread_cleanup_push(cleanupHandler, buf);
 
     while (glob == 0) {
@@ -55,7 +58,7 @@ threadFunc(void *arg)
             fatalError(s, "pthread_cond_wait");
     }
 
-    printf("thread:  condition wait loop completed\n");
+    printf("thread:  condition wait loop completed; the condition we're waiting for has occured!\n");
 	/* You must get the cleanup handler to execute. It can be done in one of 2 ways:
 	 * a) call pthread_cleanup_pop() with a positive arg
 	 * -OR-
@@ -78,15 +81,21 @@ main(int argc, char *argv[])
 
     sleep(2);                   /* Give thread a chance to get started */
 
-    if (argc == 1) {            /* Cancel thread */
+    if (argc == 1) {            /* No parameters? Cancel thread */
         printf("main:    about to cancel thread\n");
-        s = pthread_cancel(thr);
+        s = pthread_cancel(thr); // will cause any associated cleanup handler to execute!
         if (s != 0)
             fatalError(s, "pthread_cancel");
 
     } else {                    /* Signal condition variable */
         printf("main:    about to signal condition variable\n");
+		s = pthread_mutex_lock(&mtx);       /* Not a cancellation point */
+		if (s != 0)
+			fatalError(s, "pthread_mutex_lock");
         glob = 1;
+		s = pthread_mutex_unlock(&mtx);       /* Not a cancellation point */
+		if (s != 0)
+			fatalError(s, "pthread_mutex_unlock");
         s = pthread_cond_signal(&cond);
         if (s != 0)
             fatalError(s, "pthread_cond_signal");
