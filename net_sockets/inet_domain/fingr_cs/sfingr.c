@@ -1,5 +1,6 @@
 /* sfingr.c
-*  Internet domain streams socket server; concurrent server
+* A multiprocess concurrent streams socket (TCP/IP) server.
+*  Internet domain streams socket (TCP/IP) server; concurrent server
 *
 *  Compile as:
 *  $ cc sfingr.c -o sfingr -Wall               -no debugging
@@ -17,6 +18,8 @@ static int verbose=0;
 // Prevent zombies..
 static void sig_child( int signum )
 {
+#if 0 // we're using SA_NOCLDWAIT to get rid of zombies... no need
+	  // to do anything here!
 	int status;
 	int pid;
 
@@ -24,6 +27,9 @@ static void sig_child( int signum )
 		if( verbose )
 			printf("parent server in SIGCHLD handler; pid=%d\n",pid);
 	}
+#else
+	printf("%s()\n", __func__);
+#endif
 } // sig_child()
 
 static int err_exit( char *prg, char * err, int exitcode )
@@ -127,10 +133,14 @@ int main( int argc, char *argv[] )
 		err_exit( argv[0], "socket creation error", 1 );
 	if( verbose) printf("%s: tcp socket created\n",argv[0]);
 
-	// Initialize server's address & bind it
+	// Initialize server's address - IP addr + port # - & bind it
 	// Required to be in Network-Byte-Order
 	svr_addr.sin_family = AF_INET;
+	// Have to convert the dotted-decimal str passed to a 32-bit IPv4 addr
+	// done w/ inet_addr()
 	svr_addr.sin_addr.s_addr = inet_addr( argv[1] );
+	// Can use any valid IPaddr on an interface by specifying it as INADDR_ANY
+	// INADDR_ANY = 0.0.0.0 => any valid IPaddr
 //	svr_addr.sin_addr.s_addr = INADDR_ANY;
 	svr_addr.sin_port = htons( SERV_PORT );
 
@@ -140,6 +150,7 @@ int main( int argc, char *argv[] )
 	if( verbose) printf("%s: bind done at IP %s port %d\n",argv[0],argv[1],
  	 SERV_PORT);
 
+	// setup the 'backlog', the max Q length wrt the clients
 	if( listen(sd, QLENGTH) == -1 )
 		err_exit( argv[0], "socket listen error", 3 );
 	if( verbose) printf("%s: listen q set up\n",argv[0]);
