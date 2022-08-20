@@ -71,13 +71,13 @@ int main(int argc, char *argv[])
 			struct sockaddr_in *ipv4 =
 			    (struct sockaddr_in *)p->ai_addr;
 			addr = &(ipv4->sin_addr);
-			port = ipv4->sin_port;
+			port = ntohs(ipv4->sin_port);
 			ipver = "IPv4";
 		} else {	// IPv6
 			struct sockaddr_in6 *ipv6 =
 			    (struct sockaddr_in6 *)p->ai_addr;
 			addr = &(ipv6->sin6_addr);
-			port = ipv6->sin6_port;
+			port = ntohs(ipv6->sin6_port);
 			ipver = "IPv6";
 		}
 
