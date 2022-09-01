@@ -8,8 +8,12 @@
 /* clear any zombies */
 static void sig_child(int signum)
 {
+#if 0
 	int status;
 	while (wait3(&status, WNOHANG, 0) > 0) ;
+#else
+	printf("%s(): using SA_NOCLDWAIT...\n", __func__);
+#endif
 }
 
 int main(int argc, char *argv[])

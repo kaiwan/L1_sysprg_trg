@@ -49,8 +49,8 @@ int main(int argc, char *argv[])
 	/*
 	   From the man page on getaddrinfo(3):
 	   int getaddrinfo(const char *node, const char *service,
-	   const struct addrinfo *hints,
-	   struct addrinfo **res);
+			 const struct addrinfo *hints,
+			 struct addrinfo **res);
 	   ...
 	   Given node and service, which identify an Internet host and a service, 
 	   getaddrinfo() returns one or more addrinfo structures, each of which
@@ -59,9 +59,7 @@ int main(int argc, char *argv[])
 	   by the getservbyname(3) and getservbyport(3) functions into a single interface, 
 	   but unlike the latter functions, getaddrinfo() is reentrant and allows programs 
 	   to eliminate IPv4-versus-IPv6 dependencies.
-
 	   ...
-
 	   The hints argument points to an addrinfo structure that specifies criteria for 
 	   selecting the socket address structures returned in the list pointed to by res.  
 	   If hints is not NULL it points to an addrinfo structure whose ai_family, 

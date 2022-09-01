@@ -25,7 +25,7 @@ main(int argc, char **argv)
 	char cmd[128];
 
 	if (argc != 2) {
-		fprintf (stderr, "Usage: %s filename\n");
+		fprintf(stderr, "Usage: %s filename\n");
 		exit (1);
 	}
 

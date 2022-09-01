@@ -10,6 +10,7 @@ csrc = $(wildcard *.c) \
 obj = $(csrc:.c=.o)
 dep = $(obj:.o=.d)  # one dependency file for each source
 
+# target name is always 'myapp'??
 all: myapp
 CC=${CROSS_COMPILE}gcc
 CFLAGS = -Os -Wall -MMD
