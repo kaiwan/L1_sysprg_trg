@@ -3,8 +3,8 @@
 
 # -m32 : compile for 32-bit
 
-CFLAGS = -Wall -Os -m32
-CFLAGS_DBG = -Wall -O0 -g -m32
+CFLAGS = -Wall -Os
+CFLAGS_DBG = -Wall -O0 -g
 OUT = sender_mq recv_mq
 
 all: ${OUT}
