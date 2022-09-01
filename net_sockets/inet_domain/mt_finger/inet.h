@@ -17,8 +17,6 @@
 #include "convenient.h"
 
 #define	SERV_IP		"127.0.0.1"	//INADDR_ANY
-#define SERV_PORT		6100
+#define SERV_PORT		61008
 #define MAXBUF		512
 #define RE_MAXLEN	100+256+48+8+8+1024+4096+128
-
-// end fingr.h
