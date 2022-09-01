@@ -19,53 +19,53 @@
 
 int main(int argc, char **argv)
 {
-    int rc = 1;
-    pid_t cpid = 0;
-    key_t key = 0;
-    int shmid = 0;
-    struct shmid_ds shmbuf;
-    char *buffer = NULL;
-    size_t buffer_size = 4096;
-    int exec = 0;
-    key = ftok("shmfile", 'R');
-    if (key < 0) {
-        perror("ftok");
-        goto cleanup;
-    }
-    shmid = shmget(key, buffer_size, IPC_CREAT | 0666);
-    if (shmid < 0) {
-        perror("shmget");
-        goto cleanup;
-    }
-    buffer = (char*)shmat(shmid, NULL, 0);
-    if (buffer < 0) {
-        perror("shmat");
-        goto cleanup;
-    }
-    cpid = fork();
-    if (cpid < 0) {
-        perror("fork");
-        goto cleanup;
-    }
-    else if (cpid == 0) {
-        printf("child pid is %d\n", getpid());
-        exec = execl("sysv_shared_memory_file_child", "sysv_shared_memory_file_child", (char *)NULL);
-        if (exec < 0) {
-            perror("execve");
-            goto cleanup;
-        }
-    }
-    else {
-        printf("parent pid is %d and child pid is %d\n", getpid(), cpid);
-        wait(0);
-        printf("parent read from shared memory buffer: %s\n", buffer);
-    }
-    rc = 0;
-cleanup:
-    if (buffer > 0)
-        shmdt(buffer);
-    if (shmid > 0)
-        shmctl(shmid, IPC_RMID, &shmbuf);
-    return rc;
+	int rc = 1;
+	pid_t cpid = 0;
+	key_t key = 0;
+	int shmid = 0;
+	struct shmid_ds shmbuf;
+	char *buffer = NULL;
+	size_t buffer_size = 4096;
+	int exec = 0;
+	key = ftok("shmfile", 'R');
+	if (key < 0) {
+		perror("ftok");
+		goto cleanup;
+	}
+	shmid = shmget(key, buffer_size, IPC_CREAT | 0666);
+	if (shmid < 0) {
+		perror("shmget");
+		goto cleanup;
+	}
+	buffer = (char *)shmat(shmid, NULL, 0);
+	if (buffer < 0) {
+		perror("shmat");
+		goto cleanup;
+	}
+	cpid = fork();
+	if (cpid < 0) {
+		perror("fork");
+		goto cleanup;
+	} else if (cpid == 0) {
+		printf("child pid is %d\n", getpid());
+		exec =
+		    execl("sysv_shared_memory_file_child",
+			  "sysv_shared_memory_file_child", (char *)NULL);
+		if (exec < 0) {
+			perror("execve");
+			goto cleanup;
+		}
+	} else {
+		printf("parent pid is %d and child pid is %d\n", getpid(),
+		       cpid);
+		wait(0);
+		printf("parent read from shared memory buffer: %s\n", buffer);
+	}
+	rc = 0;
+ cleanup:
+	if (buffer > 0)
+		shmdt(buffer);
+	if (shmid > 0)
+		shmctl(shmid, IPC_RMID, &shmbuf);
+	return rc;
 }
-

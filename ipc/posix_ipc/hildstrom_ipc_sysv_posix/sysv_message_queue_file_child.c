@@ -1,5 +1,5 @@
 /*
- * This demonstrates message queue IPC for separate processes using a file
+ * This demonstrates message queue SysV IPC for separate processes using a file
  * system path reference to a message queue. Note that the msgget key is
  * derived from a path and this is separate from the initial forked child.
  */
@@ -13,38 +13,37 @@
 #include <sys/msg.h>
 
 struct msgbuf {
-    long mtype;
-    char mtext[1];
+	long mtype;
+	char mtext[1];
 };
 
 int main(int argc, char **argv)
 {
-    int rc = 1;
-    int msgid = 0;
-    struct msgbuf msg;
-    ssize_t rv = 0;
+	int rc = 1;
+	int msgid = 0;
+	struct msgbuf msg;
+	ssize_t rv = 0;
 	key_t key;
 
-    key = ftok("msgfile", 'R');
-    if (key < 0) {
-        perror("ftok");
-        goto cleanup;
-    }
-    msgid = msgget(key, 0666);
-    if (msgid < 0) {
-        perror("msgget");
-        goto cleanup;
-    }
-    printf("execve'd child pid is %d\n", getpid());
-    printf("execve'd child waiting for message\n");
-    rv = msgrcv(msgid, &msg, 0, 0, 0);
-    if (rv < 0) {
-        perror("msgrcv");
-        goto cleanup;
-    }
-    printf("execve'd child received message type %ld\n", msg.mtype);
-    rc = 0;
-cleanup:
-    return rc;
+	key = ftok("msgfile", 'R');
+	if (key < 0) {
+		perror("ftok");
+		goto cleanup;
+	}
+	msgid = msgget(key, 0666);
+	if (msgid < 0) {
+		perror("msgget");
+		goto cleanup;
+	}
+	printf("execve'd child pid is %d\n", getpid());
+	printf("execve'd child waiting for message\n");
+	rv = msgrcv(msgid, &msg, 0, 0, 0);
+	if (rv < 0) {
+		perror("msgrcv");
+		goto cleanup;
+	}
+	printf("execve'd child received message type %ld\n", msg.mtype);
+	rc = 0;
+ cleanup:
+	return rc;
 }
-
