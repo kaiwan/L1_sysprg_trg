@@ -153,7 +153,8 @@ static int process_client(int sd, char *prg)
 	}
 #if 1   /*
 		 * Interesting!
-		 * Commenting out the memset(), has valgrind complain thus:
+		 * Commenting out the memset() that's below this comment, has
+		 * valgrind complain thus:
 		 * make valgrind
 		 * ...
 		 * valgrind --tool=memcheck --trace-children=yes \
@@ -245,7 +246,7 @@ int main(int argc, char *argv[])
 	// Initialize server's address & bind it
 	// Required to be in Network-Byte-Order
 	svr_addr.sin_family = AF_INET;
-#if 1
+#if 0
 	svr_addr.sin_addr.s_addr = inet_addr(argv[1]);
 #else
 	svr_addr.sin_addr.s_addr = INADDR_ANY;	// INADDR_ANY == "0.0.0.0" =>any available system IPaddr
