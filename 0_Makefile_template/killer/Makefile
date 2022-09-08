@@ -64,6 +64,7 @@ CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
 #CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
 
 CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage
+LINK=  #-pthread
 
 # Required vars
 all: ${ALL}
@@ -92,7 +93,7 @@ prod: ${FNAME_C}.c
 	@echo "--- building 'production'-ready target (-O2, no debug, stripped) ---"
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
-	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C}
+	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
 	${STRIP} --strip-all ./${FNAME_C}
 
 # The '2-part executable' solution : use strip and objcopy to generate a
@@ -105,7 +106,7 @@ prod_2part: ${FNAME_C}.c
 	@echo
 # We require the 'debug' build for the 2part, so do that first
 	make debug
-	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C}
+	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
 	${STRIP} --strip-debug ./${FNAME_C}
 	${OBJCOPY} --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
 
@@ -114,11 +115,11 @@ debug: ${FNAME_C}.c
 	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
-	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg
+	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg ${LINK}
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan
-	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub
-#	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan
+	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK}
+	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK}
+#	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LINK}
 
 
 #--------------- More (useful) targets! -------------------------------
@@ -202,7 +203,7 @@ else
 	sed -i 's/^lcov_branch_coverage = 0/lcov_branch_coverage = 1/' ~/.lcovrc
 endif
 
-	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov -pthread
+	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov ${LINK}
 # Update the test run below as required (more tests + params)
 	@echo "= Running test case(s) ..."
 	@echo "NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it"
