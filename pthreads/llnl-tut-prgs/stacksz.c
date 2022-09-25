@@ -35,7 +35,8 @@ static void *dowork(void *tag)
 	long thrd = (long)tag;
 
 	/* If enough stack memory is provided, all will be fine here.
-	 * If *not*, *any* function being called below will fail and cause a segfault!
+	 * If *not*, *any* function being called below will fail and
+	 * cause a segfault!
 	 */
 	QP;
 	printf("\nIn thread #%ld:\nsizeof(double) = %ld; so stack mem = %ld\n",
