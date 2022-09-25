@@ -14,5 +14,5 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: build cpudtl_tstsvr
-      run: cd net_sockets/inet_domain/cpudtl_tstsvr/ ; make clean ; (make ; ls -lt) >> action_run.txt
+      run: cd net_sockets/inet_domain/cpudtl_tstsvr/ ; make clean ; (echo test1; make ; ls -lt) >> action_run.txt
  
