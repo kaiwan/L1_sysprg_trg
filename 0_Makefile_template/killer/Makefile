@@ -61,7 +61,7 @@ CFLAGS=-Wall -pedantic -UDEBUG ${PROD_OPTLEVEL} -Werror=format-security ${CSTD} 
 CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -pedantic -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
-#CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
+CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
 
 CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage
 LINK=  #-pthread
@@ -119,7 +119,12 @@ debug: ${FNAME_C}.c
 #-- Sanitizers (use clang or gcc)
 	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK} -static-libasan
 	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK} -static-libasan
-	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LINK} -static-libasan
+	# gcc doesn't support MSAN, clang does
+ifeq (, $(shell which clang))
+	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing sudo apt install clang ===)
+else
+	${CL} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LINK}
+endif
 
 
 #--------------- More (useful) targets! -------------------------------
