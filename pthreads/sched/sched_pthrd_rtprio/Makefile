@@ -109,6 +109,7 @@ prod_2part: ${FNAME_C}.c
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
 	${STRIP} --strip-debug ./${FNAME_C}
 	${OBJCOPY} --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
+	sudo setcap cap_sys_nice+eip ./${FNAME_C}
 
 debug: ${FNAME_C}.c
 	@echo
@@ -116,9 +117,12 @@ debug: ${FNAME_C}.c
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
 	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg ${LINK}
+	sudo setcap cap_sys_nice+eip ./${FNAME_C}_dbg
 #-- Sanitizers (use clang or gcc)
 	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK}
+	sudo setcap cap_sys_nice+eip ./${FNAME_C}_dbg_asan
 	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK}
+	sudo setcap cap_sys_nice+eip ./${FNAME_C}_dbg_ub
 #	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LINK}
 
 
