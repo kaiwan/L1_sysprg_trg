@@ -174,14 +174,29 @@ sa_cppcheck:
 	@echo
 	${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
 
+# Dynamic Analysis
 # dynamic analysis with valgrind
 valgrind:
 	make debug
 	@echo
-	@echo "--- dynamic analysis with valgrind ---"
+	@echo "--- dynamic analysis with Valgrind memcheck ---"
 	@echo
 #--- USER CHECK: manually add params as required
 	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg
+
+# dynamic analysis with ASAN tooling
+asan:
+	make debug
+	@echo
+	@echo "--- dynamic analysis with the Address Sanitizer (ASAN) ---"
+	@echo
+#--- USER CHECK: manually add params as required
+	./${FNAME_C}_dbg_asan
+	@echo
+	@echo "--- dynamic analysis with the Undefined Behavior Sanitizer (UBSAN) ---"
+	@echo
+#--- USER CHECK: manually add params as required
+	./${FNAME_C}_dbg_ub
 
 # Testing: line coverage with gcov(1), lcov(1)
 # ref: https://backstreetcoder.com/code-coverage-using-gcov-lcov-in-linux/
@@ -204,6 +219,7 @@ else
 endif
 
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov ${LINK}
+#--- USER CHECK: manually add params as required
 # Update the test run below as required (more tests + params)
 	@echo "= Running test case(s) ..."
 	@echo "NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it"
@@ -221,6 +237,23 @@ endif
 # generate HTML report in output directory lcov_html/
 	${GENHTML} ./${FNAME_C}.info --output-directory lcov_html/
 	@echo "Display lcov html report: google-chrome lcov_html/index.html"
+
+# Testing all
+test:
+	@echo
+	@echo "=== Test All ==="
+	@echo
+	@echo "-------------------------------------------------------------------------------"
+	make sa
+	@echo "-------------------------------------------------------------------------------"
+	make valgrind
+	@echo "-------------------------------------------------------------------------------"
+	make asan
+	@echo "-------------------------------------------------------------------------------"
+	make covg
+# keeping code-style target last as it can thrown an error causing make to stop
+	@echo "-------------------------------------------------------------------------------"
+	make code-style
 
 # packaging
 package:
@@ -277,7 +310,15 @@ help:
 	@echo
 	@echo '--- dynamic analysis targets ---'
 	@echo ' valgrind   : run the dynamic analysis tool ($(VALGRIND)) on the binary executable'
+	@echo ' asan       : run dynamic analysis via ASAN and UBSAN tooling on the binary executable'
+
+	@echo
+	@echo '--- code coverage ---'
 	@echo ' covg       : run the gcov+lcov code coverage tooling on the source (generates html output!) NOTE- the covg.sh helper script is also available...'
+
+	@echo
+	@echo '--- TEST all ---'
+	@echo ' test       : run all (it runs them in this order): sa, valgrind, asan, covg, code-style'
 
 	@echo
 	@echo '--- misc targets ---'
