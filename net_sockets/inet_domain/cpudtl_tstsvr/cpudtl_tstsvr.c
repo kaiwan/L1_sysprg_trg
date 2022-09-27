@@ -254,13 +254,13 @@ int main(int argc, char *argv[])
 	/*
 	 * The (in)famous 'Address already in use' issue can crop up!
 	 * Explanation: http://www.softlab.ntua.gr/facilities/documentation/unix/unix-socket-faq/unix-socket-faq-4.html#ss4.2
-	 * One sol- use the SO_REUSEADDR socket option:
-	const int enable = 1;
-	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-		// handle warn/error ...
+	 * One sol- use the SO_REUSEADDR socket option
 	 */
+	const int enable = 1;
+	if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+		perror("Warning: setsockopt SO_REUSEADDR failed");
 	if (verbose)
-		printf("%s: bind done at IP %s port %d\n",
+		printf("%s: bind done at IP %s port %d; SO_REUSEADDR setup as well\n",
 			argv[0], inet_ntoa(svr_addr.sin_addr), port);
 
 	if (listen(sd, QLENGTH) == -1)
