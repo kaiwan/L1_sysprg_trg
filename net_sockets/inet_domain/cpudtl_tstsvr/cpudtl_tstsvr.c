@@ -222,14 +222,14 @@ int main(int argc, char *argv[])
 	struct sigaction act;
 	int port = 49161;	//6100;
 
-	if (argc < 3) {
-		fprintf(stderr, "Usage: %s server-ip-addr port-num [-v]\n",
+	if (argc < 2) {
+		fprintf(stderr, "Usage: %s port-num [-v]\n",
 			argv[0]);
 		exit(1);
 	}
-	port = atoi(argv[2]);
+	port = atoi(argv[1]);
 
-	if ((argc == 4) && (strcmp(argv[3], "-v") == 0))
+	if ((argc == 3) && (strcmp(argv[2], "-v") == 0))
 		verbose = 1;
 
 	/* Ignore SIGPIPE, so that server does not recieve it if it attempts
@@ -246,11 +246,7 @@ int main(int argc, char *argv[])
 	// Initialize server's address & bind it
 	// Required to be in Network-Byte-Order
 	svr_addr.sin_family = AF_INET;
-#if 0
-	svr_addr.sin_addr.s_addr = inet_addr(argv[1]);
-#else
 	svr_addr.sin_addr.s_addr = INADDR_ANY;	// INADDR_ANY == "0.0.0.0" =>any available system IPaddr
-#endif
 	svr_addr.sin_port = htons(port);
 
 	if (bind(sd, (struct sockaddr *)&svr_addr, sizeof(svr_addr)) == -1)
@@ -264,8 +260,8 @@ int main(int argc, char *argv[])
 		// handle warn/error ...
 	 */
 	if (verbose)
-		printf("%s: bind done at IP %s port %d\n", argv[0], argv[1],
-		       port);
+		printf("%s: bind done at IP %s port %d\n",
+			argv[0], inet_ntoa(svr_addr.sin_addr), port);
 
 	if (listen(sd, QLENGTH) == -1)
 		ErrExit(argv[0], "socket listen error", 3);
