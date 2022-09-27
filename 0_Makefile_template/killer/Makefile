@@ -41,6 +41,11 @@ ALL :=  prod prod_2part
 # Also, it's recommended to keep one Makefile per program in separate directories.
 ###
 FNAME_C := killer
+#--- USER CHECK: manually add params as required
+# Populate any required cmdline arguments to the process here:
+CMDLINE_ARGS=
+
+
 ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov
 
 CC=${CROSS_COMPILE}gcc
@@ -186,8 +191,8 @@ valgrind:
 	@echo
 	@echo "--- dynamic analysis with Valgrind memcheck ---"
 	@echo
-#--- USER CHECK: manually add params as required
-	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg
+#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg ${CMDLINE_ARGS}
 
 # dynamic analysis with the Sanitizer tooling
 san:
@@ -195,20 +200,20 @@ san:
 	@echo
 	@echo "--- dynamic analysis with the Address Sanitizer (ASAN) ---"
 	@echo
-#--- USER CHECK: manually add params as required
-	./${FNAME_C}_dbg_asan
+#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+	./${FNAME_C}_dbg_asan ${CMDLINE_ARGS}
 
 	@echo
 	@echo "--- dynamic analysis with the Undefined Behavior Sanitizer (UBSAN) ---"
 	@echo
-#--- USER CHECK: manually add params as required
-	./${FNAME_C}_dbg_ub
+#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+	./${FNAME_C}_dbg_ub ${CMDLINE_ARGS}
 
 	@echo
 	@echo "--- dynamic analysis with the Memory Sanitizer (MSAN) ---"
 	@echo
-#--- USER CHECK: manually add params as required
-	./${FNAME_C}_dbg_msan
+#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+	./${FNAME_C}_dbg_msan ${CMDLINE_ARGS}
 
 # Testing: line coverage with gcov(1), lcov(1)
 # ref: https://backstreetcoder.com/code-coverage-using-gcov-lcov-in-linux/
