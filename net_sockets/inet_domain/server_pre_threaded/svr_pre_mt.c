@@ -7,6 +7,7 @@
  * https://unixism.net/2019/04/linux-applications-performance-introduction/
  *
  * Adapted and further simplified here...
+ * To test: run the simple 'test_svr' bash script.
  * Kaiwan NB, kaiwanTECH
  */
 #include <stdio.h>
@@ -42,7 +43,6 @@ pthread_t threads[THREADS_COUNT];
 
 int server_socket;
 pthread_mutex_t mlock = PTHREAD_MUTEX_INITIALIZER;
-
 
 /*
  * --------------------- Utility Routines follow -----------------------------
@@ -191,8 +191,8 @@ char *urlencoding_decode(char *str)
 	*pbuf = '\0';
 	return buf;
 }
-/* ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------- */
 
 /*
  * Once a static file is identified to be served, this function is used to read the file
@@ -259,37 +259,37 @@ void handle_client(int client_socket, long thrdnum)
 	ret = transfer_file_contents(FILE_TO_TRANSFER, client_socket);
 	switch (ret) {
 	case 0:
-		return; // all ok
-	// Error cases ...
+		return;		// all ok
+		// Error cases ...
 	case 1:
 		snprintf(msg, 512,
-		 "%s:%s():thread# %ld: transferring file %s failed; reason: stat(2) failed\n",
-		prg_name, __func__, thrdnum, FILE_TO_TRANSFER);
+			 "%s:%s():thread# %ld: transferring file %s failed; reason: stat(2) failed\n",
+			 prg_name, __func__, thrdnum, FILE_TO_TRANSFER);
 		break;
 	case 2:
 		snprintf(msg, 512,
-		 "%s:%s():thread# %ld: transferring file %s failed; reason: file isn't a regular file\n",
-		prg_name, __func__, thrdnum, FILE_TO_TRANSFER);
+			 "%s:%s():thread# %ld: transferring file %s failed; reason: file isn't a regular file\n",
+			 prg_name, __func__, thrdnum, FILE_TO_TRANSFER);
 		break;
 	case 3:
 		snprintf(msg, 512,
-		 "%s:%s():thread# %ld: transferring file %s failed; reason: empty file\n",
-		prg_name, __func__, thrdnum, FILE_TO_TRANSFER);
+			 "%s:%s():thread# %ld: transferring file %s failed; reason: empty file\n",
+			 prg_name, __func__, thrdnum, FILE_TO_TRANSFER);
 		break;
 	case 4:
 		snprintf(msg, 512,
-		 "%s:%s():thread# %ld: transferring file %s failed; reason: open failed (permissions?)\n",
-		prg_name, __func__, thrdnum, FILE_TO_TRANSFER);
+			 "%s:%s():thread# %ld: transferring file %s failed; reason: open failed (permissions?)\n",
+			 prg_name, __func__, thrdnum, FILE_TO_TRANSFER);
 		break;
 	case 5:
 		snprintf(msg, 512,
-		 "%s:%s():thread# %ld: transferring file %s failed; reason: sendfile(2) failed\n",
-		prg_name, __func__, thrdnum, FILE_TO_TRANSFER);
+			 "%s:%s():thread# %ld: transferring file %s failed; reason: sendfile(2) failed\n",
+			 prg_name, __func__, thrdnum, FILE_TO_TRANSFER);
 		break;
 	default:
 		snprintf(msg, 512,
-		 "%s:%s():thread# %ld: transferring file %s: unknown issue (%d)\n",
-		prg_name, __func__, thrdnum, FILE_TO_TRANSFER, ret);
+			 "%s:%s():thread# %ld: transferring file %s: unknown issue (%d)\n",
+			 prg_name, __func__, thrdnum, FILE_TO_TRANSFER, ret);
 		break;
 	}
 	strncat(msg, "Lookup server log for details.\n", 511);
