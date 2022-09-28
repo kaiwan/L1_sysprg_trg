@@ -41,6 +41,11 @@ ALL :=  prod prod_2part
 # Also, it's recommended to keep one Makefile per program in separate directories.
 ###
 FNAME_C := svr_pre_mt
+#--- USER CHECK: manually add params as required
+# Populate any required cmdline arguments to the process here:
+CMDLINE_ARGS=
+
+
 ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov
 
 CC=${CROSS_COMPILE}gcc
@@ -55,13 +60,13 @@ CSTD=-ansi -std=c99 -std=c11 -std=c18  # the last one wins; else if unsupported,
 POSIX_STD=201112L
 STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE
 
-CFLAGS=-Wall -pedantic -UDEBUG ${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2
+CFLAGS=-Wall -UDEBUG ${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -pedantic -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
-#CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
+CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
 
 CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage
 LINK=-pthread
@@ -105,7 +110,7 @@ prod_2part: ${FNAME_C}.c
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
 # We require the 'debug' build for the 2part, so do that first
-	make debug
+	make --ignore-errors debug
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
 	${STRIP} --strip-debug ./${FNAME_C}
 	${OBJCOPY} --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
@@ -116,10 +121,15 @@ debug: ${FNAME_C}.c
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
 	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg ${LINK}
-#-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK}
-	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK}
-#	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LINK}
+#-- Sanitizers (use clang or GCC)
+	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK} -static-libasan
+	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK} -static-libasan
+# GCC doesn't support MSAN, clang does
+ifeq (, $(shell which clang))
+	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing sudo apt install clang ===)
+else
+	${CL} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LINK}
+endif
 
 
 #--------------- More (useful) targets! -------------------------------
@@ -129,8 +139,8 @@ debug: ${FNAME_C}.c
 # Note! original source file(s) is overwritten, so we back it up.
 # code-style : "wrapper" target over the following kernel code style targets
 code-style:
-	make indent
-	make checkpatch
+	make --ignore-errors indent
+	make --ignore-errors checkpatch
 
 indent: ${SRC_FILES}
 	make clean
@@ -144,7 +154,8 @@ indent: ${SRC_FILES}
 # I came across this apparent bug in indent when using it on Ubuntu 20.04:
 #  realloc(): invalid next size
 #  Aborted (core dumped)
-# Worse, it TRUNCATED the source file to 0 bytes !!! 
+# Worse, it TRUNCATED the source file to 0 bytes !!! So backing them up - as we
+# indeed do - is good.
 
 checkpatch:
 	make clean
@@ -155,8 +166,8 @@ checkpatch:
 
 # sa : "wrapper" target over the following static analyzer targets
 sa:   # static analysis
-	make sa_flawfinder
-	make sa_cppcheck
+	make --ignore-errors sa_flawfinder
+	make --ignore-errors sa_cppcheck
 
 # static analysis with flawfinder
 sa_flawfinder:
@@ -174,14 +185,36 @@ sa_cppcheck:
 	@echo
 	${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
 
+# Dynamic Analysis
 # dynamic analysis with valgrind
 valgrind:
-	make debug
+	make --ignore-errors debug
 	@echo
-	@echo "--- dynamic analysis with valgrind ---"
+	@echo "--- dynamic analysis with Valgrind memcheck ---"
 	@echo
-#--- USER CHECK: manually add params as required
-	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg
+#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg ${CMDLINE_ARGS}
+
+# dynamic analysis with the Sanitizer tooling
+san:
+	make --ignore-errors debug
+	@echo
+	@echo "--- dynamic analysis with the Address Sanitizer (ASAN) ---"
+	@echo
+#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+	./${FNAME_C}_dbg_asan ${CMDLINE_ARGS}
+
+	@echo
+	@echo "--- dynamic analysis with the Undefined Behavior Sanitizer (UBSAN) ---"
+	@echo
+#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+	./${FNAME_C}_dbg_ub ${CMDLINE_ARGS}
+
+	@echo
+	@echo "--- dynamic analysis with the Memory Sanitizer (MSAN) ---"
+	@echo
+#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+	./${FNAME_C}_dbg_msan ${CMDLINE_ARGS}
 
 # Testing: line coverage with gcov(1), lcov(1)
 # ref: https://backstreetcoder.com/code-coverage-using-gcov-lcov-in-linux/
@@ -204,11 +237,13 @@ else
 endif
 
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov ${LINK}
+#--- USER CHECK: manually add params as required
 # Update the test run below as required (more tests + params)
 	@echo "= Running test case(s) ..."
 	@echo "NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it"
 	@echo " and then invoke the covg.sh script to complete the coverage analysis"
-	./${FNAME_C}_gcov
+#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+	./${FNAME_C}_gcov ${CMDLINE_ARGS}
 # ...As the PUT (prg under test) can run continually (without dying), it's possible
 # that the instructions below will have to be run manually...
 # Attempting to abort the PUT with ^C (or [p]kill) causes the entire chain - incl below-
@@ -221,6 +256,21 @@ endif
 # generate HTML report in output directory lcov_html/
 	${GENHTML} ./${FNAME_C}.info --output-directory lcov_html/
 	@echo "Display lcov html report: google-chrome lcov_html/index.html"
+
+# Testing all
+test:
+	@echo
+	@echo "=== Test All ==="
+	@echo "-------------------------------------------------------------------------------"
+	make --ignore-errors code-style
+	@echo "-------------------------------------------------------------------------------"
+	make --ignore-errors sa
+	@echo "-------------------------------------------------------------------------------"
+	make --ignore-errors valgrind
+	@echo "-------------------------------------------------------------------------------"
+	make --ignore-errors san
+	@echo "-------------------------------------------------------------------------------"
+	make --ignore-errors covg
 
 # packaging
 package:
@@ -240,7 +290,8 @@ clean:
 	@echo
 	@echo "--- cleaning ---"
 	@echo
-	rm -vf ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov core* vgcore* *.o *~
+	rm -vf ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_dbg_msan \
+			${FNAME_C}_gcov core* vgcore* *.o *~
 	rm -rfv *.[ch].gcov *.gcda *.gcno *.info lcov_html/
 
 help:
@@ -277,7 +328,16 @@ help:
 	@echo
 	@echo '--- dynamic analysis targets ---'
 	@echo ' valgrind   : run the dynamic analysis tool ($(VALGRIND)) on the binary executable'
+	@echo ' san        : run dynamic analysis via ASAN, UBSAN and MSAN tooling on the binary executable'
+
+	@echo
+	@echo '--- code coverage ---'
 	@echo ' covg       : run the gcov+lcov code coverage tooling on the source (generates html output!) NOTE- the covg.sh helper script is also available...'
+
+	@echo
+	@echo '--- TEST all ---'
+	@echo ' test       : run all (it runs them in this order): code-style, sa, valgrind, san, covg'
+	@echo '              Tip: run "make test > out 2>&1" to save all output to a file "out".'
 
 	@echo
 	@echo '--- misc targets ---'
