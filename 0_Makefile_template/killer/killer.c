@@ -57,7 +57,9 @@ int main(int argc, char **argv)
 		exit(1);
 	case 0:		// Child
 		(void)pause();	/* wait for signal */
-		exit(0);	/* never get here */
+		/* never get here */
+		printf("child %d dying now\n", getpid());
+		exit(0);
 	default:		// Parent
 		printf("parent is %d, child is %d\n", getpid(), pid);
 		// poll for the child being alive

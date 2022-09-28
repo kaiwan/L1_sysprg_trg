@@ -110,7 +110,7 @@ prod_2part: ${FNAME_C}.c
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
 # We require the 'debug' build for the 2part, so do that first
-	make debug
+	make --ignore-errors debug
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
 	${STRIP} --strip-debug ./${FNAME_C}
 	${OBJCOPY} --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
@@ -121,10 +121,10 @@ debug: ${FNAME_C}.c
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
 	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg ${LINK}
-#-- Sanitizers (use clang or gcc)
+#-- Sanitizers (use clang or GCC)
 	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK} -static-libasan
 	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK} -static-libasan
-	# gcc doesn't support MSAN, clang does
+# GCC doesn't support MSAN, clang does
 ifeq (, $(shell which clang))
 	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing sudo apt install clang ===)
 else
@@ -139,8 +139,8 @@ endif
 # Note! original source file(s) is overwritten, so we back it up.
 # code-style : "wrapper" target over the following kernel code style targets
 code-style:
-	make indent
-	make checkpatch
+	make --ignore-errors indent
+	make --ignore-errors checkpatch
 
 indent: ${SRC_FILES}
 	make clean
@@ -154,7 +154,8 @@ indent: ${SRC_FILES}
 # I came across this apparent bug in indent when using it on Ubuntu 20.04:
 #  realloc(): invalid next size
 #  Aborted (core dumped)
-# Worse, it TRUNCATED the source file to 0 bytes !!! 
+# Worse, it TRUNCATED the source file to 0 bytes !!! So backing them up - as we
+# indeed do - is good.
 
 checkpatch:
 	make clean
@@ -165,8 +166,8 @@ checkpatch:
 
 # sa : "wrapper" target over the following static analyzer targets
 sa:   # static analysis
-	make sa_flawfinder
-	make sa_cppcheck
+	make --ignore-errors sa_flawfinder
+	make --ignore-errors sa_cppcheck
 
 # static analysis with flawfinder
 sa_flawfinder:
@@ -187,7 +188,7 @@ sa_cppcheck:
 # Dynamic Analysis
 # dynamic analysis with valgrind
 valgrind:
-	make debug
+	make --ignore-errors debug
 	@echo
 	@echo "--- dynamic analysis with Valgrind memcheck ---"
 	@echo
@@ -196,7 +197,7 @@ valgrind:
 
 # dynamic analysis with the Sanitizer tooling
 san:
-	make debug
+	make --ignore-errors debug
 	@echo
 	@echo "--- dynamic analysis with the Address Sanitizer (ASAN) ---"
 	@echo
@@ -259,18 +260,16 @@ endif
 test:
 	@echo
 	@echo "=== Test All ==="
-	@echo
 	@echo "-------------------------------------------------------------------------------"
-	make sa
+	make --ignore-errors code-style
 	@echo "-------------------------------------------------------------------------------"
-	make valgrind
+	make --ignore-errors sa
 	@echo "-------------------------------------------------------------------------------"
-	make san
+	make --ignore-errors valgrind
 	@echo "-------------------------------------------------------------------------------"
-	make covg
-# keeping code-style target last as it can thrown an error causing make to stop
+	make --ignore-errors san
 	@echo "-------------------------------------------------------------------------------"
-	make code-style
+	make --ignore-errors covg
 
 # packaging
 package:
@@ -336,7 +335,8 @@ help:
 
 	@echo
 	@echo '--- TEST all ---'
-	@echo ' test       : run all (it runs them in this order): sa, valgrind, san, covg, code-style'
+	@echo ' test       : run all (it runs them in this order): code-style, sa, valgrind, san, covg'
+	@echo '              Tip: run "make test > out 2>&1" to save all output to a file "out".'
 
 	@echo
 	@echo '--- misc targets ---'
