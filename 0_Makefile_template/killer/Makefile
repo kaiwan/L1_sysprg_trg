@@ -242,7 +242,8 @@ endif
 	@echo "= Running test case(s) ..."
 	@echo "NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it"
 	@echo " and then invoke the covg.sh script to complete the coverage analysis"
-	./${FNAME_C}_gcov
+#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+	./${FNAME_C}_gcov ${CMDLINE_ARGS}
 # ...As the PUT (prg under test) can run continually (without dying), it's possible
 # that the instructions below will have to be run manually...
 # Attempting to abort the PUT with ^C (or [p]kill) causes the entire chain - incl below-
@@ -257,6 +258,11 @@ endif
 	@echo "Display lcov html report: google-chrome lcov_html/index.html"
 
 # Testing all
+# Limitation:
+# When the PUT (Prg Under Test) runs in an infinite loop or forever (eg. servers/daemons),
+# you may have to manually run a client process (or whatever) and exit the main process
+# programatically; else, a signal like ^C does abort it BUT make doesn't continue (even
+# when run with --ignore-errors).
 test:
 	@echo
 	@echo "=== Test All ==="
@@ -335,8 +341,8 @@ help:
 
 	@echo
 	@echo '--- TEST all ---'
-	@echo ' test       : run all (it runs them in this order): code-style, sa, valgrind, san, covg'
-	@echo '              Tip: run "make test > out 2>&1" to save all output to a file "out".'
+	@echo ' test       : run all targets (it runs them in this order): code-style, sa, valgrind, san, covg'
+	@echo '              Tip: run "make -i test > out 2>&1" to save all output to a file "out".'
 
 	@echo
 	@echo '--- misc targets ---'
