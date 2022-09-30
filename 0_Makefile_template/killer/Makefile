@@ -343,6 +343,7 @@ help:
 	@echo '--- TEST all ---'
 	@echo ' test       : run all targets (it runs them in this order): code-style, sa, valgrind, san, covg'
 	@echo '              Tip: run "make -i test > out 2>&1" to save all output to a file "out".'
+	@echo '                             -i = --ignore-errors'
 
 	@echo
 	@echo '--- misc targets ---'
