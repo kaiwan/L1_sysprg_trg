@@ -55,10 +55,12 @@ CSTD=-ansi -std=c99 -std=c11 -std=c18  # the last one wins; else if unsupported,
 POSIX_STD=201112L
 STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE
 
-CFLAGS=-Wall -pedantic -UDEBUG ${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2
+# Add this option switch to CFLAGS / CFLAGS_DBG if you want ltrace to work on Ubuntu!
+LTRACE_ENABLE=-z lazy
+CFLAGS=-Wall -pedantic -UDEBUG ${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2 ${LTRACE_ENABLE}
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -pedantic -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -pedantic -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2 ${LTRACE_ENABLE}
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
 #CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
