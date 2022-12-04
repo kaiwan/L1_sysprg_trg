@@ -21,16 +21,24 @@
 #include <sys/file.h>
 #include "../convenient.h"
 
-#define		MAX		8
+#define	MAX	8
 
 void *stack(void)
 {
+#ifdef CONFIG_X86
 	if (__WORDSIZE == 32) {
 		__asm__("movl %esp, %eax");
 	} else if (__WORDSIZE == 64) {
 		__asm__("movq %rsp, %rax");
 	}
-/* Accumulator holds the return value */
+	/* Accumulator holds the return value */
+#endif
+#ifdef CONFIG_ARM32
+	asm volatile("mov r0, sp"); // r0 holds the ret val
+#endif
+#ifdef CONFIG_ARM64
+	asm volatile("mov x0, sp_el0"); // x0 holds the ret val
+#endif
 }
 
 static void sighdlr(int signum)
