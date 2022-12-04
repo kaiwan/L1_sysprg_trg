@@ -38,7 +38,7 @@ void *stack(void)
 	asm volatile("mov r0, sp"); // r0 holds the ret val
 #endif
 #ifdef __aarch64__
-	asm volatile("mov x0, sp_el0"); // x0 holds the ret val
+	asm volatile("mov x0, sp"); // x0 holds the ret val
 #endif
 }
 
