@@ -25,7 +25,8 @@
 
 void *stack(void)
 {
-#ifdef CONFIG_X86
+#ifdef __x86_64__
+	printf("X86:\n");
 	if (__WORDSIZE == 32) {
 		__asm__("movl %esp, %eax");
 	} else if (__WORDSIZE == 64) {
@@ -33,10 +34,10 @@ void *stack(void)
 	}
 	/* Accumulator holds the return value */
 #endif
-#ifdef CONFIG_ARM32
+#ifdef __arm__
 	asm volatile("mov r0, sp"); // r0 holds the ret val
 #endif
-#ifdef CONFIG_ARM64
+#ifdef __aarch64__
 	asm volatile("mov x0, sp_el0"); // x0 holds the ret val
 #endif
 }
