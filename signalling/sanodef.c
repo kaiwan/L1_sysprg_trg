@@ -25,6 +25,7 @@
 
 void *stack(void)
 {
+// arch name ref: https://sourceforge.net/p/predef/wiki/Architectures/
 #ifdef __x86_64__
 	printf("X86:\n");
 	if (__WORDSIZE == 32) {

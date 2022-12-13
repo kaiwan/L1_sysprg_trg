@@ -1,0 +1,4 @@
+#!/bin/bash
+# Send only the parent a signal; the children don't get it   (;-))
+parent=$(pgrep chld_sig |head -n1)
+kill -SIGUSR1 ${parent}
