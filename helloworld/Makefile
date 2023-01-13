@@ -1,15 +1,15 @@
-ALL := hello armhello
+ALL := hello hello_dbg
 all: ${ALL}
 
-CL := gcc
-OUT := hello
+CC := ${CROSS_COMPILE}gcc
+OUT := $(ALL)
 ifeq ($(ARCH),arm)
   @echo "Building for ARM"
-  CL := ${CROSS_COMPILE}gcc
-  OUT := armhello
 endif
 
 hello: helloworld.c
-	${CL} helloworld.c -o ${OUT} -Wall -Os
+	${CC} helloworld.c -o hello -Wall -O2
+hello_dbg: helloworld.c
+	${CC} -g -ggdb -O0 helloworld.c -o hello_dbg -Wall
 clean:
 	rm -f ${OUT}
