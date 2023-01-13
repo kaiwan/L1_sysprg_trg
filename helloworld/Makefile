@@ -1,4 +1,4 @@
-ALL := hello hello_dbg
+ALL := helloworld helloworld_dbg
 all: ${ALL}
 
 CC := ${CROSS_COMPILE}gcc
@@ -7,9 +7,10 @@ ifeq ($(ARCH),arm)
   @echo "Building for ARM"
 endif
 
-hello: helloworld.c
-	${CC} helloworld.c -o hello -Wall -O2
-hello_dbg: helloworld.c
-	${CC} -g -ggdb -O0 helloworld.c -o hello_dbg -Wall
+helloworld: helloworld.c
+	${CC} helloworld.c -o helloworld -Wall -O2
+	strip --strip-all ./helloworld
+helloworld_dbg: helloworld.c
+	${CC} -g -ggdb -O0 helloworld.c -o helloworld_dbg -Wall
 clean:
 	rm -f ${OUT}
