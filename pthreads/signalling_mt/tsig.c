@@ -17,7 +17,7 @@
  * <kaiwan -at- kaiwantech -dot- com>
  * License: MIT
  */
-//#define _POSIX_C_SOURCE    200112L	/* or earlier: 199506L */
+//#define _POSIX_C_SOURCE    200112L    /* or earlier: 199506L */
 // causes issue w/ SA_RESTART etc ! Don't use it! Use this:
 //#define _POSIX_C_SOURCE    200809L
 // ref: https://stackoverflow.com/questions/9828733/sa-restart-not-defined-under-linux-compiles-fine-in-solaris
@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
-#include <sys/types.h> // gettid(2)
+#include <sys/types.h>		// gettid(2)
 #include <string.h>
 #include <errno.h>
 
@@ -112,7 +112,7 @@ static void fatal_sigs_handler(int signum, siginfo_t * siginfo, void *rest)
 #endif
 	printf("	received signal %d. errno=%d\n"
 	       " Cause/Origin: (si_code=%d): ",
-		   signum, siginfo->si_errno, siginfo->si_code);
+	       signum, siginfo->si_errno, siginfo->si_code);
 
 	switch (siginfo->si_code) {
 	case SI_USER:
@@ -139,17 +139,12 @@ static void fatal_sigs_handler(int signum, siginfo_t * siginfo, void *rest)
 	case SI_TKILL:
 		printf("t[g]kill\n");
 		break;
-		// other poss values si_code can have for SIGSEGV
-	case SEGV_MAPERR:
-		printf("SEGV_MAPERR: address not mapped to object\n");
+	// other poss values si_code can have for SIGSEGV 
+	case SEGV_MAPERR: printf("SEGV_MAPERR: address not mapped to object\n"); break; case SEGV_ACCERR: printf("SEGV_ACCERR: invalid permissions for mapped object\n"); 
 		break;
-	case SEGV_ACCERR:
-		printf("SEGV_ACCERR: invalid permissions for mapped object\n");
-		break;
-		/* SEGV_BNDERR and SEGV_PKUERR result in compile failure ??
-		 * Qs asked on SO here:
-		 * https://stackoverflow.com/questions/45229308/attempting-to-make-use-of-segv-bnderr-and-segv-pkuerr-in-a-sigsegv-signal-handle
-		 */
+/* SEGV_BNDERR and SEGV_PKUERR result in compile failure ??  * Qs asked on SO here:
+ *https://stackoverflow.com/questions/45229308/attempting-to-make-use-of-segv-bnderr-and-segv-pkuerr-in-a-sigsegv-signal-handle
+*/
 #if 0
 	case SEGV_BNDERR:	/* 3.19 onward */
 		printf("SEGV_BNDERR: failed address bound checks\n");
@@ -263,13 +258,13 @@ Worker thread #%ld (pid %d)...\n", this, getpid());
 		DELAY_LOOP('1', 2000);
 		if (g_opt == 1) {
 			int *pi = 0x0;
-			printf("pi = %p\n", (void *)*pi);  // NULL-ptr dereference bug!
-	/* BUG ! 
-	 * Causes a fault at the level of the MMU (as all bytes in virtual page 0
-     * have no permission '---'); thus, causing the MMU to raise a fault, leading
-	 * the OS's fault handling code to send SIGSEGV to the offending *thread*, the
-	 * one that caused this to occur!
-	 */
+			printf("pi = %p\n", (void *)*pi);	// NULL-ptr dereference bug!
+			/* BUG ! 
+			 * Causes a fault at the level of the MMU (as all bytes in virtual page 0
+			 * have no permission '---'); thus, causing the MMU to raise a fault, leading
+			 * the OS's fault handling code to send SIGSEGV to the offending *thread*, the
+			 * one that caused this to occur!
+			 */
 		}
 	} else if (this == 2) {
 		DELAY_LOOP('2', 2000);
@@ -290,14 +285,14 @@ int setup_altsigstack(size_t stack_sz)
 
 	printf("Alt signal stack size = %zu bytes\n", stack_sz);
 	ss.ss_sp = malloc(stack_sz);
-	if (!ss.ss_sp){
+	if (!ss.ss_sp) {
 		printf("malloc(%zu) for alt sig stack failed\n", stack_sz);
 		return -ENOMEM;
 	}
 
 	ss.ss_size = stack_sz;
 	ss.ss_flags = 0;
-	if (sigaltstack(&ss, NULL) == -1){
+	if (sigaltstack(&ss, NULL) == -1) {
 		printf("sigaltstack for size %zu failed!\n", stack_sz);
 		return -errno;
 	}
@@ -308,7 +303,7 @@ int setup_altsigstack(size_t stack_sz)
 
 int main(int argc, char **argv)
 {
-	sigset_t sigset; // used for signal mask
+	sigset_t sigset;	// used for signal mask
 	struct sigaction act;
 	pthread_t pthrd[NUM_THREADS + 1];
 	pthread_attr_t attr;
@@ -331,29 +326,36 @@ int main(int argc, char **argv)
 	 * Now all subsequently created threads also block all signals.
 	 */
 	if (sigfillset(&sigset) < 0) {
-		perror("sigfillset"); exit(1);
+		perror("sigfillset");
+		exit(1);
 	}
 	/* Do NOT block the synchronous (or 'fatal') signals - the ones sent to the faulting thread
 	 * on a fault/bug:
-     * SIGSEGV / SIGBUS / SIGABRT / SIGFPE / SIGILL / SIGIOT
+	 * SIGSEGV / SIGBUS / SIGABRT / SIGFPE / SIGILL / SIGIOT
 	 */
 	if (sigdelset(&sigset, SIGSEGV) < 0) {
-		perror("sigdelset"); exit(1);
+		perror("sigdelset");
+		exit(1);
 	}
 	if (sigdelset(&sigset, SIGBUS) < 0) {
-		perror("sigdelset"); exit(1);
+		perror("sigdelset");
+		exit(1);
 	}
 	if (sigdelset(&sigset, SIGABRT) < 0) {
-		perror("sigdelset"); exit(1);
+		perror("sigdelset");
+		exit(1);
 	}
 	if (sigdelset(&sigset, SIGFPE) < 0) {
-		perror("sigdelset"); exit(1);
+		perror("sigdelset");
+		exit(1);
 	}
 	if (sigdelset(&sigset, SIGILL) < 0) {
-		perror("sigdelset"); exit(1);
+		perror("sigdelset");
+		exit(1);
 	}
-	if (sigdelset(&sigset, SIGIOT) < 0) { // synonym for SIGABRT
-		perror("sigdelset"); exit(1);
+	if (sigdelset(&sigset, SIGIOT) < 0) {	// synonym for SIGABRT
+		perror("sigdelset");
+		exit(1);
 	}
 	if (pthread_sigmask(SIG_BLOCK, &sigset, NULL)) {
 		perror("main: pthread_sigmask failed");
@@ -370,8 +372,9 @@ int main(int argc, char **argv)
 	 * But where? It cannot on the old stack - it's now corrupt! Hence, the
 	 * need for an alternate signal stack !
 	 */
-	if (setup_altsigstack(10*1024*1024) < 0) {
-		fprintf(stderr, "%s: setting up alt sig stack failed\n", argv[0]);
+	if (setup_altsigstack(10 * 1024 * 1024) < 0) {
+		fprintf(stderr, "%s: setting up alt sig stack failed\n",
+			argv[0]);
 		exit(1);
 	}
 	memset(&act, 0, sizeof(act));
@@ -379,22 +382,28 @@ int main(int argc, char **argv)
 	act.sa_flags = SA_RESTART | SA_SIGINFO | SA_ONSTACK;
 	sigemptyset(&act.sa_mask);
 	if (sigaction(SIGSEGV, &act, 0) == -1) {
-		perror("sigaction"); exit(1);
+		perror("sigaction");
+		exit(1);
 	}
 	if (sigaction(SIGBUS, &act, 0) == -1) {
-		perror("sigaction"); exit(1);
+		perror("sigaction");
+		exit(1);
 	}
 	if (sigaction(SIGABRT, &act, 0) == -1) {
-		perror("sigaction"); exit(1);
+		perror("sigaction");
+		exit(1);
 	}
 	if (sigaction(SIGFPE, &act, 0) == -1) {
-		perror("sigaction"); exit(1);
+		perror("sigaction");
+		exit(1);
 	}
 	if (sigaction(SIGILL, &act, 0) == -1) {
-		perror("sigaction"); exit(1);
+		perror("sigaction");
+		exit(1);
 	}
 	if (sigaction(SIGIOT, &act, 0) == -1) {
-		perror("sigaction"); exit(1);
+		perror("sigaction");
+		exit(1);
 	}
 
 	if (pthread_attr_init(&attr)) {
@@ -429,9 +438,10 @@ int main(int argc, char **argv)
 	}
 
 	/* Block on signals forever; until we catch a fatal one! */
-	while(1)
+	while (1)
 		pause();
 	/* this code never reached */
 	pthread_exit(NULL);
 }
+
 /* end tsig.c */
