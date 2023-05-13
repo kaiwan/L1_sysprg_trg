@@ -2,7 +2,7 @@
 #include <unistd.h>
 int main()
 {
-	printf("Hello, world\n");
+	printf("hello, world\n");
 	// Add a pause() to keep the process alive
 	pause();
 }
