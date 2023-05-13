@@ -82,7 +82,7 @@ $
 #include <pwd.h>
 
 // update on your box
-#include "convenient.h"
+#include "../../../convenient.h"
 
 /* If you're just trying this trivially on the localhost itself, keep
  * SERV_IP as local loopback addr. Else, use the IP address of the 
