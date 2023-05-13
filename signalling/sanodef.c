@@ -45,7 +45,7 @@ void *stack(void)
 
 static void sighdlr(int signum)
 {
-	static sig_atomic_t s;
+	static volatile sig_atomic_t s;
 	int saved;
 
 	printf("\nsighdlr: caught signal %d,", signum);
@@ -89,7 +89,11 @@ option=1 : use SA_NODEFER flag (will process signal immd)\n", argv[0]);
 	// set up signal handler
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = sighdlr;
-	sigemptyset(&act.sa_mask);
+#if 0
+	sigemptyset(&act.sa_mask); // allow all other signals...
+#else
+	sigfillset(&act.sa_mask); // don't allow all other signals...
+#endif
 	act.sa_flags = flags;
 
 	if (sigaction(SIGINT, &act, 0) == -1) {
