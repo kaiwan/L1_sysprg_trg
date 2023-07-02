@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #define MAX_THREADS    127000 // 50000	// arbitrary
 typedef unsigned int u32;
@@ -65,9 +66,9 @@ int main(int argc, char **argv)
 		rc = pthread_create(&threads[t], NULL, PrintStuff, (void *)t);
 		if (rc) {
 			printf
-			    ("%s: Thrd # %ld: ERROR: return code from pthread_create() is %d\n",
-			     argv[0], t, rc);
-			perror("pthread_create failed");
+			    ("%s: Thrd # %ld: ERROR: return code from pthread_create() is %d\nstrerror() says: %s\n",
+			     argv[0], t, rc, strerror(rc));
+			perror("perror(): pthread_create failed");
 			exit(1);
 		}
 	}
