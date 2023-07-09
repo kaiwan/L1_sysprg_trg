@@ -77,16 +77,21 @@ static void myfault(int signum, siginfo_t * siginfo, void *rest)
 	case SEGV_ACCERR:
 		printf("SEGV_ACCERR: invalid permissions for mapped object\n");
 		break;
+#if 1
 		/* SEGV_BNDERR and SEGV_PKUERR result in compile failure ??
 		 * Qs asked on SO here:
 		 * https://stackoverflow.com/questions/45229308/attempting-to-make-use-of-segv-bnderr-and-segv-pkuerr-in-a-sigsegv-signal-handle
+		 *
+		 * Update:
+		 * Seems ok more recently... (i don't know from exactly which glibc/GCC ver though..)
 		 */
-#if 0
 	case SEGV_BNDERR:	/* 3.19 onward */
 		printf("SEGV_BNDERR: failed address bound checks\n");
+		break;
 	case SEGV_PKUERR:	/* 4.6 onward */
 		printf
 		    ("SEGV_PKUERR: access denied by memory-protection keys\n");
+		break;
 #endif
 	default:
 		printf("-none-\n");

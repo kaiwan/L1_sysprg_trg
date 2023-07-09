@@ -18,20 +18,14 @@
 ## Pl check and keep or remove <foo>_dbg_[asan|ub|msan] targets
 ## as desired.
 ALL :=  fork_ret fork_ret_dbg fork_ret_dbg_asan fork_ret_dbg_ub fork_ret_dbg_msan \
-	fork_data_addr fork_data_addr_dbg fork_data_addr_dbg_asan fork_data_addr_dbg_ub fork_data_addr_dbg_msan \
 	wait_fail wait_fail_dbg wait_fail_dbg_asan wait_fail_dbg_ub wait_fail_dbg_msan \
-	mysh_simple mysh_simple_dbg mysh_simple_dbg_asan mysh_simple_dbg_ub mysh_simple_dbg_msan \
-	mysh mysh_dbg mysh_dbg_asan mysh_dbg_ub mysh_dbg_msan \
-	fork2c fork2c_dbg fork2c_dbg_asan fork2c_dbg_ub fork2c_dbg_msan \
-	orphan orphan_dbg orphan_dbg_asan orphan_dbg_ub orphan_dbg_msan \
-	zombie zombie_dbg zombie_dbg_asan zombie_dbg_ub zombie_dbg_msan \
-	forkbomb1 forkbomb1_dbg forkbomb1_dbg_asan forkbomb1_dbg_ub forkbomb1_dbg_msan \
+	forkbomb1 forkbomb1_dbg forkbomb1_dbg_asan forkbomb1_dbg_ub forkbomb1_dbg_msan
 
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
 
-CFLAGS=-O2 -Wall -UDEBUG
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG
+CFLAGS += -O2 -Wall -UDEBUG
+CFLAGS_DBG += -g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
@@ -43,8 +37,15 @@ LINKIN :=
 all: ${ALL}
 CB_FILES := *.[ch]
 
+# Include 'distro default' Debian hardening compiler option switches!
+# Must invoke like this:
+#  DEB_BUILD_HARDENING=1 make <target>
+# (works even without the env var)
+include /usr/share/dpkg/buildflags.mk
+
 common.o: ../common.c ../common.h
-	${CC} ${CFLAGS} -c ../common.c -o common.o
+	${CC} $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -c ../common.c -o common.o
+#	${CC} ${CFLAGS} -c ../common.c -o common.o
 common_dbg.o: ../common.c ../common.h
 	${CC} ${CFLAGS_DBG} -c ../common.c -o common_dbg.o
 
@@ -58,12 +59,14 @@ common_dbg_msan.o: ../common.c ../common.h
 
 #--- Target :: fork_ret
 fork_ret.o: fork_ret.c
-	${CC} ${CFLAGS} -c fork_ret.c -o fork_ret.o
+	#${CC} ${CFLAGS} -c fork_ret.c -o fork_ret.o
+	${CC} $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -c fork_ret.c -o fork_ret.o
 fork_ret: common.o fork_ret.o
 	${CC} -o fork_ret fork_ret.o common.o ${LINKIN}
 
 fork_ret_dbg.o: fork_ret.c
-	${CC} ${CFLAGS_DBG} -c fork_ret.c -o fork_ret_dbg.o
+	#${CC} ${CFLAGS_DBG} -c fork_ret.c -o fork_ret_dbg.o
+	${CC} $(CPPFLAGS) $(CFLAGS) $(CFLAGS_DBG) $(LDFLAGS) -c fork_ret.c -o fork_ret_dbg.o
 fork_ret_dbg: fork_ret_dbg.o common_dbg.o
 	${CC} -o fork_ret_dbg fork_ret_dbg.o common_dbg.o ${LINKIN}
 
@@ -82,33 +85,6 @@ fork_ret_dbg_msan.o: fork_ret.c
 	${CL} ${CFLAGS_DBG_MSAN} -c fork_ret.c -o fork_ret_dbg_msan.o
 fork_ret_dbg_msan: fork_ret_dbg_msan.o common_dbg_msan.o
 	${CL} ${CFLAGS_DBG_MSAN} -o fork_ret_dbg_msan fork_ret_dbg_msan.o common_dbg_msan.o ${LINKIN}
-
-#--- Target :: fork_data_addr
-fork_data_addr.o: fork_data_addr.c
-	${CC} ${CFLAGS} -c fork_data_addr.c -o fork_data_addr.o
-fork_data_addr: common.o fork_data_addr.o
-	${CC} -o fork_data_addr fork_data_addr.o common.o ${LINKIN}
-
-fork_data_addr_dbg.o: fork_data_addr.c
-	${CC} ${CFLAGS_DBG} -c fork_data_addr.c -o fork_data_addr_dbg.o
-fork_data_addr_dbg: fork_data_addr_dbg.o common_dbg.o
-	${CC} -o fork_data_addr_dbg fork_data_addr_dbg.o common_dbg.o ${LINKIN}
-
- #--- Sanitizers for fork_data_addr :: (use clang): <foo>_dbg_[asan|ub|msan]
-fork_data_addr_dbg_asan.o: fork_data_addr.c
-	${CL} ${CFLAGS_DBG_ASAN} -c fork_data_addr.c -o fork_data_addr_dbg_asan.o
-fork_data_addr_dbg_asan: fork_data_addr_dbg_asan.o common_dbg_asan.o
-	${CL} ${CFLAGS_DBG_ASAN} -o fork_data_addr_dbg_asan fork_data_addr_dbg_asan.o common_dbg_asan.o ${LINKIN}
-
-fork_data_addr_dbg_ub.o: fork_data_addr.c
-	${CL} ${CFLAGS_DBG_UB} -c fork_data_addr.c -o fork_data_addr_dbg_ub.o
-fork_data_addr_dbg_ub: fork_data_addr_dbg_ub.o common_dbg_ub.o
-	${CL} ${CFLAGS_DBG_UB} -o fork_data_addr_dbg_ub fork_data_addr_dbg_ub.o common_dbg_ub.o ${LINKIN}
-
-fork_data_addr_dbg_msan.o: fork_data_addr.c
-	${CL} ${CFLAGS_DBG_MSAN} -c fork_data_addr.c -o fork_data_addr_dbg_msan.o
-fork_data_addr_dbg_msan: fork_data_addr_dbg_msan.o common_dbg_msan.o
-	${CL} ${CFLAGS_DBG_MSAN} -o fork_data_addr_dbg_msan fork_data_addr_dbg_msan.o common_dbg_msan.o ${LINKIN}
 
 #--- Target :: wait_fail
 wait_fail.o: wait_fail.c
@@ -136,141 +112,6 @@ wait_fail_dbg_msan.o: wait_fail.c
 	${CL} ${CFLAGS_DBG_MSAN} -c wait_fail.c -o wait_fail_dbg_msan.o
 wait_fail_dbg_msan: wait_fail_dbg_msan.o common_dbg_msan.o
 	${CL} ${CFLAGS_DBG_MSAN} -o wait_fail_dbg_msan wait_fail_dbg_msan.o common_dbg_msan.o ${LINKIN}
-
-#--- Target :: mysh_simple
-mysh_simple.o: mysh_simple.c
-	${CC} ${CFLAGS} -c mysh_simple.c -o mysh_simple.o
-mysh_simple: common.o mysh_simple.o
-	${CC} -o mysh_simple mysh_simple.o common.o ${LINKIN}
-
-mysh_simple_dbg.o: mysh_simple.c
-	${CC} ${CFLAGS_DBG} -c mysh_simple.c -o mysh_simple_dbg.o
-mysh_simple_dbg: mysh_simple_dbg.o common_dbg.o
-	${CC} -o mysh_simple_dbg mysh_simple_dbg.o common_dbg.o ${LINKIN}
-
- #--- Sanitizers for mysh_simple :: (use clang): <foo>_dbg_[asan|ub|msan]
-mysh_simple_dbg_asan.o: mysh_simple.c
-	${CL} ${CFLAGS_DBG_ASAN} -c mysh_simple.c -o mysh_simple_dbg_asan.o
-mysh_simple_dbg_asan: mysh_simple_dbg_asan.o common_dbg_asan.o
-	${CL} ${CFLAGS_DBG_ASAN} -o mysh_simple_dbg_asan mysh_simple_dbg_asan.o common_dbg_asan.o ${LINKIN}
-
-mysh_simple_dbg_ub.o: mysh_simple.c
-	${CL} ${CFLAGS_DBG_UB} -c mysh_simple.c -o mysh_simple_dbg_ub.o
-mysh_simple_dbg_ub: mysh_simple_dbg_ub.o common_dbg_ub.o
-	${CL} ${CFLAGS_DBG_UB} -o mysh_simple_dbg_ub mysh_simple_dbg_ub.o common_dbg_ub.o ${LINKIN}
-
-mysh_simple_dbg_msan.o: mysh_simple.c
-	${CL} ${CFLAGS_DBG_MSAN} -c mysh_simple.c -o mysh_simple_dbg_msan.o
-mysh_simple_dbg_msan: mysh_simple_dbg_msan.o common_dbg_msan.o
-	${CL} ${CFLAGS_DBG_MSAN} -o mysh_simple_dbg_msan mysh_simple_dbg_msan.o common_dbg_msan.o ${LINKIN}
-
-#--- Target :: mysh
-mysh.o: mysh.c
-	${CC} ${CFLAGS} -c mysh.c -o mysh.o
-mysh: common.o mysh.o
-	${CC} -o mysh mysh.o common.o ${LINKIN}
-
-mysh_dbg.o: mysh.c
-	${CC} ${CFLAGS_DBG} -c mysh.c -o mysh_dbg.o
-mysh_dbg: mysh_dbg.o common_dbg.o
-	${CC} -o mysh_dbg mysh_dbg.o common_dbg.o ${LINKIN}
-
- #--- Sanitizers for mysh :: (use clang): <foo>_dbg_[asan|ub|msan]
-mysh_dbg_asan.o: mysh.c
-	${CL} ${CFLAGS_DBG_ASAN} -c mysh.c -o mysh_dbg_asan.o
-mysh_dbg_asan: mysh_dbg_asan.o common_dbg_asan.o
-	${CL} ${CFLAGS_DBG_ASAN} -o mysh_dbg_asan mysh_dbg_asan.o common_dbg_asan.o ${LINKIN}
-
-mysh_dbg_ub.o: mysh.c
-	${CL} ${CFLAGS_DBG_UB} -c mysh.c -o mysh_dbg_ub.o
-mysh_dbg_ub: mysh_dbg_ub.o common_dbg_ub.o
-	${CL} ${CFLAGS_DBG_UB} -o mysh_dbg_ub mysh_dbg_ub.o common_dbg_ub.o ${LINKIN}
-
-mysh_dbg_msan.o: mysh.c
-	${CL} ${CFLAGS_DBG_MSAN} -c mysh.c -o mysh_dbg_msan.o
-mysh_dbg_msan: mysh_dbg_msan.o common_dbg_msan.o
-	${CL} ${CFLAGS_DBG_MSAN} -o mysh_dbg_msan mysh_dbg_msan.o common_dbg_msan.o ${LINKIN}
-
-#--- Target :: fork2c
-fork2c.o: fork2c.c
-	${CC} ${CFLAGS} -c fork2c.c -o fork2c.o
-fork2c: common.o fork2c.o
-	${CC} -o fork2c fork2c.o common.o ${LINKIN}
-
-fork2c_dbg.o: fork2c.c
-	${CC} ${CFLAGS_DBG} -c fork2c.c -o fork2c_dbg.o
-fork2c_dbg: fork2c_dbg.o common_dbg.o
-	${CC} -o fork2c_dbg fork2c_dbg.o common_dbg.o ${LINKIN}
-
- #--- Sanitizers for fork2c :: (use clang): <foo>_dbg_[asan|ub|msan]
-fork2c_dbg_asan.o: fork2c.c
-	${CL} ${CFLAGS_DBG_ASAN} -c fork2c.c -o fork2c_dbg_asan.o
-fork2c_dbg_asan: fork2c_dbg_asan.o common_dbg_asan.o
-	${CL} ${CFLAGS_DBG_ASAN} -o fork2c_dbg_asan fork2c_dbg_asan.o common_dbg_asan.o ${LINKIN}
-
-fork2c_dbg_ub.o: fork2c.c
-	${CL} ${CFLAGS_DBG_UB} -c fork2c.c -o fork2c_dbg_ub.o
-fork2c_dbg_ub: fork2c_dbg_ub.o common_dbg_ub.o
-	${CL} ${CFLAGS_DBG_UB} -o fork2c_dbg_ub fork2c_dbg_ub.o common_dbg_ub.o ${LINKIN}
-
-fork2c_dbg_msan.o: fork2c.c
-	${CL} ${CFLAGS_DBG_MSAN} -c fork2c.c -o fork2c_dbg_msan.o
-fork2c_dbg_msan: fork2c_dbg_msan.o common_dbg_msan.o
-	${CL} ${CFLAGS_DBG_MSAN} -o fork2c_dbg_msan fork2c_dbg_msan.o common_dbg_msan.o ${LINKIN}
-
-#--- Target :: orphan
-orphan.o: orphan.c
-	${CC} ${CFLAGS} -c orphan.c -o orphan.o
-orphan: common.o orphan.o
-	${CC} -o orphan orphan.o common.o ${LINKIN}
-
-orphan_dbg.o: orphan.c
-	${CC} ${CFLAGS_DBG} -c orphan.c -o orphan_dbg.o
-orphan_dbg: orphan_dbg.o common_dbg.o
-	${CC} -o orphan_dbg orphan_dbg.o common_dbg.o ${LINKIN}
-
- #--- Sanitizers for orphan :: (use clang): <foo>_dbg_[asan|ub|msan]
-orphan_dbg_asan.o: orphan.c
-	${CL} ${CFLAGS_DBG_ASAN} -c orphan.c -o orphan_dbg_asan.o
-orphan_dbg_asan: orphan_dbg_asan.o common_dbg_asan.o
-	${CL} ${CFLAGS_DBG_ASAN} -o orphan_dbg_asan orphan_dbg_asan.o common_dbg_asan.o ${LINKIN}
-
-orphan_dbg_ub.o: orphan.c
-	${CL} ${CFLAGS_DBG_UB} -c orphan.c -o orphan_dbg_ub.o
-orphan_dbg_ub: orphan_dbg_ub.o common_dbg_ub.o
-	${CL} ${CFLAGS_DBG_UB} -o orphan_dbg_ub orphan_dbg_ub.o common_dbg_ub.o ${LINKIN}
-
-orphan_dbg_msan.o: orphan.c
-	${CL} ${CFLAGS_DBG_MSAN} -c orphan.c -o orphan_dbg_msan.o
-orphan_dbg_msan: orphan_dbg_msan.o common_dbg_msan.o
-	${CL} ${CFLAGS_DBG_MSAN} -o orphan_dbg_msan orphan_dbg_msan.o common_dbg_msan.o ${LINKIN}
-
-#--- Target :: zombie
-zombie.o: zombie.c
-	${CC} ${CFLAGS} -c zombie.c -o zombie.o
-zombie: common.o zombie.o
-	${CC} -o zombie zombie.o common.o ${LINKIN}
-
-zombie_dbg.o: zombie.c
-	${CC} ${CFLAGS_DBG} -c zombie.c -o zombie_dbg.o
-zombie_dbg: zombie_dbg.o common_dbg.o
-	${CC} -o zombie_dbg zombie_dbg.o common_dbg.o ${LINKIN}
-
- #--- Sanitizers for zombie :: (use clang): <foo>_dbg_[asan|ub|msan]
-zombie_dbg_asan.o: zombie.c
-	${CL} ${CFLAGS_DBG_ASAN} -c zombie.c -o zombie_dbg_asan.o
-zombie_dbg_asan: zombie_dbg_asan.o common_dbg_asan.o
-	${CL} ${CFLAGS_DBG_ASAN} -o zombie_dbg_asan zombie_dbg_asan.o common_dbg_asan.o ${LINKIN}
-
-zombie_dbg_ub.o: zombie.c
-	${CL} ${CFLAGS_DBG_UB} -c zombie.c -o zombie_dbg_ub.o
-zombie_dbg_ub: zombie_dbg_ub.o common_dbg_ub.o
-	${CL} ${CFLAGS_DBG_UB} -o zombie_dbg_ub zombie_dbg_ub.o common_dbg_ub.o ${LINKIN}
-
-zombie_dbg_msan.o: zombie.c
-	${CL} ${CFLAGS_DBG_MSAN} -c zombie.c -o zombie_dbg_msan.o
-zombie_dbg_msan: zombie_dbg_msan.o common_dbg_msan.o
-	${CL} ${CFLAGS_DBG_MSAN} -o zombie_dbg_msan zombie_dbg_msan.o common_dbg_msan.o ${LINKIN}
 
 #--- Target :: forkbomb1
 forkbomb1.o: forkbomb1.c
