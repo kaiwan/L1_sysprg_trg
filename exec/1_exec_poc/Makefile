@@ -38,7 +38,7 @@ ALL :=  prod prod_2part
 # Of course, if you have >1 C program to build, you must add it manually,
 # or better, keep one Makefile per program in separate directories.
 ###
-ALL_NM :=  exec_poc
+ALL_NM := exec_poc exec_poc_dbg exec_poc_dbg_asan exec_poc_dbg_ub
 
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
@@ -51,13 +51,22 @@ POSIX_STD=199309L
  # deliberately using the older one for max compatibility
 
 CFLAGS=-Wall -pedantic -UDEBUG ${PROD_OPTLEVEL} ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD}
+
+# (Fedora): Hardening: check on Fedora with:
+# the annobin plugin, and test with:
+# annocheck --verbose <fname>
+CFLAGS_DBG=-g -Wall -pedantic -Wextra -DDEBUG ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} \
+-O2 -D_FORTIFY_SOURCE=2 -D_GLIBCXX_ASSERTIONS -fPIE -flto \
+-fasynchronous-unwind-tables -fcf-protection -fstack-clash-protection -fstack-protector-strong \
+-fplugin=annobin \
+-Wl,-z,relro,-z,now #-Wl,-pie
+
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -pedantic -Wextra -DDEBUG ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD}
+#CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -pedantic -Wextra -DDEBUG ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD}
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
 #CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
-
 CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage
 
 # Required vars
@@ -96,7 +105,7 @@ prod_2part: ${PKG}.c
 	make debug
 	${CC} ${CFLAGS} ${PKG}.c -o ${PKG}
 	${STRIP} --strip-debug ./${PKG}
-	objcopy --add-gnu-debuglink=./${PKG}_dbg ./envp
+	objcopy --add-gnu-debuglink=./${PKG}_dbg ./${PKG}
 
 debug: ${PKG}.c
 	@echo
