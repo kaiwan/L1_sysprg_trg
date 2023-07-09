@@ -24,8 +24,8 @@ ALL :=  fork_ret fork_ret_dbg fork_ret_dbg_asan fork_ret_dbg_ub fork_ret_dbg_msa
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
 
-CFLAGS=-O2 -Wall -UDEBUG
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG
+CFLAGS += -O2 -Wall -UDEBUG
+CFLAGS_DBG += -g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
@@ -37,8 +37,15 @@ LINKIN :=
 all: ${ALL}
 CB_FILES := *.[ch]
 
+# Include 'distro default' Debian hardening compiler option switches!
+# Must invoke like this:
+#  DEB_BUILD_HARDENING=1 make <target>
+# (works even without the env var)
+include /usr/share/dpkg/buildflags.mk
+
 common.o: ../common.c ../common.h
-	${CC} ${CFLAGS} -c ../common.c -o common.o
+	${CC} $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -c ../common.c -o common.o
+#	${CC} ${CFLAGS} -c ../common.c -o common.o
 common_dbg.o: ../common.c ../common.h
 	${CC} ${CFLAGS_DBG} -c ../common.c -o common_dbg.o
 
@@ -52,12 +59,14 @@ common_dbg_msan.o: ../common.c ../common.h
 
 #--- Target :: fork_ret
 fork_ret.o: fork_ret.c
-	${CC} ${CFLAGS} -c fork_ret.c -o fork_ret.o
+	#${CC} ${CFLAGS} -c fork_ret.c -o fork_ret.o
+	${CC} $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -c fork_ret.c -o fork_ret.o
 fork_ret: common.o fork_ret.o
 	${CC} -o fork_ret fork_ret.o common.o ${LINKIN}
 
 fork_ret_dbg.o: fork_ret.c
-	${CC} ${CFLAGS_DBG} -c fork_ret.c -o fork_ret_dbg.o
+	#${CC} ${CFLAGS_DBG} -c fork_ret.c -o fork_ret_dbg.o
+	${CC} $(CPPFLAGS) $(CFLAGS) $(CFLAGS_DBG) $(LDFLAGS) -c fork_ret.c -o fork_ret_dbg.o
 fork_ret_dbg: fork_ret_dbg.o common_dbg.o
 	${CC} -o fork_ret_dbg fork_ret_dbg.o common_dbg.o ${LINKIN}
 
