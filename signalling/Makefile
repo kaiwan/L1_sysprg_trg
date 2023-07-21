@@ -13,7 +13,7 @@
 
 ## Pl check and keep or remove <foo>_dbg_[asan|ub|msan] targets
 ## as desired.
-ALL :=  sig1 sig1_dbg sig1_dbg_asan sig1_dbg_ub sig1_dbg_msan \
+ALL :=  catchall sig1 sig1_dbg sig1_dbg_asan sig1_dbg_ub sig1_dbg_msan \
 	zombies_clear_traditional zombies_clear_traditional_dbg zombies_clear_traditional_dbg_asan zombies_clear_traditional_dbg_ub zombies_clear_traditional_dbg_msan \
 	zombies_clear_linux26 zombies_clear_linux26_dbg zombies_clear_linux26_dbg_asan zombies_clear_linux26_dbg_ub zombies_clear_linux26_dbg_msan \
 	sigcrit sigcrit_dbg sigcrit_dbg_asan sigcrit_dbg_ub sigcrit_dbg_msan \
@@ -46,6 +46,11 @@ common_dbg_ub.o: ../common.c ../common.h
 	${CL} ${CFLAGS_DBG_UB} -c ../common.c -o common_dbg_ub.o
 common_dbg_msan.o: ../common.c ../common.h
 	${CL} ${CFLAGS_DBG_MSAN} -c ../common.c -o common_dbg_msan.o
+
+catchall.o: catchall.c
+	${CC} ${CFLAGS} -c catchall.c -o catchall.o
+catchall: common.o catchall.o
+	${CC} ${CFLAGS} -o catchall catchall.o common.o
 
 sig1.o: sig1.c
 	${CC} ${CFLAGS} -c sig1.c -o sig1.o
