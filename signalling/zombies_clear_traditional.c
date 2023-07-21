@@ -68,7 +68,8 @@ int main(int argc, char **argv)
 		printf("child: %d\n", getpid());
 		DELAY_LOOP('c', 25);
 		exit(0);
-	default:		// Parent
+	default:		// Parent: our not calling wait*() guarantees 
+					// the child becomes a zombie when it dies
 		DELAY_LOOP('p', 50);
 	}
 	exit(0);

@@ -18,7 +18,7 @@ static void catcher(int signo)
 #else
 	printf("%s():signo = %d\n", __func__, signo);
 	// ssize_t write(int fd, const void *buf, size_t count);
-	if (write(STDOUT_FILENO, "** Ouch! Received SIGINT. **", 28) == -1) {
+	if (write(STDOUT_FILENO, "** Ouch! Received a signal. **", 30) == -1) {
 		perror("sig1: write() failed");
 		exit(1);
 	}
@@ -34,10 +34,10 @@ int main()
 	act.sa_handler = catcher;
 #if 0
 	sigemptyset(&act.sa_mask);	/* allow all signals while in the handler 
-					 * (with the execption of the signal being handled) */
+					 * (with the exception of the signal being handled) */
 #else
 	sigfillset(&act.sa_mask);	/* block all signals while in the handler
-					 * (with the execption of the signal being handled)
+					 * (with the exception of the signal being handled)
 		sigaddset() : selectively allow 1 signal
 		sigdelset() : selectively clear 1 signal
 	 */

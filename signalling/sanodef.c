@@ -89,7 +89,7 @@ option=1 : use SA_NODEFER flag (will process signal immd)\n", argv[0]);
 	// set up signal handler
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = sighdlr;
-#if 0
+#if 1 // keep this
 	sigemptyset(&act.sa_mask); // allow all other signals...
 #else
 	sigfillset(&act.sa_mask); // don't allow all other signals...

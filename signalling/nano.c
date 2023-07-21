@@ -49,9 +49,9 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+	printf("sleep for %d s now...\n", nsec);
 	/* TODO: use strto[u]l() to do proper IoF checks ! */
 	if (atoi(argv[1]) == 0) {	/* sleep */
-		printf("sleep for %d s now...\n", nsec);
 		ret = sleep(nsec);
 		 /* Actually BUGGY !!
 		 Why? As the sleep can be aborted by a signal and we don't check
