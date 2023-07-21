@@ -11,13 +11,16 @@ After=mount.target
 
 [Service]
 # the script that launches the app
-ExecStart=/home/kaiwan/gitL1/wip/systemd_svcunit/svc1.sh
-WorkingDirectory=/home/kaiwan
+# UPDATE the /path/to/executable !
+#ExecStart=/home/kaiwan/gitL1/wip/systemd_svcunit/svc1.sh
+ExecStart=/home/osboxes/kaiwanTECH/L1_sysprg_trg/wip/systemd_svcunit/svc1.sh
+# UPDATE
+WorkingDirectory=/home/osboxes
 #RemainAfterExit=true
 #Restart=always
 
 # If this user is there, it runs as him/her user else as root
-User=kaiwan
+User=osboxes
 #--- Hey, DON'T keep a comment on the right of a statement!
 # I got this error:
 # "svc1.service: Failed to determine user credentials: No such process" yada yada... :-)
