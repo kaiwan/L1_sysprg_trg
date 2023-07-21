@@ -36,73 +36,91 @@ static u32 rubbish_uaddr = 0x500ffeL;
 static u32 rubbish_kaddr = 0xd0c00000L;
 #endif
 
+#define FATAL(msg) do { \
+	fprintf(stderr, "%s\n", msg);	\
+	exit(EXIT_FAILURE); \
+} while (0)
+
 /*---------------- Functions ----------------------------------------*/
-static void myfault(int signum, siginfo_t * siginfo, void *rest)
+static void myfault(int signum, siginfo_t * si, void *ucontext)
 {
-	static int c = 0;
-
-	printf("*** %s: [%d] received signal %d. errno=%d\n"
+	fprintf(stderr,
+		"%s():\n------------------- FATAL signal ---------------------------\n",
+		__func__);
+	fprintf(stderr," %s: received signal %d. errno=%d\n"
 	       " Cause/Origin: (si_code=%d): ",
-	       __func__, ++c, signum, siginfo->si_errno, siginfo->si_code);
+	       __func__, signum, si->si_errno, si->si_code);
 
-	switch (siginfo->si_code) {
-	case SI_USER:
-		printf("user\n");
-		break;
-	case SI_KERNEL:
-		printf("kernel\n");
-		break;
-	case SI_QUEUE:
-		printf("queue\n");
-		break;
-	case SI_TIMER:
-		printf("timer\n");
-		break;
-	case SI_MESGQ:
-		printf("mesgq\n");
-		break;
-	case SI_ASYNCIO:
-		printf("async io\n");
-		break;
-	case SI_SIGIO:
-		printf("sigio\n");
-		break;
-	case SI_TKILL:
-		printf("t[g]kill\n");
-		break;
-		// other poss values si_code can have for SIGSEGV
+	switch (si->si_code) {
+	/* Possible values si_code can have for SIGSEGV */
 	case SEGV_MAPERR:
-		printf("SEGV_MAPERR: address not mapped to object\n");
+		fprintf(stderr,"SEGV_MAPERR: address not mapped to object\n");
 		break;
 	case SEGV_ACCERR:
-		printf("SEGV_ACCERR: invalid permissions for mapped object\n");
+		fprintf(stderr,"SEGV_ACCERR: invalid permissions for mapped object\n");
 		break;
 #if 1
-		/* SEGV_BNDERR and SEGV_PKUERR result in compile failure ??
-		 * Qs asked on SO here:
-		 * https://stackoverflow.com/questions/45229308/attempting-to-make-use-of-segv-bnderr-and-segv-pkuerr-in-a-sigsegv-signal-handle
-		 *
-		 * Update:
-		 * Seems ok more recently... (i don't know from exactly which glibc/GCC ver though..)
-		 */
-	case SEGV_BNDERR:	/* 3.19 onward */
-		printf("SEGV_BNDERR: failed address bound checks\n");
+	/* SEGV_BNDERR and SEGV_PKUERR result in compile failure? 
+	 * Update: seems to work now...
+	 */
+	case SEGV_BNDERR: /* 3.19 onward */
+		fprintf(stderr,"SEGV_BNDERR: failed address bound checks\n");
 		break;
-	case SEGV_PKUERR:	/* 4.6 onward */
-		printf
-		    ("SEGV_PKUERR: access denied by memory-protection keys\n");
+	case SEGV_PKUERR: /* 4.6 onward */
+		fprintf(stderr,"SEGV_PKUERR: access denied by memory-protection keys\n");
 		break;
 #endif
+	/* Other possibilities for si_code; here just to show them... */
+	case SI_USER:
+		fprintf(stderr,"user\n");
+		break;
+	case SI_KERNEL:
+		fprintf(stderr,"kernel\n");
+		break;
+	case SI_QUEUE:
+		fprintf(stderr,"queue\n");
+		break;
+	case SI_TIMER:
+		fprintf(stderr,"timer\n");
+		break;
+	case SI_MESGQ:
+		fprintf(stderr,"mesgq\n");
+		break;
+	case SI_ASYNCIO:
+		fprintf(stderr,"async io\n");
+		break;
+	case SI_SIGIO:
+		fprintf(stderr,"sigio\n");
+		break;
+	case SI_TKILL:
+		fprintf(stderr,"t[g]kill\n");
+		break;
 	default:
-		printf("-none-\n");
+		fprintf(stderr,"-none-\n");
 	}
-	printf(" Faulting addr=0x" ADDR_FMT "\n", (ADDR_TYPE) siginfo->si_addr);
 
-#if 1
-	exit(1);
-#else
-	abort();
-#endif
+	fprintf(stderr," Faulting instr or address = 0x" ADDR_FMT "\n",
+			(ADDR_TYPE) si->si_addr);
+	fprintf(stderr,
+		"------------------------------------------------------------\n");
+	psiginfo(si, "psiginfo helper");
+	fprintf(stderr,
+		"------------------------------------------------------------\n");
+
+	/* 
+	 * Placeholders for real-world apps:
+	 *  crashed_write_to_log();
+	 *  crashed_perform_cleanup();
+	 *  crashed_inform_enduser();
+	 *
+	 * Now have the kernel generate the core dump by:
+	 *  Reset the SIGSEGV to glibc default, and,
+	 *  Re-raise it!
+	 */
+	if (signal(SIGSEGV, SIG_DFL) == SIG_ERR)
+		FATAL("signal -reverting SIGSEGV to default- failed");
+	if (raise(SIGSEGV))
+		FATAL("raise SIGSEGV failed");
 }
 
 /**
