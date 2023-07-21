@@ -83,7 +83,7 @@ void *dotprod(void *arg)
     */
    pthread_mutex_lock (&mutexsum);
    gDotstr.sum += mysum;
-   DELAY_LOOP('0'+offset, 10);
+   //DELAY_LOOP('0'+offset, 10);
    pthread_mutex_unlock (&mutexsum);
 
    pthread_exit((void*) 0);

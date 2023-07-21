@@ -22,6 +22,7 @@ int main()
 	int rc;
 	long t;
 
+	printf("main(): PID = %d\n", getpid());
 	for (t = 0; t < NUM_THREADS; t++) {
 		printf("Creating thread %ld\n", t);
 		rc = pthread_create(&threads[t], NULL, PrintHello, (void *)t);
