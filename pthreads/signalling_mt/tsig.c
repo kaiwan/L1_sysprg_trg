@@ -331,7 +331,7 @@ int main(int argc, char **argv)
 	}
 	/* Do NOT block the synchronous (or 'fatal') signals - the ones sent to the faulting thread
 	 * on a fault/bug:
-	 * SIGSEGV / SIGBUS / SIGABRT / SIGFPE / SIGILL / SIGIOT
+	 * SIGSEGV / SIGBUS / SIGABRT [/SIGIOT] / SIGFPE / SIGILL
 	 */
 	if (sigdelset(&sigset, SIGSEGV) < 0) {
 		perror("sigdelset");
@@ -350,10 +350,6 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 	if (sigdelset(&sigset, SIGILL) < 0) {
-		perror("sigdelset");
-		exit(1);
-	}
-	if (sigdelset(&sigset, SIGIOT) < 0) {	// synonym for SIGABRT
 		perror("sigdelset");
 		exit(1);
 	}
@@ -398,10 +394,6 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 	if (sigaction(SIGILL, &act, 0) == -1) {
-		perror("sigaction");
-		exit(1);
-	}
-	if (sigaction(SIGIOT, &act, 0) == -1) {
 		perror("sigaction");
 		exit(1);
 	}
