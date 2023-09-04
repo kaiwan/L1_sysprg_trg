@@ -1,4 +1,6 @@
 #!/bin/bash
+# (c) kaiwanTECH
+# MIT.
 
 # Send all signals to a given process
 # Meant to be run in conjunction with the 'catchall' program

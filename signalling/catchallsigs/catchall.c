@@ -1,4 +1,8 @@
-// catchall.c
+/*
+ * catchall.c
+ * (c) kaiwanTECH
+ * MIT.
+ */
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -23,8 +27,9 @@ int main(int argc, char **argv)
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = signal_handler;
 	act.sa_flags = SA_RESTART;
-	sigemptyset(&act.sa_mask);
-
+	sigemptyset(&act.sa_mask); /* allow all signals while handling a signal
+				    * (except for the one being handled; this is auto setup)
+				    */
 	printf("%s:PID %d\n", argv[0], getpid());
 	for (i=1; i<=64; i++) {
 		//printf("Trapping into signal %d\n", i);
