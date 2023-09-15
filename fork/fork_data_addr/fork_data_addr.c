@@ -58,8 +58,16 @@ int main(int argc, char **argv)
 				printf("%c ", p[k]);
 			printf("\n");
 		}
-		pause();
-#if 1
+		//pause();
+#if 0
+/*
+ * https://stackoverflow.com/questions/23440132/fork-after-malloc-in-parent-does-the-child-process-need-to-free-it
+ * "You do not need to explicitly free anything in the child process; in fact (because of the COW thing) it's not a bright idea to do so."
+ * [ ... ]
+ * "Calling free before execvp is pointless, and it actually makes your code less
+ * reusable/portable, since it's not valid to call free in the child after fork
+ * if the calling process is multithreaded."
+ */
 		free(p);
 #endif
 		exit(0);
@@ -82,7 +90,7 @@ int main(int argc, char **argv)
 				printf("%c ", p[k]);
 			printf("\n");
 		}
-		pause();
+		//pause();
 		free(p);
 
 		break;
@@ -91,6 +99,6 @@ int main(int argc, char **argv)
 	 * procmap util!
 	 * https://github.com/kaiwan/procmap
 	 */
-	pause(); 
+	//pause(); 
 	exit(0);
 }
