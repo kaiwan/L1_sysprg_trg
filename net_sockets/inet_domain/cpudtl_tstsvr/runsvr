@@ -13,7 +13,7 @@ pgrep ${svr} && {
 #--- Client:
 # Now connect from the client to the server process like this:
 # 1. On the local network (LAN):
-#  nc <any-ipaddr-on-client> <port#>
+#  nc <any-ipaddr-on-client> <port#-of-server>
 # f.e.
 #  nc 192.168.1.201 60001
 #

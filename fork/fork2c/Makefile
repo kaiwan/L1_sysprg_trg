@@ -36,7 +36,8 @@ ALL :=  prod prod_2part
 # Of course, if you have >1 C program to build, you must add  it manually,
 # or better, keep one Makefile per program in separate directories.
 ###
-ALL_NM :=  fork2c fork2c_dbg fork2c_dbg_asan fork2c_dbg_ub fork2c_gcov
+ALL_NM :=  prod 
+#fork2c fork2c_dbg fork2c_dbg_asan fork2c_dbg_ub fork2c_gcov
 
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang

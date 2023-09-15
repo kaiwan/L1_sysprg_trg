@@ -27,14 +27,20 @@ int main(int argc, char **argv)
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = signal_handler;
 	act.sa_flags = SA_RESTART;
-#if 1
-	sigemptyset(&act.sa_mask); // allow all signals while handling...
+
+	// The signal mask
+#if 0
+	sigemptyset(&act.sa_mask);
+		/* allow all signals while handling a signal
+         * (except for the one being handled; this is auto setup)
+	     */
 #else
-	sigfillset(&act.sa_mask); // block all signals while handling...
+	sigfillset(&act.sa_mask);
+		/* block all signals while handling a signal
+         * (except for the one being handled; this is auto setup)
+	     */
 #endif
-	sigemptyset(&act.sa_mask); /* allow all signals while handling a signal
-				    * (except for the one being handled; this is auto setup)
-				    */
+
 	printf("%s:PID %d\n", argv[0], getpid());
 	for (i=1; i<=64; i++) {
 		//printf("Trapping into signal %d\n", i);
@@ -46,7 +52,7 @@ int main(int argc, char **argv)
 
 	printf("%s: awating signals ...\n", prgname);
 
-	// block on all signals forever until a fatal one arrives
+	// Block on all signals forever until a fatal one arrives
 	while (1)
 		pause();
 }
