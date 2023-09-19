@@ -98,7 +98,7 @@ debug: main_dies.c
 	@echo
 	${CC} ${CFLAGS_DBG} main_dies.c -o main_dies_dbg -pthread
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} main_dies.c -o main_dies_dbg_asan -pthread
+	${CC} ${CFLAGS_DBG_ASAN} main_dies.c -o main_dies_dbg_asan -pthread -static-libasan
 	${CC} ${CFLAGS_DBG_UB} main_dies.c -o main_dies_dbg_ub -pthread
 #	${CC} ${CFLAGS_DBG_MSAN} main_dies.c -o main_dies_dbg_msan -pthread
 

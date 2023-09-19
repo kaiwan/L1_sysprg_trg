@@ -98,7 +98,7 @@ debug: mt_fork_exec.c
 	@echo
 	${CC} ${CFLAGS_DBG} mt_fork_exec.c -o mt_fork_exec_dbg -pthread
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} mt_fork_exec.c -o mt_fork_exec_dbg_asan -pthread
+	${CC} ${CFLAGS_DBG_ASAN} mt_fork_exec.c -o mt_fork_exec_dbg_asan -pthread -static-libasan
 	${CC} ${CFLAGS_DBG_UB} mt_fork_exec.c -o mt_fork_exec_dbg_ub -pthread
 #	${CC} ${CFLAGS_DBG_MSAN} mt_fork_exec.c -o mt_fork_exec_dbg_msan -pthread
 

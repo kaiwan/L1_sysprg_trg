@@ -98,7 +98,7 @@ debug: cr8ManyThrds.c
 	@echo
 	${CC} ${CFLAGS_DBG} cr8ManyThrds.c -o cr8ManyThrds_dbg -pthread
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} cr8ManyThrds.c -o cr8ManyThrds_dbg_asan -pthread
+	${CC} ${CFLAGS_DBG_ASAN} cr8ManyThrds.c -o cr8ManyThrds_dbg_asan -pthread -static-libasan
 	${CC} ${CFLAGS_DBG_UB} cr8ManyThrds.c -o cr8ManyThrds_dbg_ub -pthread
 #	${CC} ${CFLAGS_DBG_MSAN} cr8ManyThrds.c -o cr8ManyThrds_dbg_msan -pthread
 

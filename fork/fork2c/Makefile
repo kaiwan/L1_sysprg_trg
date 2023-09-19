@@ -99,7 +99,7 @@ debug: fork2c.c
 	@echo
 	${CC} ${CFLAGS_DBG} fork2c.c -o fork2c_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} fork2c.c -o fork2c_dbg_asan
+	${CC} ${CFLAGS_DBG_ASAN} fork2c.c -o fork2c_dbg_asan -static-libasan
 	${CC} ${CFLAGS_DBG_UB} fork2c.c -o fork2c_dbg_ub
 #	${CC} ${CFLAGS_DBG_MSAN} fork2c.c -o fork2c_dbg_msan
 

@@ -98,7 +98,7 @@ debug: zombie.c
 	@echo
 	${CC} ${CFLAGS_DBG} zombie.c -o zombie_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} zombie.c -o zombie_dbg_asan
+	${CC} ${CFLAGS_DBG_ASAN} zombie.c -o zombie_dbg_asan -static-libasan
 	${CC} ${CFLAGS_DBG_UB} zombie.c -o zombie_dbg_ub
 #	${CC} ${CFLAGS_DBG_MSAN} zombie.c -o zombie_dbg_msan
 

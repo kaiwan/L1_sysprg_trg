@@ -121,7 +121,7 @@ debug: ${FNAME_C}.c
 	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg ${LINK}
 	sudo setcap cap_sys_nice+eip ./${FNAME_C}_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK}
+	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK} -static-libasan
 	sudo setcap cap_sys_nice+eip ./${FNAME_C}_dbg_asan
 	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK}
 	sudo setcap cap_sys_nice+eip ./${FNAME_C}_dbg_ub

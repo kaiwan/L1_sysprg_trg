@@ -117,7 +117,7 @@ debug: ${FNAME_C}.c
 	@echo
 	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg ${LIBS}
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LIBS}
+	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LIBS} -static-libasan
 	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LIBS}
 #	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LIBS}
 

@@ -98,7 +98,7 @@ debug: orphan.c
 	@echo
 	${CC} ${CFLAGS_DBG} orphan.c -o orphan_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} orphan.c -o orphan_dbg_asan
+	${CC} ${CFLAGS_DBG_ASAN} orphan.c -o orphan_dbg_asan -static-libasan
 	${CC} ${CFLAGS_DBG_UB} orphan.c -o orphan_dbg_ub
 #	${CC} ${CFLAGS_DBG_MSAN} orphan.c -o orphan_dbg_msan
 

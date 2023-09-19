@@ -102,7 +102,7 @@ debug: envp.c
 	@echo
 	${CC} ${CFLAGS_DBG} envp.c -o envp_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} envp.c -o envp_dbg_asan
+	${CC} ${CFLAGS_DBG_ASAN} envp.c -o envp_dbg_asan -static-libasan
 	${CC} ${CFLAGS_DBG_UB} envp.c -o envp_dbg_ub
 #	${CC} ${CFLAGS_DBG_MSAN} envp.c -o envp_dbg_msan
 

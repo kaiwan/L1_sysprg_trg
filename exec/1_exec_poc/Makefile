@@ -58,7 +58,7 @@ CFLAGS=-Wall -pedantic -UDEBUG ${PROD_OPTLEVEL} ${CSTD} -D_POSIX_C_SOURCE=${POSI
 CFLAGS_DBG=-g -Wall -pedantic -Wextra -DDEBUG ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} \
 -O2 -D_FORTIFY_SOURCE=2 -D_GLIBCXX_ASSERTIONS -fPIE -flto \
 -fasynchronous-unwind-tables -fcf-protection -fstack-clash-protection -fstack-protector-strong \
--fplugin=annobin \
+#-fplugin=annobin \
 -Wl,-z,relro,-z,now #-Wl,-pie
 
 # Dynamic analysis includes the compiler itself!
@@ -113,7 +113,7 @@ debug: ${PKG}.c
 	@echo
 	${CC} ${CFLAGS_DBG} ${PKG}.c -o ${PKG}_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} ${PKG}.c -o ${PKG}_dbg_asan
+	${CC} ${CFLAGS_DBG_ASAN} ${PKG}.c -o ${PKG}_dbg_asan -static-libasan
 	${CC} ${CFLAGS_DBG_UB} ${PKG}.c -o ${PKG}_dbg_ub
 #	${CC} ${CFLAGS_DBG_MSAN} ${PKG}.c -o ${PKG}_dbg_msan
 

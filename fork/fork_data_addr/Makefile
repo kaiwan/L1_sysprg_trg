@@ -98,7 +98,7 @@ debug: fork_data_addr.c
 	@echo
 	${CC} ${CFLAGS_DBG} fork_data_addr.c -o fork_data_addr_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} fork_data_addr.c -o fork_data_addr_dbg_asan
+	${CC} ${CFLAGS_DBG_ASAN} fork_data_addr.c -o fork_data_addr_dbg_asan -static-libasan
 	${CC} ${CFLAGS_DBG_UB} fork_data_addr.c -o fork_data_addr_dbg_ub
 #	${CC} ${CFLAGS_DBG_MSAN} fork_data_addr.c -o fork_data_addr_dbg_msan
 

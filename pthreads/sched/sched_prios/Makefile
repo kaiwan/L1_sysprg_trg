@@ -98,7 +98,7 @@ debug: sched_prios.c
 	@echo
 	${CC} ${CFLAGS_DBG} sched_prios.c -o sched_prios_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} sched_prios.c -o sched_prios_dbg_asan
+	${CC} ${CFLAGS_DBG_ASAN} sched_prios.c -o sched_prios_dbg_asan -static-libasan
 	${CC} ${CFLAGS_DBG_UB} sched_prios.c -o sched_prios_dbg_ub
 #	${CC} ${CFLAGS_DBG_MSAN} sched_prios.c -o sched_prios_dbg_msan
 

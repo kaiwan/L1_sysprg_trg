@@ -98,7 +98,7 @@ debug: rlim_threads.c
 	@echo
 	${CC} ${CFLAGS_DBG} rlim_threads.c -o rlim_threads_dbg -pthread
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} rlim_threads.c -o rlim_threads_dbg_asan -pthread
+	${CC} ${CFLAGS_DBG_ASAN} rlim_threads.c -o rlim_threads_dbg_asan -pthread -static-libasan
 	${CC} ${CFLAGS_DBG_UB} rlim_threads.c -o rlim_threads_dbg_ub -pthread
 #	${CC} ${CFLAGS_DBG_MSAN} rlim_threads.c -o rlim_threads_dbg_msan -pthread
 

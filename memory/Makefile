@@ -98,7 +98,7 @@ debug: vaddr_process.c
 	@echo
 	${CC} ${CFLAGS_DBG} vaddr_process.c -o vaddr_process_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} vaddr_process.c -o vaddr_process_dbg_asan
+	${CC} ${CFLAGS_DBG_ASAN} vaddr_process.c -o vaddr_process_dbg_asan -static-libasan
 	${CC} ${CFLAGS_DBG_UB} vaddr_process.c -o vaddr_process_dbg_ub
 #	${CC} ${CFLAGS_DBG_MSAN} vaddr_process.c -o vaddr_process_dbg_msan
 

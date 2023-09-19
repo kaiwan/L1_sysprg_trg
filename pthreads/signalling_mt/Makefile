@@ -99,7 +99,7 @@ debug: tsig.c
 	@echo
 	${CC} ${CFLAGS_DBG} tsig.c -o tsig_dbg -pthread
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} tsig.c -o tsig_dbg_asan -pthread
+	${CC} ${CFLAGS_DBG_ASAN} tsig.c -o tsig_dbg_asan -pthread -static-libasan
 	${CC} ${CFLAGS_DBG_UB} tsig.c -o tsig_dbg_ub -pthread
 #	${CC} ${CFLAGS_DBG_MSAN} tsig.c -o tsig_dbg_msan -pthread
 

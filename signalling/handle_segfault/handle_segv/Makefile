@@ -98,7 +98,7 @@ debug: handle_segv.c
 	@echo
 	${CC} ${CFLAGS_DBG} handle_segv.c -o handle_segv_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} handle_segv.c -o handle_segv_dbg_asan
+	${CC} ${CFLAGS_DBG_ASAN} handle_segv.c -o handle_segv_dbg_asan -static-libasan
 	${CC} ${CFLAGS_DBG_UB} handle_segv.c -o handle_segv_dbg_ub
 #	${CC} ${CFLAGS_DBG_MSAN} handle_segv.c -o handle_segv_dbg_msan
 

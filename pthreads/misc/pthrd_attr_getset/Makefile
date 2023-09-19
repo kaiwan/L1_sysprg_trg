@@ -98,7 +98,7 @@ debug: attr_setget.c
 	@echo
 	${CC} ${CFLAGS_DBG} attr_setget.c -o attr_setget_dbg -pthread
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} attr_setget.c -o attr_setget_dbg_asan -pthread
+	${CC} ${CFLAGS_DBG_ASAN} attr_setget.c -o attr_setget_dbg_asan -pthread -static-libasan
 	${CC} ${CFLAGS_DBG_UB} attr_setget.c -o attr_setget_dbg_ub -pthread
 #	${CC} ${CFLAGS_DBG_MSAN} attr_setget.c -o attr_setget_dbg_msan -pthread
 

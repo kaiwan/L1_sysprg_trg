@@ -98,7 +98,7 @@ debug: mysh_simple.c
 	@echo
 	${CC} ${CFLAGS_DBG} mysh_simple.c -o mysh_simple_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} mysh_simple.c -o mysh_simple_dbg_asan
+	${CC} ${CFLAGS_DBG_ASAN} mysh_simple.c -o mysh_simple_dbg_asan -static-libasan
 	${CC} ${CFLAGS_DBG_UB} mysh_simple.c -o mysh_simple_dbg_ub
 #	${CC} ${CFLAGS_DBG_MSAN} mysh_simple.c -o mysh_simple_dbg_msan
 

@@ -98,7 +98,7 @@ debug: tmslc.c
 	@echo
 	${CC} ${CFLAGS_DBG} tmslc.c -o tmslc_dbg
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} tmslc.c -o tmslc_dbg_asan
+	${CC} ${CFLAGS_DBG_ASAN} tmslc.c -o tmslc_dbg_asan -static-libasan
 	${CC} ${CFLAGS_DBG_UB} tmslc.c -o tmslc_dbg_ub
 #	${CC} ${CFLAGS_DBG_MSAN} tmslc.c -o tmslc_dbg_msan
 

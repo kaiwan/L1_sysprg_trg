@@ -101,7 +101,7 @@ debug: ${FNAME_C}.c
 	@echo
 	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg -pthread
 #-- Sanitizers (use clang or gcc)
-	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan -pthread
+	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan -pthread -static-libasan
 	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub -pthread
 #	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan -pthread
 
