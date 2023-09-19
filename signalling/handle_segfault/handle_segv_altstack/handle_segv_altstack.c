@@ -154,8 +154,8 @@ int setup_altsigstack(size_t stack_sz)
 static void usage(char *nm)
 {
 	fprintf(stderr, "Usage: %s u|k r|w\n"
-		"u => user mode\n"
-		"k => kernel mode\n"
+		"u => in user VAS\n"
+		"k => in kernel VAS\n"
 		" r => read attempt\n" " w => write attempt\n", nm);
 }
 
@@ -187,7 +187,7 @@ int main(int argc, char **argv)
 	//act.sa_handler = myfault;
 	act.sa_sigaction = myfault;
 	act.sa_flags = SA_RESTART | SA_SIGINFO | SA_ONSTACK;
-	sigemptyset(&act.sa_mask);
+	sigfillset(&act.sa_mask); // block all signals while handling this one
 
 	if (sigaction(SIGSEGV, &act, 0) == -1) {
 		perror("sigaction");

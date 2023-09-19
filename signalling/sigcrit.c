@@ -62,10 +62,10 @@ int main(int argc, char **argv)
 	 *          sigset_t *oldset);
 	 */
 #if 1
-	sigemptyset(&sigset);
-	if (sigaddset(&sigset, SIGINT) == -1)
+	sigemptyset(&sigset); // clear all bits
+	if (sigaddset(&sigset, SIGINT) == -1)      // sets the bit for SIGINT
 		perror("sigaddset failure"), exit(1);
-	if (sigaddset(&sigset, SIGQUIT) == -1)
+	if (sigaddset(&sigset, SIGQUIT) == -1)      // sets the bit for SIGQUIT
 		perror("sigaddset failure"), exit(1);
 #else
 	sigfillset(&sigset);
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 
 	//------------- Critical code goes here..
 	printf("Entering critical section now...\n");
-	DELAY_LOOP(65, 500);	// emulate processing: prints ASCII 65 ("A") 50 times
+	DELAY_LOOP(65, 500);	// emulate processing: prints ASCII 65 ("A") 500 times
 	printf("Exiting critical section now...\n");
 	//------------- Critical code done; reset signal settings..
 
