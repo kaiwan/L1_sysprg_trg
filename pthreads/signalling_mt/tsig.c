@@ -7,6 +7,11 @@
  *  - now any thread created by main inherit it's signal mask, which 
  *    means that all signals will be blocked out in all subsequently 
  *    created threads;
+ *    EXCEPTION:
+ *      Do NOT handle the kernel synchronous signals this way - the ones sent
+ *      to the faulting thread on a fault/bug:
+ *	 SIGSEGV / SIGBUS / SIGABRT [/SIGIOT] / SIGFPE / SIGILL
+ *	For them, use the usual sigaction(2) style handling.
  *  - create a separate signal handling thread that only catches all 
  *    required signals & handles them; it catches signals by calling sigwait().
  *
@@ -140,12 +145,18 @@ static void fatal_sigs_handler(int signum, siginfo_t * siginfo, void *rest)
 		printf("t[g]kill\n");
 		break;
 	// other poss values si_code can have for SIGSEGV 
-	case SEGV_MAPERR: printf("SEGV_MAPERR: address not mapped to object\n"); break; case SEGV_ACCERR: printf("SEGV_ACCERR: invalid permissions for mapped object\n"); 
+	case SEGV_MAPERR:
+		printf("SEGV_MAPERR: address not mapped to object\n");
+		break; 
+	case SEGV_ACCERR: 
+		printf("SEGV_ACCERR: invalid permissions for mapped object\n"); 
 		break;
-/* SEGV_BNDERR and SEGV_PKUERR result in compile failure ??  * Qs asked on SO here:
+/* 
+ * Now it seems fine...
+ * OLD: SEGV_BNDERR and SEGV_PKUERR result in compile failure ??  * Qs asked on SO here:
  *https://stackoverflow.com/questions/45229308/attempting-to-make-use-of-segv-bnderr-and-segv-pkuerr-in-a-sigsegv-signal-handle
 */
-#if 0
+#if 1
 	case SEGV_BNDERR:	/* 3.19 onward */
 		printf("SEGV_BNDERR: failed address bound checks\n");
 	case SEGV_PKUERR:	/* 4.6 onward */
@@ -157,8 +168,15 @@ static void fatal_sigs_handler(int signum, siginfo_t * siginfo, void *rest)
 	}
 	printf(" Faulting addr=%p\n", siginfo->si_addr);
 
-	// Can reset action to default and raise it on ourself, to get the kernel
-	// to emit a core dump
+	/*
+	 * Can reset signal action to default and raise it on ourself,
+	 * to get the kernel to emit a core dump
+	 */
+	if (signal(SIGSEGV, SIG_DFL) == SIG_ERR)
+		fprintf(stderr, "signal -reverting SIGSEGV to default- failed");
+	if (raise(SIGSEGV))
+		fprintf(stderr, "raise SIGSEGV failed");
+	
 #if 1
 	exit(1);
 #else
@@ -179,7 +197,6 @@ static void fatal_sigs_handler(int signum, siginfo_t * siginfo, void *rest)
  * the sigwait-ing thread will be processed. So, depending on your application, 
  * this could mean that on LinuxThreads, you have no choice but to install 
  * an asynchronous signal handler for each thread.
- * 
  */
 static void *signal_handler(void *arg)
 {
