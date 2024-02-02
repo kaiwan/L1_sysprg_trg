@@ -34,6 +34,7 @@ int main(int argc, char **argv)
 		perror("mmap");
 		goto cleanup;
 	}
+	printf("child accessed shmem (size %ld) at %p\n", buffer_size, buffer);
 
 	printf("execve'd child pid is %d\n", getpid());
 	size = snprintf(buffer, buffer_size, "hello from execve'd child");
