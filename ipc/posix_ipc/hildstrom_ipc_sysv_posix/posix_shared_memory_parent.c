@@ -47,6 +47,7 @@ int main(int argc, char **argv)
 		perror("mmap");
 		goto cleanup;
 	}
+	printf("parent created shmem (size %ld) at %p\n", buffer_size, buffer);
 
 	cpid = fork();
 	if (cpid < 0) {

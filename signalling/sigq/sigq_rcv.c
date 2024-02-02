@@ -20,11 +20,10 @@
 
 static void catcher(int signum, siginfo_t *si, void *ctx)
 {
-	printf(
-	"%d: received signal # %d from %d:RUID %d\n"
-	"Value recieved: %d\n",
-		getpid(), signum, si->si_pid, si->si_uid,
-		si->si_value.sival_int);
+	printf("%d: received signal # %d from %d:RUID %d\n"
+	       "Value recieved: %d\n",
+	       getpid(), signum, si->si_pid, si->si_uid,
+	       si->si_value.sival_int);
 }
 
 int main(int argc, char **argv)
@@ -33,10 +32,10 @@ int main(int argc, char **argv)
 
 	act.sa_sigaction = catcher;
 	sigemptyset(&act.sa_mask);	// while handling the signal, allow all
-	//sigfillset(&act.sa_mask);	// while handling the signal, disallow all
-	act.sa_flags = SA_RESTART|SA_SIGINFO;
-	if (sigaction(SIGRTMIN+3, &act, 0) == -1) {
-	//if (sigaction(SIGINT, &act, 0) == -1) {
+	//sigfillset(&act.sa_mask);     // while handling the signal, disallow all
+	act.sa_flags = SA_RESTART | SA_SIGINFO;
+	if (sigaction(SIGRTMIN + 3, &act, 0) == -1) {
+		//if (sigaction(SIGINT, &act, 0) == -1) {
 		perror("sigaction failure");
 		exit(1);
 	}
@@ -47,4 +46,5 @@ int main(int argc, char **argv)
 		pause();
 	exit(0);
 }
+
 /* vi: ts=4 */

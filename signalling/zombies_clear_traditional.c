@@ -31,7 +31,8 @@ static void clearzomb(int signum)
 	   pid_t wait3(int *status, int options,
 	   struct rusage *rusage);
 
-	   Why use wait3 in a loop?
+	   Why not just wait(0)?
+	   Why use wait3() in a loop?
 	   1. We should not actually wait (block) for any other child(ren) that are 
 	   still alive; therefore use the WNOHANG option.
 	   2. More importantly, if this "server" were busy, we can have a scenario where
@@ -48,15 +49,28 @@ static void clearzomb(int signum)
 int main(int argc, char **argv)
 {
 	struct sigaction act;
+	int clear_zombie = 0;
 
-	memset(&act, 0, sizeof(act));
-	act.sa_handler = clearzomb;
-	sigemptyset(&act.sa_mask);
-	act.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+	if (argc < 2) {
+		fprintf(stderr, "Usage: %s option{0|1}\n"
+			" 0 : don't trap SIGCHLD and thus the zombie will happen\n"
+			" 1 : do trap SIGCHLD and thus clear the zombie\n",
+			argv[0]);
+		exit(EXIT_FAILURE);
+	}
+	if (atoi(argv[1]) == 1)
+		clear_zombie = 1;
 
-	if (sigaction(SIGCHLD, &act, 0) == -1) {
-		perror("sigaction failed");
-		exit(1);
+	if (clear_zombie == 1) {
+		memset(&act, 0, sizeof(act));
+		act.sa_handler = clearzomb;
+		sigemptyset(&act.sa_mask);
+		act.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+
+		if (sigaction(SIGCHLD, &act, 0) == -1) {
+			perror("sigaction failed");
+			exit(1);
+		}
 	}
 
 	printf("parent: %d\n", getpid());
@@ -69,7 +83,7 @@ int main(int argc, char **argv)
 		DELAY_LOOP('c', 25);
 		exit(0);
 	default:		// Parent: our not calling wait*() guarantees 
-					// the child becomes a zombie when it dies
+		// the child becomes a zombie when it dies
 		DELAY_LOOP('p', 50);
 	}
 	exit(0);

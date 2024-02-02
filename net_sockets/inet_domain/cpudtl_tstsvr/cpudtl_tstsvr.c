@@ -1,6 +1,6 @@
 /* 
 * svr.c
-* Internet domain streams socket server; concurrent server.
+* Internet domain streams socket server; concurrent / forking server.
 *
 * Meant to be used as a tcp socket client/server demo.
 * Run the server (this code) on a Virtual Machine (VM) (like VirtualBox, 
@@ -291,6 +291,7 @@ int main(int argc, char *argv[])
 		clilen = sizeof(cli_addr);
 		if ((newsd = accept(sd, (struct sockaddr *)&cli_addr, &clilen)) == -1)	// server blocks here..
 			ErrExit(argv[0], "socket accept error", 5);
+		// ... blocking ... waiting for client to connect ...
 
 		printf("\nServer %s: client connected now from IP %s \
 port # %d\n", argv[0], inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));

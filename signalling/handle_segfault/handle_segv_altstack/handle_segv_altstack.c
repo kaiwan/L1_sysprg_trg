@@ -1,11 +1,13 @@
 /*
- * handle_segv.c
+ * handle_segv_altstack.c
  *
  * Make a usermode process segfault by accessing invalid user/kernel-space addresses..
  * This in turn will have the MMU trigger an exception condition (Data Abort on 
  * ARM), which will lead to the OS's page fault handler being invoked. *It* will 
  * determine the actual fault (minor or major, good or bad) and, in this case, being
  * a usermode 'bad' fault, will send SIGSEGV to 'current'!
+ * Here - the correct approach for kernel synchronous (fatal) signals - we use
+ * an alternate signal stack for handling the signal.
  *
  * Author :  Kaiwan N Billimoria, kaiwanTECH
  * License(s): MIT
@@ -103,6 +105,8 @@ static void myfault(int signum, siginfo_t * si, void *ucontext)
 			(ADDR_TYPE) si->si_addr);
 	fprintf(stderr,
 		"------------------------------------------------------------\n");
+    
+	// A nice shortcut- using the psiginfo() summarizes all this info!
 	psiginfo(si, "psiginfo helper");
 	fprintf(stderr,
 		"------------------------------------------------------------\n");

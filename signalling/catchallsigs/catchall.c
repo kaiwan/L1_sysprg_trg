@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 	struct sigaction act;
 	int i;
 
-	memset(prgname, 0, sizeof(prgname));
+	//memset(prgname, 0, sizeof(prgname));
 	strncpy(prgname, argv[0], 127);
 
 	memset(&act, 0, sizeof(act));
@@ -32,13 +32,13 @@ int main(int argc, char **argv)
 #if 0
 	sigemptyset(&act.sa_mask);
 		/* allow all signals while handling a signal
-         * (except for the one being handled; this is auto setup)
-	     */
+		 * (except for the one being handled; this is auto setup)
+		 */
 #else
 	sigfillset(&act.sa_mask);
 		/* block all signals while handling a signal
-         * (except for the one being handled; this is auto setup)
-	     */
+		 * (including for the one being handled; this is auto setup)
+		 */
 #endif
 
 	printf("%s:PID %d\n", argv[0], getpid());

@@ -30,7 +30,10 @@ void *thrd_p2(void *msg)
 				getpid(), __func__, (long)msg);
 	sleep(2);
 
-	/* pthread_setschedparam(3) internally becomes the syscall sched_setscheduler(2)) */
+	/* pthread_setschedparam(3) internally becomes the syscall sched_setscheduler(2))
+	 * To successfully execute this API, we either need root or the capability
+	 * CAP_SYS_NICE (preferred)
+	 */
 	p.sched_priority = (long)msg;
 	if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &p))
 		perror("pthread_setschedparam");
@@ -58,6 +61,8 @@ void *thrd_p3(void *msg)
 	       getpid(), __func__, pri);
 
 	/* pthread_setschedparam(3) internally becomes the syscall sched_setscheduler(2))
+	 * To successfully execute this API, we either need root or the capability
+	 * CAP_SYS_NICE (preferred).
 	 * Used strace to figure this out!
      *  sudo taskset 02 strace -f ./sched_pthrd_rtprio 7 2>strc.txt
 	 */
@@ -79,9 +84,10 @@ int main(int argc, char **argv)
 	int r, min, max;
 	long rt_pri = 1;
 
-	if (argc == 1)
-		fprintf(stderr, "Usage: %s realtime-priority\n",
-			argv[0]), exit(1);
+	if (argc == 1) {
+		fprintf(stderr, "Usage: %s realtime-priority\n", argv[0]); exit(1);
+	}
+
 	min = sched_get_priority_min(SCHED_FIFO);
 	if (min == -1) {
 		perror("sched_get_priority_min failure");
