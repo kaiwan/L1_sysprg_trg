@@ -18,7 +18,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#define MAX_THREADS    127000 // 50000	// arbitrary
+#define MAX_THREADS    1270000 // 50000	// arbitrary
 typedef unsigned int u32;
 typedef unsigned long u64;
 
@@ -61,18 +61,21 @@ int main(int argc, char **argv)
 	}
 
 	for (t = 0; t < numthrds; t++) {
-		int rc;
+		int ret;
 		// TODO : Assumption: they're joinable...
-		rc = pthread_create(&threads[t], NULL, PrintStuff, (void *)t);
-		if (rc) {
-			printf
-			    ("%s: Thrd # %ld: ERROR: return code from pthread_create() is %d\nstrerror() says: %s\n",
-			     argv[0], t, rc, strerror(rc));
+		ret = pthread_create(&threads[t], NULL, PrintStuff, (void *)t);
+		if (ret) {
+			printf("%s: Thrd # %ld\n", argv[0], t);
+			fprintf(stderr, "ERROR: return code from pthread_create() is %d\nstrerror() says:%s\n",
+			     ret, strerror(ret));
+			printf("err = %s\n", strerrorname_np(ret));
+			//fprintf(stderr, "ERROR: return code from pthread_create() is %d\nstrerror() says:%s:%s\n",
+			 //    ret, strerrorname_np(ret), strerror(ret));
 			perror("perror(): pthread_create failed");
 			exit(1);
 		}
 	}
-	pause();
+//	pause();
 	free(threads);
 	pthread_exit(NULL);
 }

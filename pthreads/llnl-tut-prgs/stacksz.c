@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 	pthread_attr_getstacksize(&attr, &stacksize);
-	printf("platform default stacksize = %zu (=%zu Kb =%zu Mb), setting stacksz to %d Kb\n",
+	printf("platform default MAX stacksize = %zu (=%zu Kb =%zu Mb), setting max stacksz to %d Kb\n",
 		stacksize, stacksize/1024, stacksize/(1024*1024), 
 	    atoi(argv[1]));
 
