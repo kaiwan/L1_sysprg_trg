@@ -168,6 +168,9 @@ static void fatal_sigs_handler(int signum, siginfo_t * siginfo, void *rest)
 	}
 	printf(" Faulting addr=%p\n", siginfo->si_addr);
 
+	// Use the psiginfo() helper!
+	psiginfo(siginfo, "siginfo_t details follow");
+
 	/*
 	 * Can reset signal action to default and raise it on ourself,
 	 * to get the kernel to emit a core dump
