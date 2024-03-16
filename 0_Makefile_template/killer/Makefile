@@ -210,7 +210,7 @@ else
 	@echo
 	@echo "--- dynamic analysis with Valgrind memcheck ---"
 	@echo
-#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg ${CMDLINE_ARGS}
 endif
 
@@ -220,19 +220,19 @@ san:
 	@echo
 	@echo "--- dynamic analysis with the Address Sanitizer (ASAN) ---"
 	@echo
-#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	./${FNAME_C}_dbg_asan ${CMDLINE_ARGS}
 
 	@echo
 	@echo "--- dynamic analysis with the Undefined Behavior Sanitizer (UBSAN) ---"
 	@echo
-#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	./${FNAME_C}_dbg_ub ${CMDLINE_ARGS}
 
 	@echo
 	@echo "--- dynamic analysis with the Memory Sanitizer (MSAN) ---"
 	@echo
-#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	./${FNAME_C}_dbg_msan ${CMDLINE_ARGS}
 
 # Testing: line coverage with gcov(1), lcov(1)
@@ -261,7 +261,7 @@ endif
 	@echo "= Running test case(s) ..."
 	@echo "NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it"
 	@echo " and then invoke the covg.sh script to complete the coverage analysis"
-#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	./${FNAME_C}_gcov ${CMDLINE_ARGS}
 # ...As the PUT (prg under test) can run continually (without dying), it's possible
 # that the instructions below will have to be run manually...
