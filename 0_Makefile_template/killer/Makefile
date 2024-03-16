@@ -269,11 +269,11 @@ endif
 # to abort. So, we need a separate script to run the stuff below; that's precisely
 # the purpose behind the script <src>/covg.sh; run it if this code below doesn't run
 # automatically.
-	${GCOV} ${SRC_FILES}
+	${GCOV} ${SRC_FILES} || exit 1
 # generate .info from the .gcno and .gcda file(s) in .
-	${GENINFO} ./ -o ./${FNAME_C}.info
+	${GENINFO} ./ -o ./${FNAME_C}.info || exit 1
 # generate HTML report in output directory lcov_html/
-	${GENHTML} ./${FNAME_C}.info --output-directory lcov_html/
+	${GENHTML} ./${FNAME_C}.info --output-directory lcov_html/ || exit 1
 	@echo "Display lcov html report: google-chrome lcov_html/index.html"
 
 # Testing all
