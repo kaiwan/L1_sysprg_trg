@@ -11,7 +11,7 @@
  *
  *
  * Compile:
- * gcc -D_REENTRANT rlim_threads.c -o rlim_threads -Wall -lpthread
+ * gcc rlim_threads.c -o rlim_threads -Wall -pthread
  *
  * Author: Kaiwan N Billimoria <kaiwan@kaiwantech.com>
  * License: Dual MIT / GPL
