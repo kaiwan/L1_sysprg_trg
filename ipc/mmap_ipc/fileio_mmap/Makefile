@@ -1,11 +1,9 @@
 # Makefile
-ALL := reg_fileio mmap_fileio mmap_fileio_dbg
+ALL := mmap_fileio mmap_fileio_dbg
 
 all: ${ALL}
 CB_FILES := *.[ch]
 
-reg_fileio: reg_fileio.c
-	gcc reg_fileio.c -o reg_fileio -Wall
 mmap_fileio: mmap_fileio.c
 	gcc mmap_fileio.c -o mmap_fileio -Wall -O3 #-DDEBUG
 mmap_fileio_dbg: mmap_fileio.c
