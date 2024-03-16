@@ -129,7 +129,7 @@ debug: ${FNAME_C}.c
 	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK} -static-libasan
 # GCC doesn't support MSAN, clang does
 ifeq (, $(shell which clang))
-	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing sudo apt install clang ===)
+	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' ===)
 else
 	${CL} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LINK}
 endif
@@ -146,12 +146,16 @@ code-style:
 	make --ignore-errors checkpatch
 
 indent: ${SRC_FILES}
+ifeq (, $(shell which ${INDENT}))
+	$(warning === WARNING! ${INDENT} not installed; consider doing 'sudo apt install indent' ===)
+else
 	make clean
 	@echo
 	@echo "--- applying Linux kernel code-style indentation with indent ---"
 	@echo
 	mkdir bkp 2>/dev/null; cp -f ${SRC_FILES} bkp/
 	${INDENT} -linux ${SRC_FILES}
+endif
 # RELOOK
 # !WARNING!
 # I came across this apparent bug in indent when using it on Ubuntu 20.04:
@@ -174,29 +178,41 @@ sa:   # static analysis
 
 # static analysis with flawfinder
 sa_flawfinder:
+ifeq (, $(shell which ${FLAWFINDER}))
+	$(warning === WARNING! ${FLAWFINDER} not installed; consider doing 'sudo apt install flawfinder' ===)
+else
 	make clean
 	@echo
 	@echo "--- static analysis with flawfinder ---"
 	@echo
 	${FLAWFINDER} --neverignore --context *.[ch]
+endif
 
 # static analysis with cppcheck
 sa_cppcheck:
+ifeq (, $(shell which ${CPPCHECK}))
+	$(warning === WARNING! ${CPPCHECK} not installed; consider doing 'sudo apt install cppcheck' ===)
+else
 	make clean
 	@echo
 	@echo "--- static analysis with cppcheck ---"
 	@echo
 	${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
+endif
 
 # Dynamic Analysis
 # dynamic analysis with valgrind
 valgrind:
+ifeq (, $(shell which ${VALGRIND}))
+	$(warning === WARNING! ${VALGRIND} not installed; consider doing 'sudo apt install valgrind' ===)
+else
 	make --ignore-errors debug
 	@echo
 	@echo "--- dynamic analysis with Valgrind memcheck ---"
 	@echo
 #--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
 	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg ${CMDLINE_ARGS}
+endif
 
 # dynamic analysis with the Sanitizer tooling
 san:
