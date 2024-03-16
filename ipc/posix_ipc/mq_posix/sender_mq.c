@@ -82,6 +82,11 @@ int main(int argc, char **argv)
 		}
 	}
 
+	/*
+	 int mq_send(mqd_t mqdes, const char msg_ptr[.msg_len],
+                     size_t msg_len, unsigned int msg_prio);
+	  If MQ full, it blocks by default, unless O_NONBLOCK enabled (in the mq_open() oflag param)
+	 */
 	if (mq_send(mymq, argv[1], len, prio) == -1) {
 		mq_close(mymq);
 		handle_error("mq_send failed");

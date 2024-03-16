@@ -24,7 +24,7 @@
   There's definitely a race here between sender and receiver; fix it 
   using the POSIX semaphore!
 
-  (c) 2012, kaiwan billimoria, [L]GPL.
+  (c) 2012, kaiwan billimoria, MIT.
  */
 #include <pthread.h>
 #include <mqueue.h>
@@ -65,6 +65,11 @@ int main(int argc, char **argv)
 		ssize_t nr = 0;
 		unsigned prio = 0;
 
+		/* ssize_t mq_receive(mqd_t mqdes, char msg_ptr[.msg_len],
+                          size_t msg_len, unsigned int *msg_prio); 
+		   3rd param len must be attr.mq_msgsize (usually 8192)
+		   If MQ empty, it blocks by default, unless O_NONBLOCK enabled (in the mq_open() oflag param)
+		 */
 		if ((nr = mq_receive(mymq, buf, attr.mq_msgsize, &prio)) == -1) {
 			mq_close(mymq);
 			handle_error("mq_receive failed");
