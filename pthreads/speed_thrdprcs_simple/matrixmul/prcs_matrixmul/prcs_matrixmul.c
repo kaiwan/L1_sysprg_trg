@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 // global space
-#define n 1024 //5120
+#define n 2048 //1024 //5120
 int a[n][n], b[n][n], c[n][n];
 
 int main()

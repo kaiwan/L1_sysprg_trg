@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#define n 1024  //5120			// global space
+#define n 2048 //1024  //5120			// global space
 #define nthreads 12              // 'n' => # cores on the box
 int a[n][n], b[n][n], c[n][n];
 
