@@ -84,10 +84,6 @@ int main(int argc, char **argv)
 	int r, min, max;
 	long rt_pri = 1;
 
-	if (argc == 1) {
-		fprintf(stderr, "Usage: %s realtime-priority\n", argv[0]); exit(1);
-	}
-
 	min = sched_get_priority_min(SCHED_FIFO);
 	if (min == -1) {
 		perror("sched_get_priority_min failure");
@@ -98,10 +94,14 @@ int main(int argc, char **argv)
 		perror("sched_get_priority_max failure");
 		exit(1);
 	}
-	MSG("SCHED_FIFO priority range is %d to %d\n", min, max);
+	if (argc == 1) {
+		fprintf(stderr, "Usage: %s realtime-priority[%d-%d]\n", 
+		argv[0], min, (max-11)); // 99-11 = 89; not -10 as we don't allow rtprio 99
+		exit(1);
+	}
 
 	rt_pri = atoi(argv[1]); // TODO: better to use strtoul(3) for better checking/IoF ...
-	if ((rt_pri < min) || (rt_pri > (max - 10))) {
+	if ((rt_pri < min) || (rt_pri > (max - 11))) {
 		fprintf(stderr,
 			"%s: Priority value passed (%ld) out of range [%d-%d].\n",
 			argv[0], rt_pri, min, (max - 10));
