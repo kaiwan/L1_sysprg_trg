@@ -1,5 +1,5 @@
 /* Code Listing 3.11:
-   Creating and using a POSIX semaphore to control the timing of parent/child execution
+   Creating and using a named POSIX semaphore to control the timing of parent/child execution
    https://w3.cs.jmu.edu/kirkpams/OpenCSF/Books/csf/html/IPCSems.html#cl3-11
  */
 #include <stdio.h>
@@ -12,14 +12,16 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#define SEM_NAME "/opencsf_sem"
+
 int main(void)
 {
 /* Create and open the semaphore */
 	sem_t *sem =
-	    sem_open("/opencsf_sem", O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, 0);
+	    sem_open(SEM_NAME, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, 0);
 	if (sem == SEM_FAILED) {
 		if (errno == EEXIST) {
-			sem = sem_open("/opencsf_sem", 0);
+			sem = sem_open(SEM_NAME, 0);
 			if (sem == SEM_FAILED) {
 				fprintf(stderr, "sem_open() failed\n");
 				exit(1);
@@ -50,5 +52,5 @@ int main(void)
 /* Now the child has printed and exited */
 	printf("third\n");
 	sem_close(sem);
-	sem_unlink("/OpenCSF_Sema");
+	sem_unlink(SEM_NAME);
 }
