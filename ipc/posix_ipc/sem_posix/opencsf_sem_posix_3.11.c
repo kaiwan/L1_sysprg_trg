@@ -17,7 +17,7 @@
 
 int main(void)
 {
-/* Create and open the semaphore */
+/* Create and open the semaphore; initialize it to 0 - the last param */
 	sem_t *sem =
 	    sem_open(SEM_NAME, O_CREAT|O_EXCL, 0600, 0);
 	if (sem == SEM_FAILED) {
