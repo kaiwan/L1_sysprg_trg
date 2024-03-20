@@ -1,8 +1,11 @@
 /*
  * appdemo_shmsem.c
+ * The 'classic' case: avoid data races on shmem regions by using a semaphore
+ * as a mutex.
  * Using POSIX shared memory + POSIX named semaphore for synchronization (as a mutex).
  *
- Demo runs:
+
+Demo runs:
 
 1. Correct way:
 $ ./appdemo_shmsem 1
@@ -53,13 +56,12 @@ appdemo_shmsem $ hexdump --canonical /dev/shm/myshm
 #include <sys/wait.h>
 #include <string.h>
 
-#define SHM_NAME "/myshm"
+#define SHM_NAME "/myshm_mtx_demo"
 #define SHM_MODE 0640
-#define NUM_DATA 64
 #define MEMSIZE 1024*1024*20
 #define LEN 1024*1024
 
-#define SEM_NAME "/appdemo_sem"	// under /dev/shm
+#define SEM_NAME "/appdemo_mtx"	// under /dev/shm
 static sem_t *sem;
 
 static void sem_setup(void)
@@ -75,6 +77,7 @@ static void sem_setup(void)
 			}
 		}
 	}
+	printf("(Mutex) Semaphore setup and init to value 0\n");
 }
 
 /* Write len bytes of char 'letter' to region p_udata starting at offset 'offset' */
@@ -144,8 +147,12 @@ int main(int argc, char **argv)
 		exit(1);
 	case 0:		// Child
 		if (use_mtx) {
-			/* Attempt to 'lock' the (binary) sem; wait on it being
-			 * incremeneted from 0 (by the parent)
+			/* 
+			 * (Attempt to) 'LOCK" the mutex.
+			 * Attempt to 'lock' the (binary) sem/mutex by attempting to
+			 * decrement it via the sem_wait(); if it's value is 0 
+			 * - the default - it's forced to wait on it being
+			 * incremeneted to 1 by the parent calling sem_post()
 			 */
 			if (sem_wait(sem) == -1)
 				perror("sem_wait() failed");
@@ -162,6 +169,12 @@ int main(int argc, char **argv)
 		 */
 		update_udata(p_udata, 'p', 0, LEN * 10);
 		if (use_mtx) {
+			/* 'UNLOCK" the mutex.
+			 * The sem (mutex's) initial value is 0 - we programmed this via the
+			 * 4th param to the sem_open(). So let the parent go ahead and do the
+			 * work; once done, 'unlock' the sem (mutex) by incrementing it (via
+			 * the sem_post()) so that the child - whose waiting for it - can get it.
+			 */
 			if (sem_post(sem) == -1)
 				perror("sem_post() failed");
 		}

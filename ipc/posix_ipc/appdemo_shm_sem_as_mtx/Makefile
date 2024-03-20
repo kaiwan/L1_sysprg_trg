@@ -40,7 +40,7 @@ ALL :=  prod prod_2part
 # Of course, if you have >1 C program to build, you must add it manually.
 # Also, it's recommended to keep one Makefile per program in separate directories.
 ###
-FNAME_C := appdemo_shmsem
+FNAME_C := appdemo_shmsem_as_mtx
 #--- USER CHECK: manually add params as required
 # Populate any required cmdline arguments to the process here:
 CMDLINE_ARGS=
