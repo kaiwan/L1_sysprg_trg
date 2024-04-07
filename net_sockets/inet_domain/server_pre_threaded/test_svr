@@ -1,8 +1,0 @@
-#!/bin/bash
-for ((i=1; i<=20; i++)); do
-	echo "
-++++++++++++++++++++ client: netcat iter #$i ++++++++++++++++++++++++"
-	# nc client dies after 1s due to the timeout
-	timeout 1 netcat localhost 8000
-done
-
