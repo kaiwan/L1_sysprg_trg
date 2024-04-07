@@ -16,10 +16,10 @@
 
 #define SHM_NAME "/opencsf_shm"
 
-struct permission {
-	int user;
-	int group;
-	int other;
+struct udata {
+	size_t lat, longt, alt;
+	char location_name[128];
+	int gps_fix;
 };
 
 int main(void)
@@ -27,10 +27,10 @@ int main(void)
 /* Create unsized shared memory object;
    return value is a file descriptor */
 	int shmfd =
-	    shm_open(SHM_NAME, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
+	    shm_open(SHM_NAME, O_CREAT|O_EXCL|O_RDWR, 0600); //S_IRUSR|S_IWUSR);
 	if (shmfd == -1) {
 		if (errno == EEXIST) {
-			shmfd = shm_open(SHM_NAME, 0, 0644);
+			shmfd = shm_open(SHM_NAME, 0, 0600);
 			if (shmfd == -1) {
 				fprintf(stderr, "shm_open() failed\n");
 				exit(1);
@@ -39,41 +39,45 @@ int main(void)
 	}
 
 	/* Resize the region to store 1 struct instance */
-	if (ftruncate(shmfd, sizeof(struct permission)) == -1) {
+	if (ftruncate(shmfd, sizeof(struct udata)) == -1) {
 		perror("ftruncate failed");
 		shm_unlink(SHM_NAME);
 		exit(1);
 	}
-	//assert(ftruncate(shmfd, sizeof(struct permission)) != -1);
+	//assert(ftruncate(shmfd, sizeof(struct udata)) != -1);
 
 /* Map the object into memory so file operations aren't needed */
-	struct permission *perm = mmap(NULL, sizeof(struct permission),
+	struct udata *udata = mmap(NULL, sizeof(struct udata),
 				       PROT_READ | PROT_WRITE, MAP_SHARED,
 				       shmfd, 0);
-	assert(perm != MAP_FAILED);
+	assert(udata != MAP_FAILED);
+	printf("Location data before mod: (%zu,%zu,%zu)\n",
+	udata->lat, udata->longt, udata->alt);
 
 /* Create a child process and write to the mapped/shared region */
 	pid_t child_pid = fork();
 	if (child_pid == 0) {
-		perm->user = 6;
-		perm->group = 4;
-		perm->other = 0;
+		udata->lat = 77;
+		udata->longt = 13;
+		udata->alt = 900;
 
 		/* Unmap and close the child's shared memory access */
-		munmap(perm, sizeof(struct permission));
+		munmap(udata, sizeof(struct udata));
 		close(shmfd);
-		return 0;
+		exit(0);
 	}
 
 	/* Make the parent wait until the child has exited */
 	wait(NULL);
 
 /* Read from the mapped/shared memory region */
-	printf("Permission bit-mask: 0%d%d%d\n", perm->user, perm->group,
-	       perm->other);
+	printf("Location data after mod: (%zu,%zu,%zu)\n",
+	udata->lat, udata->longt, udata->alt);
 
 /* Unmap, close, and delete the shared memory object */
-	munmap(perm, sizeof(struct permission));
+	munmap(udata, sizeof(struct udata));
 	close(shmfd);
+#if 1
 	shm_unlink(SHM_NAME);
+#endif
 }

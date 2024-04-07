@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	mqd_t mymq;
 	struct mq_attr attr;
 
-	mymq = mq_open(MQNAME, O_RDWR | O_CREAT | O_EXCL, 0644, NULL);	// 'attr' as NULL => use defaults
+	mymq = mq_open(MQNAME, O_RDWR|O_CREAT|O_EXCL, 0644, NULL);	// 'attr' as NULL => use defaults
 	if (mymq == -1) {
 		if (EEXIST == errno) {	// failed as the MQ already exists!
 			mymq = mq_open(MQNAME, O_RDWR);

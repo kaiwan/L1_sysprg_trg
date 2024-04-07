@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 	}
 	printf("prio: %d, max prio: %ld\n", prio, sysconf(_SC_MQ_PRIO_MAX));
 
-	mymq = mq_open(MQNAME, O_RDWR | O_CREAT | O_EXCL, 0644, NULL);	// 'attr' as NULL => use defaults
+	mymq = mq_open(MQNAME, O_RDWR|O_CREAT|O_EXCL, 0644, NULL);	// 'attr' as NULL => use defaults
 	if (mymq == -1) {
 		if (EEXIST == errno) {	// failed as the MQ already exists!
 			mymq = mq_open(MQNAME, O_RDWR);
