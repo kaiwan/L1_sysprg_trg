@@ -71,7 +71,6 @@ int main(int argc, char **argv)
 		perror("write: to fd_to for 1 byte at eof failed");
 		exit(1);
 	}
-
 	/*
 	   void *mmap(void *addr, size_t length, int prot, int flags,
 	   int fd, off_t offset);
@@ -81,7 +80,7 @@ int main(int argc, char **argv)
 		perror("mmap: to src file");
 		exit(1);
 	}
-	MSG("len=%ld data_src = %p\n", len, data_src);
+//	MSG("len=%ld data_src = %p\n", len, data_src);
 
 	// Set up a shared file mapping as we want in-memory mods to propogate to the underlying file.
 	data_dest = mmap(0, len, PROT_READ|PROT_WRITE, MAP_SHARED, fd_to, 0);
@@ -93,6 +92,7 @@ int main(int argc, char **argv)
 	memcpy (data_dest, data_src, len);
 	//pause();
 
+/*
 	if (munmap(origptr, len) == -1) {
 		perror("munmap");
 		exit(1);
@@ -103,8 +103,6 @@ int main(int argc, char **argv)
 	munmap(data_dest, len);
 	if (close(fd_to) == -1)
 		perror ("close/4 failed");
-
+*/
 	exit(0);
 }
-
-/* vi: ts=4 */
