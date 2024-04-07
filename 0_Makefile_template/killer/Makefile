@@ -44,7 +44,7 @@ ALL :=  prod prod_2part
 FNAME_C := killer
 #--- CHECK: manually add params as required
 # Populate any required cmdline arguments to the process here:
-CMDLINE_ARGS="3"
+CMDLINE_ARGS="1"
 
 
 # Can remove the 'msan' one if it doesn't build - requires clang
@@ -299,7 +299,8 @@ endif
 #    test case via this script. In effect, simply adjust the CMDLINE_ARGS variable here
 #    and run 'make covg' again
 #  - If you want to start from scratch, *wiping* previous coverage data, then
-#    add the -r (reset) option when invoking this script (above).
+#    add the -r (reset) option when invoking this script (above) -OR-
+#    simply invoke the 'clean_lcov' target (which deletes all the lcov meta dirs)
 	
 # exit unconditionally
 %:
@@ -351,8 +352,15 @@ clean:
 	@echo " report folders - the ones named 0lcov_meta/, lcov_onerun_html/ and lcov_merged_html/ resp,"
 	@echo " as they're required to generate a merged / cumulative code coverage report."
 	@echo "To start code coverage analysis from scratch, you can either:"
-	@echo "- manually delete these 3 folders, OR,"
+	@echo "- invoke the special 'make clean_lcov' (it manually delete these 3 folders), OR,"
 	@echo "- change the invocation of the lcov_gen.sh script in the Makefile, passing the -r option"
+
+clean_lcov:
+	@echo
+	@echo "--- cleaning LCOV metadata ---"
+	@echo
+	# NOTE! depedency on the lcov_gen.sh script, on these folder names
+	rm -rvf 0lcov_meta/  lcov_merged_html/  lcov_onerun_html/
 
 help:
 	@echo '=== Makefile Help : additional targets available ==='
@@ -398,7 +406,7 @@ help:
 	@echo "  report folders - the ones named 0lcov_meta/, lcov_onerun_html/ and lcov_merged_html/ resp,"
 	@echo "  as they're required to generate a merged / cumulative code coverage report."
 	@echo " To start code coverage analysis from scratch, you can either:"
-	@echo " - manually delete these 3 folders, OR,"
+	@echo " - invoke the special 'make clean_lcov' (it manually delete these 3 folders), OR,"
 	@echo " - change the invocation of the lcov_gen.sh script in the Makefile, passing the -r option"
 
 	@echo
@@ -411,6 +419,7 @@ help:
 	@echo '--- misc targets ---'
 	@echo ' clean      : cleanup - remove all the binaries, core files, etc'
 	@echo '              See special note wrt code coverage'
+	@echo ' clean_lcov : cleanup the LCOV metadata folders; implies code coverage starts from scratch'
 	@echo ' package    : tar and compress the source files into the dir above'
 	@echo '  Tip: when extracting, to extract into a dir of the same name as the tar file, do:'
 	@echo '       tar -xvf ${PKG_NAME}.tar.xz --one-top-level'
