@@ -14,13 +14,14 @@
 #  - indent: adhering to (Linux kernel) coding style guidelines (indent+checkpatch)
 #  - sa: static analysis target (via flawfinder, cppcheck)
 #  - dynamic analysis target: via valgrind
-#  -         + code coverage via gcov
+#  - code coverage via gcov/lcov
 #  - a packaging (.tar.xz) target and
 #  - a help target.
 #
 # You will require these utils installed:
 #  indent, flawfinder, valgrind, kernel-headers package -or- simply the
 #  checkpatch.pl script, gcov, lcov, tar; + libasan
+#  The lcov_gen.sh wrapper script
 #
 # To get started, just type:
 #  make help
@@ -41,20 +42,30 @@ ALL :=  prod prod_2part
 # Also, it's recommended to keep one Makefile per program in separate directories.
 ###
 FNAME_C := killer
-#--- USER CHECK: manually add params as required
+#--- CHECK: manually add params as required
 # Populate any required cmdline arguments to the process here:
-CMDLINE_ARGS=
+CMDLINE_ARGS="3"
 
 
-ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_gcov
+# Can remove the 'msan' one if it doesn't build - requires clang
+ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_dbg_lsan ${FNAME_C}_gcov ${FNAME_C}_dbg_msan
 
-CC=${CROSS_COMPILE}gcc
-CL=${CROSS_COMPILE}clang
+# Decide which compiler to use; GCC doesn't support MSAN, clang does
+CC := gcc
+ifeq (, $(shell which clang))
+  $(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' or equivalent ===)
+else
+  CC := clang
+  LINKIN := -static-libsan
+endif
+$(info Compiler set to $(CC))
+
 STRIP=${CROSS_COMPILE}strip
 OBJCOPY=${CROSS_COMPILE}objcopy
 
 PROD_OPTLEVEL=-O2
-  # or -O3 or -Os
+  # -O<N>; N can be 0-3 or s (optimize for speed & size);
+  #  in the -D_FORTIFY_SOURCE=N option, set N to the same number
 CSTD=-ansi -std=c99 -std=c11 -std=c18  # the last one wins; else if unsupported, earlier ones...
 # For the meaning of the following feature test macros, see feature_test_macros(7)
 POSIX_STD=201112L
@@ -63,15 +74,17 @@ STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE
 # Add this option switch to CFLAGS / CFLAGS_DBG if you want ltrace to work on Ubuntu!
 LTRACE_ENABLE=-z lazy
 
-CFLAGS=-Wall -UDEBUG ${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2
+CFLAGS=-Wall -UDEBUG ${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2
-CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}
+# For MSan, don't use the -D_FORTIFY_SOURCE option
+CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address -fsanitize-address-use-after-scope
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
-CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
+CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory -fPIE -pie
+CFLAGS_DBG_LSAN=${CFLAGS_DBG} -fsanitize=leak
 
-CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage
+CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage -lgcov
 LINK=  #-pthread
 
 # Required vars
@@ -88,6 +101,7 @@ GCOV := gcov
 LCOV := lcov
 GENINFO := geninfo
 GENHTML := genhtml
+LCOV_SCRIPT := lcov_gen.sh
 
 # Targets and their rules
 # Three types:
@@ -118,6 +132,12 @@ prod_2part: ${FNAME_C}.c
 	${STRIP} --strip-debug ./${FNAME_C}
 	${OBJCOPY} --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
 
+# 'debug' target: -O0, debug symbolic info (-g -ggdb), not stripped.
+# Generates the regular debug build, debug+ASAN, debug+UB, debug+LSAN, debug+MSAN builds'
+# MSAN requires clang.
+# When using clang on Debian/Fedora-type distros, use -static-libsan (LINKIN is
+# set to this value); with GCC, and on Fedora-type distros, other libraries
+# (libasan, libubsan, liblsan) are required (pkg: lib<name>-<gcc ver>-...)
 debug: ${FNAME_C}.c
 	@echo
 	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
@@ -125,14 +145,15 @@ debug: ${FNAME_C}.c
 	@echo
 	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg ${LINK}
 #-- Sanitizers (use clang or GCC)
-	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK} -static-libasan
-	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK} -static-libasan
+	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK} ${LINKIN}
+	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK} ${LINKIN}
 # GCC doesn't support MSAN, clang does
-ifeq (, $(shell which clang))
-	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' ===)
+ifeq (gcc, $(CC))
+	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' or equivalent ===)
 else
-	${CL} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LINK}
+	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LINK}
 endif
+	${CC} ${CFLAGS_DBG_LSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_lsan ${LINK} ${LINKIN}
 
 
 #--------------- More (useful) targets! -------------------------------
@@ -147,7 +168,7 @@ code-style:
 
 indent: ${SRC_FILES}
 ifeq (, $(shell which ${INDENT}))
-	$(warning === WARNING! ${INDENT} not installed; consider doing 'sudo apt install indent' ===)
+	$(warning === WARNING! ${INDENT} not installed; consider doing 'sudo apt install indent' or equivalent ===)
 else
 	make clean
 	@echo
@@ -179,7 +200,7 @@ sa:   # static analysis
 # static analysis with flawfinder
 sa_flawfinder:
 ifeq (, $(shell which ${FLAWFINDER}))
-	$(warning === WARNING! ${FLAWFINDER} not installed; consider doing 'sudo apt install flawfinder' ===)
+	$(warning === WARNING! ${FLAWFINDER} not installed; consider doing 'sudo apt install flawfinder' or equivalent ===)
 else
 	make clean
 	@echo
@@ -191,7 +212,7 @@ endif
 # static analysis with cppcheck
 sa_cppcheck:
 ifeq (, $(shell which ${CPPCHECK}))
-	$(warning === WARNING! ${CPPCHECK} not installed; consider doing 'sudo apt install cppcheck' ===)
+	$(warning === WARNING! ${CPPCHECK} not installed; consider doing 'sudo apt install cppcheck' or equivalent ===)
 else
 	make clean
 	@echo
@@ -204,13 +225,14 @@ endif
 # dynamic analysis with valgrind
 valgrind:
 ifeq (, $(shell which ${VALGRIND}))
-	$(warning === WARNING! ${VALGRIND} not installed; consider doing 'sudo apt install valgrind' ===)
+	$(warning === WARNING! ${VALGRIND} not installed; consider doing 'sudo apt install valgrind' or equivalent ===)
 else
 	make --ignore-errors debug
 	@echo
 	@echo "--- dynamic analysis with Valgrind memcheck ---"
 	@echo
-#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
+#--- CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
+	@if test -z "${CMDLINE_ARGS}"; then echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${FNAME_C}_gcov ? @@@\n"; fi
 	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg ${CMDLINE_ARGS}
 endif
 
@@ -220,22 +242,24 @@ san:
 	@echo
 	@echo "--- dynamic analysis with the Address Sanitizer (ASAN) ---"
 	@echo
-#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
+#--- CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	./${FNAME_C}_dbg_asan ${CMDLINE_ARGS}
 
 	@echo
 	@echo "--- dynamic analysis with the Undefined Behavior Sanitizer (UBSAN) ---"
 	@echo
-#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
+#--- CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	./${FNAME_C}_dbg_ub ${CMDLINE_ARGS}
 
 	@echo
 	@echo "--- dynamic analysis with the Memory Sanitizer (MSAN) ---"
 	@echo
-#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
+#--- CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	./${FNAME_C}_dbg_msan ${CMDLINE_ARGS}
 
-# Testing: line coverage with gcov(1), lcov(1)
+# dynamic analysis run with LSan binary not done here (as ASan typically covers leakage)
+
+#----- Testing: line coverage with gcov(1), lcov(1)
 # ref: https://backstreetcoder.com/code-coverage-using-gcov-lcov-in-linux/
 covg:
 	@echo
@@ -254,27 +278,32 @@ else
 	sed -i 's/^#genhtml_branch_coverage = 1/genhtml_branch_coverage = 1/' ~/.lcovrc
 	sed -i 's/^lcov_branch_coverage = 0/lcov_branch_coverage = 1/' ~/.lcovrc
 endif
+ifeq (, $(shell which ${LCOV_SCRIPT}))
+	$(error ERROR: ensure our ${LCOV_SCRIPT} wrapper script's installed and in your PATH first; location: https://github.com/kaiwan/usefulsnips/blob/master/lcov_gen.sh)
+endif
 
+#--- Build for coverage testing; this generates the binary executable named
+# ${FNAME_C}_covg and the .gcno ('notes') files as well
+	make clean
+	@echo "___"
+	@echo "> Forcing compiler to GCC for coverage, as gcov/lcov seem to require it"
+	$(eval CC := gcc)
+# For coverage analysis, gcov/lcov seems to require compilation via GCC (not clang)
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov ${LINK}
-#--- USER CHECK: manually add params as required
-# Update the test run below as required (more tests + params)
-	@echo "= Running test case(s) ..."
-	@echo "NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it"
-	@echo " and then invoke the covg.sh script to complete the coverage analysis"
-#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
-	./${FNAME_C}_gcov ${CMDLINE_ARGS}
-# ...As the PUT (prg under test) can run continually (without dying), it's possible
-# that the instructions below will have to be run manually...
-# Attempting to abort the PUT with ^C (or [p]kill) causes the entire chain - incl below-
-# to abort. So, we need a separate script to run the stuff below; that's precisely
-# the purpose behind the script <src>/covg.sh; run it if this code below doesn't run
-# automatically.
-	${GCOV} ${SRC_FILES} || exit 1
-# generate .info from the .gcno and .gcda file(s) in .
-	${GENINFO} ./ -o ./${FNAME_C}.info || exit 1
-# generate HTML report in output directory lcov_html/
-	${GENHTML} ./${FNAME_C}.info --output-directory lcov_html/ || exit 1
-	@echo "Display lcov html report: google-chrome lcov_html/index.html"
+	@if test -z "${CMDLINE_ARGS}"; then echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${FNAME_C}_gcov ? @@@\n"; fi
+
+	@echo "-------------- Running via our wrapper ${LCOV_SCRIPT} --------------"
+	${LCOV_SCRIPT} ${FNAME_C}_gcov ${CMDLINE_ARGS}
+# lcov_gen.sh Notes:
+#  - If you want a cumulative / merged code coverage report, run your next coverage
+#    test case via this script. In effect, simply adjust the CMDLINE_ARGS variable here
+#    and run 'make covg' again
+#  - If you want to start from scratch, *wiping* previous coverage data, then
+#    add the -r (reset) option when invoking this script (above).
+	
+# exit unconditionally
+%:
+	@true
 
 # Testing all
 # Limitation:
@@ -309,14 +338,21 @@ package:
 	@echo 'Tip: when extracting, to extract into a dir of the same name as the tar file,'
 	@echo ' do: tar -xvf ${PKG_NAME}.tar.xz --one-top-level'
 
-
 clean:
 	@echo
 	@echo "--- cleaning ---"
 	@echo
-	rm -vf ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_dbg_msan \
-			${FNAME_C}_gcov core* vgcore* *.o *~
-	rm -rfv *.[ch].gcov *.gcda *.gcno *.info lcov_html/
+	rm -vf ${ALL_NM} core* vgcore* *.o *~
+# rm some of the code coverage metadata
+	rm -rfv ${FNAME_C}_gcov *.[ch].gcov *.gcda *.gcno *.info
+
+	@echo "Note: Special case wrt the 'clean' target and the code coverage target (covg):"
+	@echo " It deliberately does NOT delete the LCOV metadata, intermediate and final LCOV coverage"
+	@echo " report folders - the ones named 0lcov_meta/, lcov_onerun_html/ and lcov_merged_html/ resp,"
+	@echo " as they're required to generate a merged / cumulative code coverage report."
+	@echo "To start code coverage analysis from scratch, you can either:"
+	@echo "- manually delete these 3 folders, OR,"
+	@echo "- change the invocation of the lcov_gen.sh script in the Makefile, passing the -r option"
 
 help:
 	@echo '=== Makefile Help : additional targets available ==='
@@ -330,10 +366,10 @@ help:
 
 	@echo 'Regular targets ::'
 	@echo ' 1. 'prod'  : regular production target: -O2, no debug symbolic info, stripped'
-	@echo ' 2. 'debug' : -O0, debug symbolic info (-g -ggdb), not stripped'
+	@echo ' 2. 'debug' : -O0, debug symbolic info (-g -ggdb), not stripped. Generates the regular debug build, debug+ASAN, debug+UB, debug+LSAN, debug+MSAN builds'
 	@echo ' 3. 'prod_2part': production target : -O2, no debug symbolic info, strip-debug; \
     Excellent for production as it gives ability to debug as and when required! \
-    (shown as third option as it *requires* the 'debug' build'
+    (shown as third option as it *requires* the 'debug' build as a step'
 	@echo
 	@echo 'Doing a 'make' will build all three shown above.'
 
@@ -356,7 +392,14 @@ help:
 
 	@echo
 	@echo '--- code coverage ---'
-	@echo ' covg       : run the gcov+lcov code coverage tooling on the source (generates html output!) NOTE- the covg.sh helper script is also available...'
+	@echo ' covg       : run the gcov+lcov code coverage tooling on the source (generates html output!). NOTE: this target requires our ${LCOV_SCRIPT} wrapper script installed (location: https://github.com/kaiwan/usefulsnips/blob/master/lcov_gen.sh)'
+	@echo " Note: Special case wrt the 'clean' target and the code coverage target (covg):"
+	@echo "  It deliberately does NOT delete the LCOV metadata, intermediate and final LCOV coverage"
+	@echo "  report folders - the ones named 0lcov_meta/, lcov_onerun_html/ and lcov_merged_html/ resp,"
+	@echo "  as they're required to generate a merged / cumulative code coverage report."
+	@echo " To start code coverage analysis from scratch, you can either:"
+	@echo " - manually delete these 3 folders, OR,"
+	@echo " - change the invocation of the lcov_gen.sh script in the Makefile, passing the -r option"
 
 	@echo
 	@echo '--- TEST all ---'
@@ -367,6 +410,7 @@ help:
 	@echo
 	@echo '--- misc targets ---'
 	@echo ' clean      : cleanup - remove all the binaries, core files, etc'
+	@echo '              See special note wrt code coverage'
 	@echo ' package    : tar and compress the source files into the dir above'
 	@echo '  Tip: when extracting, to extract into a dir of the same name as the tar file, do:'
 	@echo '       tar -xvf ${PKG_NAME}.tar.xz --one-top-level'
