@@ -131,6 +131,8 @@ prod_2part: ${FNAME_C}.c
 	make --ignore-errors debug
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
 	${STRIP} --strip-debug ./${FNAME_C}
+# Most IMP, setup the 'debug link' in the release binary, pointing to the debug
+# info file; this, in effect, is the 2part solution!
 	${OBJCOPY} --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
 
 # 'debug' target: -O0, debug symbolic info (-g -ggdb), not stripped.
