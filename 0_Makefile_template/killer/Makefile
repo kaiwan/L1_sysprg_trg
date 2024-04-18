@@ -49,7 +49,7 @@ CMDLINE_ARGS=""
 
 
 # Can remove the 'msan' one if it doesn't build - requires clang
-ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_dbg_lsan ${FNAME_C}_gcov ${FNAME_C}_dbg_msan
+ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_dbg_lsan ${FNAME_C}_gcov ${FNAME_C}_dbg_msan ${FNAME_C}_dbg_tsan
 
 # Decide which compiler to use; GCC doesn't support MSAN, clang does
 CC := gcc
@@ -84,6 +84,7 @@ CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address -fsanitize-address-use-after-sc
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
 CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory -fPIE -pie
 CFLAGS_DBG_LSAN=${CFLAGS_DBG} -fsanitize=leak
+CFLAGS_DBG_TSAN=${CFLAGS_DBG} -fsanitize=thread
 
 CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage -lgcov
 LINK=  #-pthread
@@ -157,6 +158,11 @@ else
 	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LINK}
 endif
 	${CC} ${CFLAGS_DBG_LSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_lsan ${LINK} ${LINKIN}
+# ThreadSanitizer (TSan):
+# For clang ver < 18.1.0 (Mar '24), need to set vm.mmap_rnd_bits sysctl to 28 (default is 32)
+# else it bombs on execution (ref: https://stackoverflow.com/a/77856955/779269)
+	sudo sysctl vm.mmap_rnd_bits=28
+	${CC} ${CFLAGS_DBG_TSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_tsan ${LINK} ${LINKIN}
 
 
 #--------------- More (useful) targets! -------------------------------
@@ -245,20 +251,23 @@ san:
 	@echo
 	@echo "--- dynamic analysis with the Address Sanitizer (ASAN) ---"
 	@echo
-#--- CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
+	@if test -z "${CMDLINE_ARGS}"; then echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${FNAME_C}_gcov ? @@@\n"; fi
 	./${FNAME_C}_dbg_asan ${CMDLINE_ARGS}
 
 	@echo
 	@echo "--- dynamic analysis with the Undefined Behavior Sanitizer (UBSAN) ---"
 	@echo
-#--- CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	./${FNAME_C}_dbg_ub ${CMDLINE_ARGS}
 
 	@echo
 	@echo "--- dynamic analysis with the Memory Sanitizer (MSAN) ---"
 	@echo
-#--- CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	./${FNAME_C}_dbg_msan ${CMDLINE_ARGS}
+
+	@echo
+	@echo "--- dynamic analysis with the Thread Sanitizer (TSAN) ---"
+	@echo
+	./${FNAME_C}_dbg_tsan ${CMDLINE_ARGS}
 
 # dynamic analysis run with LSan binary not done here (as ASan typically covers leakage)
 
@@ -399,7 +408,7 @@ help:
 	@echo
 	@echo '--- dynamic analysis targets ---'
 	@echo ' valgrind   : run the dynamic analysis tool ($(VALGRIND)) on the binary executable'
-	@echo ' san        : run dynamic analysis via ASAN, UBSAN and MSAN tooling on the binary executable'
+	@echo ' san        : run dynamic analysis via ASAN, UBSAN, MSAN and TSAN tooling on the binary executable'
 
 	@echo
 	@echo '--- code coverage ---'
