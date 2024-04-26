@@ -60,6 +60,9 @@ CSTD=-ansi -std=c99 -std=c11 -std=c18  # the last one wins; else if unsupported,
 POSIX_STD=201112L
 STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE
 
+# Add this option switch to CFLAGS / CFLAGS_DBG if you want ltrace to work on Ubuntu!
+LTRACE_ENABLE=-z lazy
+
 CFLAGS=-Wall -UDEBUG ${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
@@ -68,8 +71,8 @@ CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
 CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
 
-CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage
-LINK=-pthread
+CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage -lgcov
+LINK=  #-pthread
 
 # Required vars
 all: ${ALL}
@@ -85,6 +88,7 @@ GCOV := gcov
 LCOV := lcov
 GENINFO := geninfo
 GENHTML := genhtml
+LCOV_SCRIPT := lcov_gen.sh
 
 # Targets and their rules
 # Three types:
@@ -126,7 +130,7 @@ debug: ${FNAME_C}.c
 	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK} -static-libasan
 # GCC doesn't support MSAN, clang does
 ifeq (, $(shell which clang))
-	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing sudo apt install clang ===)
+	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' ===)
 else
 	${CL} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LINK}
 endif
@@ -143,12 +147,16 @@ code-style:
 	make --ignore-errors checkpatch
 
 indent: ${SRC_FILES}
+ifeq (, $(shell which ${INDENT}))
+	$(warning === WARNING! ${INDENT} not installed; consider doing 'sudo apt install indent' ===)
+else
 	make clean
 	@echo
 	@echo "--- applying Linux kernel code-style indentation with indent ---"
 	@echo
 	mkdir bkp 2>/dev/null; cp -f ${SRC_FILES} bkp/
 	${INDENT} -linux ${SRC_FILES}
+endif
 # RELOOK
 # !WARNING!
 # I came across this apparent bug in indent when using it on Ubuntu 20.04:
@@ -171,29 +179,41 @@ sa:   # static analysis
 
 # static analysis with flawfinder
 sa_flawfinder:
+ifeq (, $(shell which ${FLAWFINDER}))
+	$(warning === WARNING! ${FLAWFINDER} not installed; consider doing 'sudo apt install flawfinder' ===)
+else
 	make clean
 	@echo
 	@echo "--- static analysis with flawfinder ---"
 	@echo
 	${FLAWFINDER} --neverignore --context *.[ch]
+endif
 
 # static analysis with cppcheck
 sa_cppcheck:
+ifeq (, $(shell which ${CPPCHECK}))
+	$(warning === WARNING! ${CPPCHECK} not installed; consider doing 'sudo apt install cppcheck' ===)
+else
 	make clean
 	@echo
 	@echo "--- static analysis with cppcheck ---"
 	@echo
 	${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
+endif
 
 # Dynamic Analysis
 # dynamic analysis with valgrind
 valgrind:
+ifeq (, $(shell which ${VALGRIND}))
+	$(warning === WARNING! ${VALGRIND} not installed; consider doing 'sudo apt install valgrind' ===)
+else
 	make --ignore-errors debug
 	@echo
 	@echo "--- dynamic analysis with Valgrind memcheck ---"
 	@echo
-#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg ${CMDLINE_ARGS}
+endif
 
 # dynamic analysis with the Sanitizer tooling
 san:
@@ -201,19 +221,19 @@ san:
 	@echo
 	@echo "--- dynamic analysis with the Address Sanitizer (ASAN) ---"
 	@echo
-#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	./${FNAME_C}_dbg_asan ${CMDLINE_ARGS}
 
 	@echo
 	@echo "--- dynamic analysis with the Undefined Behavior Sanitizer (UBSAN) ---"
 	@echo
-#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	./${FNAME_C}_dbg_ub ${CMDLINE_ARGS}
 
 	@echo
 	@echo "--- dynamic analysis with the Memory Sanitizer (MSAN) ---"
 	@echo
-#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
+#--- USER CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	./${FNAME_C}_dbg_msan ${CMDLINE_ARGS}
 
 # Testing: line coverage with gcov(1), lcov(1)
@@ -235,29 +255,28 @@ else
 	sed -i 's/^#genhtml_branch_coverage = 1/genhtml_branch_coverage = 1/' ~/.lcovrc
 	sed -i 's/^lcov_branch_coverage = 0/lcov_branch_coverage = 1/' ~/.lcovrc
 endif
+ifeq (, $(shell which ${LCOV_SCRIPT}))
+	$(error ERROR: ensure our ${LCOV_SCRIPT} wrapper script's installed and in your PATH first; location: https://github.com/kaiwan/usefulsnips/blob/master/lcov_gen.sh)
+endif
 
+#--- Build for coverage testing; this generates the binary executable named
+# ${FNAME_C}_covg and the .gcno ('notes') files as well
+	make clean
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov ${LINK}
-#--- USER CHECK: manually add params as required
-# Update the test run below as required (more tests + params)
-	@echo "= Running test case(s) ..."
-	@echo "NOTE: in case the PUT (prg under test) runs continually, you'll have to terminate it"
-	@echo " and then invoke the covg.sh script to complete the coverage analysis"
-#--- USER CHECK: have you populated CMDLINE_ARGS with the required cmdline
-	./${FNAME_C}_gcov ${CMDLINE_ARGS}
-# ...As the PUT (prg under test) can run continually (without dying), it's possible
-# that the instructions below will have to be run manually...
-# Attempting to abort the PUT with ^C (or [p]kill) causes the entire chain - incl below-
-# to abort. So, we need a separate script to run the stuff below; that's precisely
-# the purpose behind the script <src>/covg.sh; run it if this code below doesn't run
-# automatically.
-	${GCOV} ${SRC_FILES}
-# generate .info from the .gcno and .gcda file(s) in .
-	${GENINFO} ./ -o ./${FNAME_C}.info
-# generate HTML report in output directory lcov_html/
-	${GENHTML} ./${FNAME_C}.info --output-directory lcov_html/
-	@echo "Display lcov html report: google-chrome lcov_html/index.html"
+	@echo "___"
+
+	@echo "--------------Running via our wrapper ${LCOV_SCRIPT}----------"
+	${LCOV_SCRIPT} ${FNAME_C}_gcov ${CMDLINE_ARGS}
+# exit unconditionally
+%:
+	@true
 
 # Testing all
+# Limitation:
+# When the PUT (Prg Under Test) runs in an infinite loop or forever (eg. servers/daemons),
+# you may have to manually run a client process (or whatever) and exit the main process
+# programatically; else, a signal like ^C does abort it BUT make doesn't continue (even
+# when run with --ignore-errors).
 test:
 	@echo
 	@echo "=== Test All ==="
@@ -291,8 +310,9 @@ clean:
 	@echo "--- cleaning ---"
 	@echo
 	rm -vf ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_dbg_msan \
-			${FNAME_C}_gcov core* vgcore* *.o *~
-	rm -rfv *.[ch].gcov *.gcda *.gcno *.info lcov_html/
+		core* vgcore* *.o *~
+# rm coverage testing metadata
+	rm -rfv ${FNAME_C}_gcov *.[ch].gcov *.gcda *.gcno *.info lcov_html/ lcov_meta/ lcov_report/
 
 help:
 	@echo '=== Makefile Help : additional targets available ==='
@@ -332,12 +352,13 @@ help:
 
 	@echo
 	@echo '--- code coverage ---'
-	@echo ' covg       : run the gcov+lcov code coverage tooling on the source (generates html output!) NOTE- the covg.sh helper script is also available...'
+	@echo ' covg       : run the gcov+lcov code coverage tooling on the source (generates html output!). NOTE: this target requires our ${LCOV_SCRIPT} wrapper script installed (location: https://github.com/kaiwan/usefulsnips/blob/master/lcov_gen.sh)'
 
 	@echo
 	@echo '--- TEST all ---'
-	@echo ' test       : run all (it runs them in this order): code-style, sa, valgrind, san, covg'
-	@echo '              Tip: run "make test > out 2>&1" to save all output to a file "out".'
+	@echo ' test       : run all targets (it runs them in this order): code-style, sa, valgrind, san, covg'
+	@echo '              Tip: run "make -i test > out 2>&1" to save all output to a file "out".'
+	@echo '                             -i = --ignore-errors'
 
 	@echo
 	@echo '--- misc targets ---'
