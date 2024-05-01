@@ -9,7 +9,7 @@
 # code and cleanup, we incorporate targets to do useful (and indeed required)
 # stuff like:
 #  - prod_2part: build a '2-part' production target 'prod_2part'; it's
-#     -O2, no debug symbolic info, strip-debug;
+#     -O${PROD_OPTLEVEL}, no debug symbolic info, strip-debug;
 #     Excellent for production as it gives ability to debug as and when required!
 #  - indent: adhering to (Linux kernel) coding style guidelines (indent+checkpatch)
 #  - sa: static analysis target (via flawfinder, cppcheck)
@@ -72,10 +72,10 @@ STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE
 # Add this option switch to CFLAGS / CFLAGS_DBG if you want ltrace to work on Ubuntu!
 LTRACE_ENABLE=-z lazy
 
-PROD_OPTLEVEL=-O2
+PROD_OPTLEVEL=3
   # -O<N>; N can be 0-3 or s (optimize for speed & size);
   #  in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
-CFLAGS=-Wall -UDEBUG ${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=2
+CFLAGS=-Wall -UDEBUG -O${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
 CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}
@@ -107,14 +107,14 @@ LCOV_SCRIPT := lcov_gen.sh
 
 # Targets and their rules
 # Three types:
-# 1. 'regular' production target 'prod': -O2, no debug symbolic info, stripped
-# 2. '2-part' production target 'prod_2part': -O2, no debug symbolic info, strip-debug;
+# 1. 'regular' production target 'prod': -O${PROD_OPTLEVEL}, no debug symbolic info, stripped
+# 2. '2-part' production target 'prod_2part': -O${PROD_OPTLEVEL}, no debug symbolic info, strip-debug;
 #     excellent for production as it gives ability to debug as and when required!
 #     (internally invokes the 'debug' target as it requires the debug binary as well
 # 3. 'debug' target(s): -O0, debug symbolic info (-g -ggdb), not stripped
 prod: ${FNAME_C}.c
 	@echo
-	@echo "--- building 'production'-ready target (-O2, no debug, stripped) ---"
+	@echo "--- building 'production'-ready target (-O${PROD_OPTLEVEL}, no debug, stripped) ---"
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
@@ -125,7 +125,7 @@ prod: ${FNAME_C}.c
 # from the 'debug' binary!
 prod_2part: ${FNAME_C}.c
 	@echo
-	@echo "--- building 'production'-ready 2-part target (-O2, no debug, strip-debug) ---"
+	@echo "--- building 'production'-ready 2-part target (-O${PROD_OPTLEVEL}, no debug, strip-debug) ---"
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
 # We require the 'debug' build for the 2part, so do that first
@@ -385,9 +385,9 @@ help:
 	@echo
 
 	@echo 'Regular targets ::'
-	@echo ' 1. 'prod'  : regular production target: -O2, no debug symbolic info, stripped'
+	@echo ' 1. 'prod'  : regular production target: -O${PROD_OPTLEVEL}, no debug symbolic info, stripped'
 	@echo ' 2. 'debug' : -O0, debug symbolic info (-g -ggdb), not stripped. Generates the regular debug build, debug+ASAN, debug+UB, debug+LSAN, debug+MSAN builds'
-	@echo ' 3. 'prod_2part': production target : -O2, no debug symbolic info, strip-debug; \
+	@echo ' 3. 'prod_2part': production target : -O${PROD_OPTLEVEL}, no debug symbolic info, strip-debug; \
     Excellent for production as it gives ability to debug as and when required! \
     (shown as third option as it *requires* the 'debug' build as a step'
 	@echo
