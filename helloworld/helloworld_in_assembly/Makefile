@@ -4,8 +4,8 @@ ALL := hello
 
 CC=gcc
 LD=ld
-CFLAGS_DBG=-D_REENTRANT -g -ggdb -O0 -Wall
-CFLAGS=-c -D_REENTRANT -Wall
+CFLAGS_DBG=-g -ggdb -O0 -Wall
+CFLAGS=-c -Wall -O2
 
 all: ${ALL}
 
