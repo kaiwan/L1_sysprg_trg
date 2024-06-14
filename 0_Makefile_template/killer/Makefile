@@ -78,7 +78,15 @@ PROD_OPTLEVEL=2
 CFLAGS=-Wall -UDEBUG -O${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -Og -Wall -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}
+# Why -Og and not -O0?
+# man gcc
+# '... Optimize debugging experience.  -Og should be the optimization level of
+# choice for the standard edit-compile-debug cycle, offering a reasonable level
+# of  optimization  while maintaining  fast  compilation  and a good debugging
+# experience. It is a better choice than -O0 for producing debuggable code
+# because some compiler passes that collect debug information are disabled at -O0.'
+
 # For MSan, don't use the -D_FORTIFY_SOURCE option
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address -fsanitize-address-use-after-scope
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
@@ -111,7 +119,7 @@ LCOV_SCRIPT := lcov_gen.sh
 # 2. '2-part' production target 'prod_2part': -O${PROD_OPTLEVEL}, no debug symbolic info, strip-debug;
 #     excellent for production as it gives ability to debug as and when required!
 #     (internally invokes the 'debug' target as it requires the debug binary as well
-# 3. 'debug' target(s): -O0, debug symbolic info (-g -ggdb), not stripped
+# 3. 'debug' target(s): -Og, debug symbolic info (-g -ggdb), not stripped
 prod: ${FNAME_C}.c
 	@echo
 	@echo "--- building 'production'-ready target (-O${PROD_OPTLEVEL}, no debug, stripped) ---"
@@ -136,7 +144,7 @@ prod_2part: ${FNAME_C}.c
 # info file; this, in effect, is the 2part solution!
 	${OBJCOPY} --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
 
-# 'debug' target: -O0, debug symbolic info (-g -ggdb), not stripped.
+# 'debug' target: -Og, debug symbolic info (-g -ggdb), not stripped.
 # Generates the regular debug build, debug+ASAN, debug+UB, debug+LSAN, debug+MSAN builds'
 # MSAN requires clang.
 # When using clang on Debian/Fedora-type distros, use -static-libsan (LINKIN is
@@ -386,7 +394,7 @@ help:
 
 	@echo 'Regular targets ::'
 	@echo ' 1. 'prod'  : regular production target: -O${PROD_OPTLEVEL}, no debug symbolic info, stripped'
-	@echo ' 2. 'debug' : -O0, debug symbolic info (-g -ggdb), not stripped. Generates the regular debug build, debug+ASAN, debug+UB, debug+LSAN, debug+MSAN builds'
+	@echo ' 2. 'debug' : -Og, debug symbolic info (-g -ggdb), not stripped. Generates the regular debug build, debug+ASAN, debug+UB, debug+LSAN, debug+MSAN builds'
 	@echo ' 3. 'prod_2part': production target : -O${PROD_OPTLEVEL}, no debug symbolic info, strip-debug; \
     Excellent for production as it gives ability to debug as and when required! \
     (shown as third option as it *requires* the 'debug' build as a step'
