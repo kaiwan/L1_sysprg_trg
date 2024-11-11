@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 	       "\n&environ = 0x" FMTSPC "\n",
 	       getpid(), (TYPECST) & main, (TYPECST) & gi, (TYPECST) & gu,
 	       (TYPECST) heapmem, (TYPECST) & local, (TYPECST) environ);
-	printf("\n... In pause now... ^C to end (can run vasu_grapher !)\n");
+	printf("\n... In pause now... ^C to end (can run procmap !)\n");
 	pause();
 	free(heapmem);
 	exit(0);

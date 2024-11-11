@@ -22,6 +22,8 @@
 
 /* Strictly speaking we should not use [f|s]printf() in a signal handler;
  * we do use it here in this demo for convenience...
+ * (Why not? printf() can call malloc(), which is NOT async-signal-safe!
+ * It can thus race & cause bugs! That's why.)
  */
 static void catchit(int signo)
 {
