@@ -16,10 +16,12 @@ function die
     exit 1
 }
 
-PFX=~/kaiwanTECH/trccmd  # where trccmd's installed; UPDATE as required
-TRCCMD=${PFX}/trccmd
-
-[[ ! -f ${TRCCMD} ]] && die "trccmd not found or not installed"
+TRCCMD=trccmd
+hash ${TRCCMD} || {
+  PFX=~/kaiwanTECH/trccmd  # where trccmd's installed; UPDATE as required
+  TRCCMD=${PFX}/trccmd
+  hash ${TRCCMD} || die "trccmd not found or not installed"
+}
 [[ ! -f ./helloworld ]] && die "./helloworld not found; build and retry"
 
 #${TRCCMD} -F ./helloworld
