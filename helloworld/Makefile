@@ -23,5 +23,7 @@ helloworld_pause_dbg: helloworld_pause.c
 	${CC} -g -ggdb -Og helloworld_pause.c -o helloworld_pause_dbg -Wall
 	$(OBJDUMP) -d -S helloworld_pause_dbg > helloworld_pause_dbg.disas
 	ls -l helloworld_pause_dbg helloworld_pause_dbg.disas
+ftrace:
+	./trace_helloworld.sh
 clean:
 	rm -f ${OUT}
