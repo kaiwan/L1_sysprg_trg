@@ -13,7 +13,7 @@ Can give a wildcard like *.[ch]"
 
 CHECKS_ON="-*,clang-analyzer-*,cert-*,concurrency-*,performance-*,portability-*,linuxkernel-*,readability-*,misc-*"
   # -* implies all clang-tidy checks are Off; has to be the first option..
-CHECKS_OFF="-clang-analyzer-cplusplus*"
+CHECKS_OFF="-clang-analyzer-cplusplus*,-misc-include-cleaner,-readability-identifier-length,-readability-braces-around-statements"
 # -<opt>-* implies all <opt> checks are Off
 # <opt>-* implies all <opt> checks are On
 
