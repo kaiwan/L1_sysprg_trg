@@ -8,8 +8,8 @@
  * (c) Kaiwan NB, kaiwanTECH
  * Dual MIT/GPL.
  */
-#ifndef __CONVENIENT_H__
-#define __CONVENIENT_H__
+#ifndef CONVENIENT_H__
+#define CONVENIENT_H__
 
 #include <asm/param.h>		/* HZ */
 #include <linux/sched.h>
@@ -190,6 +190,7 @@
 #endif
 
 /*------------------------ DELAY_LOOP --------------------------------*/
+#include <unistd.h>
 static inline void beep(int what)
 {
 #ifdef __KERNEL__
