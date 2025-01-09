@@ -1,7 +1,14 @@
+#!/bin/bash
 # ref: https://clang.llvm.org/extra/clang-tidy/
 
 hash clang-tidy 2>/dev/null || {
   echo "Install clang-tidy first" ; exit 1
+}
+
+[[ $# -lt 1 ]] && {
+  echo "Usage: ${name} files-to-check
+Can give a wildcard like *.[ch]"
+  exit 1
 }
 
 CHECKS_ON="-*,clang-analyzer-*,cert-*,concurrency-*,performance-*,portability-*,linuxkernel-*,readability-*,misc-*"
@@ -10,6 +17,6 @@ CHECKS_OFF="-clang-analyzer-cplusplus*"
 # -<opt>-* implies all <opt> checks are Off
 # <opt>-* implies all <opt> checks are On
 
-cmd="clang-tidy --use-color handle_segv_altstack.c -checks=${CHECKS_ON},${CHECKS_OFF} -header-filter=.*"
+cmd="clang-tidy --use-color ${1} -checks=${CHECKS_ON},${CHECKS_OFF} -header-filter=.*"
 echo "${cmd}"
 eval "${cmd}"
