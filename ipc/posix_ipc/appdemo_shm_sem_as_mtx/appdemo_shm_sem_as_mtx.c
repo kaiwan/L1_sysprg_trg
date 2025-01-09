@@ -72,7 +72,7 @@ static void sem_setup(void)
 		if (errno == EEXIST) {
 			sem = sem_open(SEM_NAME, 0);
 			if (sem == SEM_FAILED) {
-				fprintf(stderr, "sem_open() failed\n");
+				perror("sem_open() failed");
 				exit(1);
 			}
 		}
@@ -157,6 +157,7 @@ int main(int argc, char **argv)
 			if (sem_wait(sem) == -1)
 				perror("sem_wait() failed");
 		}
+		//static void update_udata(void *p_udata, char letter, off_t offset, size_t len)
 		update_udata(p_udata, 'c', LEN, LEN * 10);
 		munmap(p_udata, MEMSIZE);
 		close(shmfd);
@@ -167,6 +168,7 @@ int main(int argc, char **argv)
 		/* The sem init value is 0; go ahead, do the work, then increment it
 		 * so that the child - whose waiting for it - can get it
 		 */
+		//static void update_udata(void *p_udata, char letter, off_t offset, size_t len)
 		update_udata(p_udata, 'p', 0, LEN * 10);
 		if (use_mtx) {
 			/* 'UNLOCK" the mutex.

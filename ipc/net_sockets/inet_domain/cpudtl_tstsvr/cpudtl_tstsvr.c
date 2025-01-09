@@ -82,7 +82,7 @@ $
 #include <pwd.h>
 
 // update on your box
-#include "../../../convenient.h"
+#include "../../../../convenient.h"
 
 /* If you're just trying this trivially on the localhost itself, keep
  * SERV_IP as local loopback addr. Else, use the IP address of the 
@@ -152,13 +152,13 @@ static int process_client(int sd, char *prg)
 		exit(1);
 	}
 #if 1   /*
-		 * Interesting!
-		 * Commenting out the memset() that's below this comment, has
-		 * valgrind complain thus:
-		 * make valgrind
-		 * ...
-		 * valgrind --tool=memcheck --trace-children=yes \
-		--track-origins=yes ./cpudtl_tstsvr_dbg 0.0.0.0 60001
+	 * Interesting!
+	 * Commenting out the memset() that's below this comment, has
+	 * valgrind complain thus:
+	 * make valgrind
+	 * ...
+	 * valgrind --tool=memcheck --trace-children=yes \
+	--track-origins=yes ./cpudtl_tstsvr_dbg 0.0.0.0 60001
  (notice how we include the '--track-origins=yes' to get to the src of the issue!)
 		 * ...
 ==110529== Command: /usr/bin/lscpu
@@ -171,10 +171,10 @@ static int process_client(int sd, char *prg)
 ==110527==    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
 ==110527==    by 0x1098BC: process_client (cpudtl_tstsvr.c:149)
 ==110527==    by 0x109F5D: main (cpudtl_tstsvr.c:293)
-		 * 
-		 * Ah, the malloc() allocs memory but its uninitialized of course...
-		 * Once we init it (w/ the memset()), this err report disappears!
-		 */
+	 * 
+	 * Ah, the malloc() allocs memory but its uninitialized of course...
+	 * Once we init it (w/ the memset()), this err report disappears!
+	 */
 	memset(reply, 0, MAXBUF);
 #endif
 
@@ -187,6 +187,7 @@ static int process_client(int sd, char *prg)
 		printf("%s: popen on 'lscpu' failed, trying via procfs\n", prg);
 		fp = popen("cat /proc/cpuinfo", "r");
 		if (!fp) {
+			// TODO : write an err msg into 'reply' & send it
 			free(reply);
 			exit(1);
 		}

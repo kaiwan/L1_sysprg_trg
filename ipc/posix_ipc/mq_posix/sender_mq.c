@@ -5,7 +5,7 @@
  This program is the "producer" (or sender) app.
 
  Should mount the 'mqueue' filesystem as root:
- # mkdir /dev/mq
+ # mkdir /dev/mqueue
  # mount -t mqueue none /dev/mqueue
 
  Can then see that messages have been written...
@@ -13,7 +13,7 @@
  none on /dev/mqueue type mqueue (rw)
  $ 
  
- $ l /dev/mqueue/
+ $ ls -l /dev/mqueue/
  total 0
  -rw-r--r-- 1 kaiwan kaiwan 80 May 28 12:15 myposixmq
  $ cat /dev/mqueue/myposixmq 
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	mymq = mq_open(MQNAME, O_RDWR|O_CREAT|O_EXCL, 0644, NULL);	// 'attr' as NULL => use defaults
 	if (mymq == -1) {
 		if (EEXIST == errno) {	// failed as the MQ already exists!
-			mymq = mq_open(MQNAME, O_RDWR);
+			mymq = mq_open(MQNAME, O_WRONLY);
 			if (mymq == -1)
 				handle_error("mq_open failed");
 		}

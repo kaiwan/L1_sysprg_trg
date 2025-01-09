@@ -32,7 +32,7 @@ int main(void)
 		if (errno == EEXIST) {
 			shmfd = shm_open(SHM_NAME, 0, 0600);
 			if (shmfd == -1) {
-				fprintf(stderr, "shm_open() failed\n");
+				perror("shm_open() failed");
 				exit(1);
 			}
 		}

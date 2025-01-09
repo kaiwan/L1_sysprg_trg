@@ -2,8 +2,8 @@
  * handle_segv_altstack.c
  *
  * Make a usermode process segfault by accessing invalid user/kernel-space addresses..
- * This in turn will have the MMU trigger an exception condition (Data Abort on 
- * ARM), which will lead to the OS's page fault handler being invoked. *It* will 
+ * This in turn will have the MMU trigger an exception condition (Data Abort on
+ * ARM), which will lead to the OS's page fault handler being invoked. *It* will
  * determine the actual fault (minor or major, good or bad) and, in this case, being
  * a usermode 'bad' fault, will send SIGSEGV to 'current'!
  * Here - the correct approach for kernel synchronous (fatal) signals - we use
@@ -44,22 +44,22 @@ static u32 rubbish_kaddr = 0xd0c00000L;
 } while (0)
 
 /*---------------- Functions ----------------------------------------*/
-static void myfault(int signum, siginfo_t * si, void *ucontext)
+static void myfault(int signum, siginfo_t *si, void *ucontext)
 {
 	fprintf(stderr,
 		"%s():\n------------------- FATAL signal ---------------------------\n",
 		__func__);
-	fprintf(stderr," %s: received signal %d. errno=%d\n"
+	fprintf(stderr, " %s: received signal %d. errno=%d\n"
 	       " Cause/Origin: (si_code=%d): ",
 	       __func__, signum, si->si_errno, si->si_code);
 
 	switch (si->si_code) {
 	/* Possible values si_code can have for SIGSEGV */
 	case SEGV_MAPERR:
-		fprintf(stderr,"SEGV_MAPERR: address not mapped to object\n");
+		fprintf(stderr, "SEGV_MAPERR: address not mapped to object\n");
 		break;
 	case SEGV_ACCERR:
-		fprintf(stderr,"SEGV_ACCERR: invalid permissions for mapped object\n");
+		fprintf(stderr, "SEGV_ACCERR: invalid permissions for mapped object\n");
 		break;
 #if 1
 	/* SEGV_BNDERR and SEGV_PKUERR result in compile failure? 
