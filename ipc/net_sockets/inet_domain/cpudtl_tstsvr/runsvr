@@ -8,6 +8,10 @@ pgrep ${svr} && {
  echo "server ${svr} is already running..."
  exit 1
 }
+grep -w ${port} /etc/services && {
+ echo "port # $port} is already in use..."
+ exit 1
+}
 ./${svr} ${port} -v &
 
 #--- Client:
