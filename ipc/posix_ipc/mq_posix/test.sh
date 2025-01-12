@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 SENDER=./sender_mq
 RECEIVER=./recv_mq

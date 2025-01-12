@@ -20,5 +20,5 @@ sender_mq_dbg_dbg: recv_mq.c
 	gcc ${CFLAGS_DBG} recv_mq.c -o recv_mq_dbg -lrt
 
 clean:
-	rm -f ${OUT}
+	rm -f ${OUT} *_dbg
 
