@@ -75,10 +75,12 @@ LTRACE_ENABLE=-z lazy
 PROD_OPTLEVEL=2
   # -O<N>; N can be 0-3 or s (optimize for speed & size);
   #  in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
-CFLAGS=-Wall -Wextra -Wconversion -Wsign-conversion -UDEBUG -O${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
+
+WARNING_FLAGS=-Wall -Wextra -Wconversion -Wsign-conversion -Wshadow
+CFLAGS=${WARNING_FLAGS} -UDEBUG -O${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -Og -Wall -Wextra -Wconversion -Wsign-conversion -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -Og ${WARNING_FLAGS} -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}
 # Why -Og and not -O0?
 # man gcc
 # '... Optimize debugging experience.  -Og should be the optimization level of
