@@ -17,6 +17,6 @@ CHECKS_OFF="-clang-analyzer-cplusplus*,-misc-include-cleaner,-readability-identi
 # -<opt>-* implies all <opt> checks are Off
 # <opt>-* implies all <opt> checks are On
 
-cmd="clang-tidy --use-color ${1} -checks=${CHECKS_ON},${CHECKS_OFF} -header-filter=.*"
+cmd="clang-tidy -header-filter=.* --use-color ${1} -checks=${CHECKS_ON},${CHECKS_OFF}"
 echo "${cmd}"
 eval "${cmd}"
