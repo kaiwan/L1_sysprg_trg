@@ -368,13 +368,18 @@ clean:
 # rm some of the code coverage metadata
 	rm -rfv ${FNAME_C}_gcov *.[ch].gcov *.gcda *.gcno *.info
 
-	@echo "Note: Special case wrt the 'clean' target and the code coverage target (covg):"
-	@echo " It deliberately does NOT delete the LCOV metadata, intermediate and final LCOV coverage"
-	@echo " report folders - the ones named 0lcov_meta/, lcov_onerun_html/ and lcov_merged_html/ resp,"
-	@echo " as they're required to generate a merged / cumulative code coverage report."
-	@echo "To start code coverage analysis from scratch, you can either:"
-	@echo "- invoke the special 'make clean_lcov' (it manually delete these 3 folders), OR,"
-	@echo "- change the invocation of the lcov_gen.sh script in the Makefile, passing the -r option"
+	@if [ -d lcov_onerun_html ]; then \
+	  echo "------------------- NOTE: clean for lcov (covg target) ----------------------------" ;\
+	  echo "Special case wrt the 'clean' target and the code coverage target (covg):" ;\
+	  echo " It deliberately does NOT delete the LCOV metadata, intermediate and final LCOV coverage" ;\
+	  echo " report folders - the ones named 0lcov_meta/, lcov_onerun_html/ and lcov_merged_html/ resp," ;\
+	  echo " as they're required to generate a merged or cumulative code coverage report." ;\
+	  echo "So: to start code coverage analysis from scratch, you can either:" ;\
+	  echo "- Invoke the special 'make clean_lcov' (it manually delete these 3 folders)" ;\
+	  echo "  OR" ;\
+	  echo "- Change the invocation of the lcov_gen.sh script in the Makefile, passing the -r option" ;\
+	  echo "-----------------------------------------------------------------------------------" ;\
+	fi
 
 clean_lcov:
 	@echo
