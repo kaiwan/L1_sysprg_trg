@@ -52,7 +52,6 @@ CMDLINE_ARGS=""
 ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_dbg_lsan ${FNAME_C}_gcov ${FNAME_C}_dbg_msan ${FNAME_C}_dbg_tsan
 
 # Decide which compiler to use; GCC doesn't support MSAN, clang does
-CC := gcc
 CC := ${CROSS_COMPILE}gcc
 LINKIN := -static-libasan   # use this lib for ASAN with GCC
 ifeq (, $(shell which clang))
@@ -164,11 +163,9 @@ debug: ${FNAME_C}.c
 	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK} ${LINKIN}
 	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK} ${LINKIN}
 # GCC doesn't support MSAN, clang does
-ifeq (gcc, $(CC))
-	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' or equivalent ===)
-else
-	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LINK}
-endif
+	@echo
+	@echo "=== ALERT/FYI: GCC doesn't support MSAN, clang does ==="
+	@echo
 	${CC} ${CFLAGS_DBG_LSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_lsan ${LINK} ${LINKIN}
 # ThreadSanitizer (TSan):
 # For clang ver < 18.1.0 (Mar '24), need to set vm.mmap_rnd_bits sysctl to 28 (default is 32)
