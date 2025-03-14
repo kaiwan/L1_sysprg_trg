@@ -53,13 +53,15 @@ ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNA
 
 # Decide which compiler to use; GCC doesn't support MSAN, clang does
 CC := gcc
+CC := ${CROSS_COMPILE}gcc
+LINKIN := -static-libasan   # use this lib for ASAN with GCC
 ifeq (, $(shell which clang))
   $(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' or equivalent ===)
 else
   CC := clang
   LINKIN := -static-libsan
 endif
-$(info Compiler set to $(CC))
+$(info Compiler set to $(CC); LINKIN = $(LINKIN))
 
 STRIP=${CROSS_COMPILE}strip
 OBJCOPY=${CROSS_COMPILE}objcopy
