@@ -14,6 +14,8 @@
 #include <errno.h>
 #include <limits.h>
 
+#define SIGTOUSE SIGRTMIN+3
+
 int main(int argc, char **argv)
 {
 	union sigval sv;
@@ -56,7 +58,7 @@ int main(int argc, char **argv)
 	 * some data along with it... 
 	 * int sigqueue(pid_t pid, int sig, const union sigval value);
 	 */
-	if (sigqueue(atol(argv[1]), SIGRTMIN + 3, sv) == -1) {
+	if (sigqueue(atol(argv[1]), SIGTOUSE, sv) == -1) {
 		//if (sigqueue(atol(argv[1]), SIGINT, sv) == -1) {
 		perror("sigqueue failed");
 		exit(1);

@@ -13,6 +13,7 @@
 #include <sys/types.h>
 
 /*---------------- Macros -------------------------------------------*/
+#define SIGTOUSE SIGRTMIN+3
 
 /*---------------- Typedef's, constants, etc ------------------------*/
 
@@ -34,7 +35,7 @@ int main(int argc, char **argv)
 	sigemptyset(&act.sa_mask);	// while handling the signal, allow all
 	//sigfillset(&act.sa_mask);     // while handling the signal, disallow all
 	act.sa_flags = SA_RESTART | SA_SIGINFO;
-	if (sigaction(SIGRTMIN + 3, &act, 0) == -1) {
+	if (sigaction(SIGTOUSE, &act, 0) == -1) {
 		//if (sigaction(SIGINT, &act, 0) == -1) {
 		perror("sigaction failure");
 		exit(1);
