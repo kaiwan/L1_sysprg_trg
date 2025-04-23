@@ -8,6 +8,12 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+/*
+ * Here, we're simply displaying all the macro ret values. The right way though,
+ * is to only display some of them when a certain condition's met. 
+ * F.e. reg the WTERMSIG(): only call it if WIFSIGNALED() returns True.
+ * See the man page on wait(2) for the details.
+ */
 static void displayChildStatus(int stat, pid_t cpid)
 {
 	printf("\nChild %d just died!\n"
