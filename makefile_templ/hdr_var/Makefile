@@ -14,9 +14,9 @@ dep = $(obj:.o=.d)  # one dependency file for each source
 all: myapp
 CC=${CROSS_COMPILE}gcc
 CFLAGS = -Os -Wall -MMD
-CFLAGS_DBG=-g -ggdb -gdwarf -O0 -Wall -Wextra -MMD
+CFLAGS_DBG=-g -ggdb -gdwarf -Og -Wall -Wextra -MMD
   # -MMD: option to generate a .d file during compilation
-LDFLAGS = #-lm -lz -lGL -lglut -lpng
+LDFLAGS = #-lm -lrt -lz -lGL -lglut -lpng
 
 myapp: $(obj)
 	@echo "obj = $(obj), @ = $@, ^ = $^"
