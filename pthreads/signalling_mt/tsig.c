@@ -24,7 +24,7 @@
  */
 //#define _POSIX_C_SOURCE    200112L    /* or earlier: 199506L */
 // causes issue w/ SA_RESTART etc ! Don't use it! Use this:
-//#define _POSIX_C_SOURCE    200809L
+#define _POSIX_C_SOURCE    200809L
 // ref: https://stackoverflow.com/questions/9828733/sa-restart-not-defined-under-linux-compiles-fine-in-solaris
 
 #define _GNU_SOURCE

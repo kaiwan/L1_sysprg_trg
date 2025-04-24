@@ -2,7 +2,7 @@
  *
  * Create an addn thread just to demo thread dbg w/ gdb...
  */
-#define _POSIX_C_SOURCE    200112L            /* or earlier: 199506L */
+#define _POSIX_C_SOURCE    200809L            /* or earlier: 199506L */
 
 #include <pthread.h>
 #include <stdio.h>

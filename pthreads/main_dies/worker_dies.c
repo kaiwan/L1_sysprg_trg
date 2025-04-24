@@ -2,7 +2,7 @@
    Modified to have a worker thread die before the other threads..
    (-kaiwan).
 */
-#define _POSIX_C_SOURCE    200112L	/* or earlier: 199506L */
+#define _POSIX_C_SOURCE    200809L	/* or earlier: 199506L */
 
 #include <pthread.h>
 #include <stdio.h>
