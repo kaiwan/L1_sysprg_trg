@@ -1,8 +1,10 @@
 /*
-==============================================================================
-fork_test.c
-C Code for fork() creation test
-==============================================================================
+ * ==============================================================================
+ * fork_test.c
+ * C Code for fork() creation test
+ * Hey, the overhead's not as bad as it first appears, as the child process
+ * isn't alive for any significant amount of time...
+ * ==============================================================================
 */
 #include <stdio.h>
 #include <stdlib.h>

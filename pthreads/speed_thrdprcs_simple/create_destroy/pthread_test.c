@@ -1,8 +1,10 @@
 /*
-==============================================================================
-pthread_test.c
-C Code for pthread_create() test
-==============================================================================
+* ==============================================================================
+* pthread_test.c
+* C Code for pthread_create() test
+* Hey, the overhead's not as bad as it first appears, as the worker thread
+* isn't alive for any significant amount of time...
+* ==============================================================================
 */
 #define _POSIX_C_SOURCE    200809L	/* or earlier: 199506L */
 
