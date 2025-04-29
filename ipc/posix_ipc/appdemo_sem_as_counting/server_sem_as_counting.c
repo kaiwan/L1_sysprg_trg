@@ -13,8 +13,8 @@
  * for 3s - and then the server 'unlocks' by incrementing the sem.
  *
  * The key point: the server maintains a semaphore 'count' - a value it initializes
- * the sem to... (this is passed as a param). Once this may clients 'connect', the
- * next one has to wait until existing clients finish... this behaviour is implemented
+ * the sem to... (this is passed as a param). Once this many clients 'connect', the
+ * next one *has to wait* until existing clients finish... this behaviour is implemented
  * via the counting semaphore!
  *
  * Kaiwan NB

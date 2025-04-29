@@ -8,13 +8,13 @@
  * a POSIX 'client request' MQ (or 'mailbox')...
  *
  * Client: [this program]
- * Initilaized and sends a message into the 'client request' MQ (or 'mailbox')..
+ * Initialized and sends a message into the 'client request' MQ (or 'mailbox')..
  * This of course unblocks the server which then performs the 'work' - we just sleep
  * for 3s - and then the server 'unlocks' by incrementing the sem.
  *
  * The key point: the server maintains a semaphore 'count' - a value it initializes
- * the sem to... (this is passed as a param). Once this may clients 'connect', the
- * next one has to wait until existing clients finish... this behaviour is implemented
+ * the sem to... (this is passed as a param). Once this many clients 'connect', the
+ * next one *has to wait* until existing clients finish... this behaviour is implemented
  * via the counting semaphore!
  *
  * Kaiwan NB
@@ -28,7 +28,7 @@ static void sem_setup(void)
 	/* open the semaphore */
 	sem = sem_open(SEM_NAME, 0);
 	if (sem == SEM_FAILED) {
-		fprintf(stderr, "sem_open() failed\n");
+		perror("sem_open() failed");
 		exit(1);
 	}
 }
