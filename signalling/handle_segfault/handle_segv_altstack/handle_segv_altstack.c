@@ -50,62 +50,64 @@ static void myfault(int signum, siginfo_t *si, void *ucontext)
 		"%s():\n------------------- FATAL signal ---------------------------\n",
 		__func__);
 	fprintf(stderr, " %s: received signal %d. errno=%d\n"
-	       " Cause/Origin: (si_code=%d): ",
-	       __func__, signum, si->si_errno, si->si_code);
+		" Cause/Origin: (si_code=%d): ",
+		__func__, signum, si->si_errno, si->si_code);
 
 	switch (si->si_code) {
-	/* Possible values si_code can have for SIGSEGV */
+		/* Possible values si_code can have for SIGSEGV */
 	case SEGV_MAPERR:
 		fprintf(stderr, "SEGV_MAPERR: address not mapped to object\n");
 		break;
 	case SEGV_ACCERR:
-		fprintf(stderr, "SEGV_ACCERR: invalid permissions for mapped object\n");
+		fprintf(stderr,
+			"SEGV_ACCERR: invalid permissions for mapped object\n");
 		break;
 #if 1
-	/* SEGV_BNDERR and SEGV_PKUERR result in compile failure? 
-	 * Update: seems to work now...
-	 */
-	case SEGV_BNDERR: /* 3.19 onward */
-		fprintf(stderr,"SEGV_BNDERR: failed address bound checks\n");
+		/* SEGV_BNDERR and SEGV_PKUERR result in compile failure? 
+		 * Update: seems to work now...
+		 */
+	case SEGV_BNDERR:	/* 3.19 onward */
+		fprintf(stderr, "SEGV_BNDERR: failed address bound checks\n");
 		break;
-	case SEGV_PKUERR: /* 4.6 onward */
-		fprintf(stderr,"SEGV_PKUERR: access denied by memory-protection keys\n");
+	case SEGV_PKUERR:	/* 4.6 onward */
+		fprintf(stderr,
+			"SEGV_PKUERR: access denied by memory-protection keys\n");
 		break;
 #endif
-	/* Other possibilities for si_code; here just to show them... */
+		/* Other possibilities for si_code; here just to show them... */
 	case SI_USER:
-		fprintf(stderr,"user\n");
+		fprintf(stderr, "user\n");
 		break;
 	case SI_KERNEL:
-		fprintf(stderr,"kernel\n");
+		fprintf(stderr, "kernel\n");
 		break;
 	case SI_QUEUE:
-		fprintf(stderr,"queue\n");
+		fprintf(stderr, "queue\n");
 		break;
 	case SI_TIMER:
-		fprintf(stderr,"timer\n");
+		fprintf(stderr, "timer\n");
 		break;
 	case SI_MESGQ:
-		fprintf(stderr,"mesgq\n");
+		fprintf(stderr, "mesgq\n");
 		break;
 	case SI_ASYNCIO:
-		fprintf(stderr,"async io\n");
+		fprintf(stderr, "async io\n");
 		break;
 	case SI_SIGIO:
-		fprintf(stderr,"sigio\n");
+		fprintf(stderr, "sigio\n");
 		break;
 	case SI_TKILL:
-		fprintf(stderr,"t[g]kill\n");
+		fprintf(stderr, "t[g]kill\n");
 		break;
 	default:
-		fprintf(stderr,"-none-\n");
+		fprintf(stderr, "-none-\n");
 	}
 
-	fprintf(stderr," Faulting instr or address = 0x" ADDR_FMT "\n",
-			(ADDR_TYPE) si->si_addr);
+	fprintf(stderr, " Faulting instr or address = 0x" ADDR_FMT "\n",
+		(ADDR_TYPE) si->si_addr);
 	fprintf(stderr,
 		"------------------------------------------------------------\n");
-    
+
 	// A nice shortcut- using the psiginfo() summarizes all this info!
 	psiginfo(si, "psiginfo helper");
 	fprintf(stderr,
@@ -139,14 +141,14 @@ int setup_altsigstack(size_t stack_sz)
 
 	printf("Alt signal stack size = %zu bytes\n", stack_sz);
 	ss.ss_sp = malloc(stack_sz);
-	if (!ss.ss_sp){
+	if (!ss.ss_sp) {
 		printf("malloc(%zu) for alt sig stack failed\n", stack_sz);
 		return -ENOMEM;
 	}
 
 	ss.ss_size = stack_sz;
 	ss.ss_flags = 0;
-	if (sigaltstack(&ss, NULL) == -1){
+	if (sigaltstack(&ss, NULL) == -1) {
 		printf("sigaltstack for size %zu failed!\n", stack_sz);
 		return -errno;
 	}
@@ -182,8 +184,9 @@ int main(int argc, char **argv)
 	 * must now run. But where? It cannot on the old stack - it's now corrupt!
 	 * Hence, the need for an alternate signal stack !
 	 */
-	if (setup_altsigstack(10*1024*1024) < 0) {
-		fprintf(stderr, "%s: setting up alt sig stack failed\n", argv[0]);
+	if (setup_altsigstack(10 * 1024 * 1024) < 0) {
+		fprintf(stderr, "%s: setting up alt sig stack failed\n",
+			argv[0]);
 		exit(1);
 	}
 
@@ -191,7 +194,7 @@ int main(int argc, char **argv)
 	//act.sa_handler = myfault;
 	act.sa_sigaction = myfault;
 	act.sa_flags = SA_RESTART | SA_SIGINFO | SA_ONSTACK;
-	sigfillset(&act.sa_mask); // block all signals while handling this one
+	sigfillset(&act.sa_mask);	// block all signals while handling this one
 
 	if (sigaction(SIGSEGV, &act, 0) == -1) {
 		perror("sigaction");
