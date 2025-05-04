@@ -9,11 +9,12 @@ int main()
 
 	fp = popen("date", "r");
 	if (!fp) {
-		perror("popen"); exit (1);
+		perror("popen");
+		exit(1);
 	}
-	fgets(buf,80,fp);
+	fgets(buf, 80, fp);
 	pclose(fp);
-	printf("%s",buf);
+	printf("%s", buf);
 
 	exit(0);
 }

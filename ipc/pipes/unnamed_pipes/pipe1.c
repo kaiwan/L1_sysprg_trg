@@ -13,47 +13,51 @@
 
 int main(int argc, char **argv)
 {
-	int pid;		/* Value returned by fork() call	*/
-	int n;			/* Return value from read() call	*/
-	int fd[2];		/* Pipe file descriptor array		*/
-	char line[MAX], buffer[MAX];	/* buffers for user input	*/
-						
+	int pid;		/* Value returned by fork() call        */
+	int n;			/* Return value from read() call        */
+	int fd[2];		/* Pipe file descriptor array           */
+	char line[MAX], buffer[MAX];	/* buffers for user input       */
+
 	fprintf(stderr, "Now creating pipe..\n");
-	if( pipe( fd ) !=0 ) {
+	if (pipe(fd) != 0) {
 		perror(argv[0]);
-		exit (1);
+		exit(1);
 	}
 
-	switch(pid=fork()) {
-		case -1: perror(argv[0]);
-			 exit (1);
+	switch (pid = fork()) {
+	case -1:
+		perror(argv[0]);
+		exit(1);
 
-		case 0 :	// Child process : i'll be the reader
-	   		 close(fd[1]);			/* Close write end of pipe  */
-   	  		 n = read( fd[0], buffer, MAX);
-			 if( n==-1 ) {
-				perror("child read"); close(fd[0]); exit(1);
-			 }
-   	  		 buffer[n] = '\0';
+	case 0:		// Child process : i'll be the reader
+		close(fd[1]);	/* Close write end of pipe  */
+		n = read(fd[0], buffer, MAX);
+		if (n == -1) {
+			perror("child read");
+			close(fd[0]);
+			exit(1);
+		}
+		buffer[n] = '\0';
 
-   	  		 printf("Child: your line was: \"%s\"\n", buffer);
-   	  		 close(fd[0]);			/* Close read end of pipe  */
-   	  		 exit( 0 );
+		printf("Child: your line was: \"%s\"\n", buffer);
+		close(fd[0]);	/* Close read end of pipe  */
+		exit(0);
 
-		default: 	// Parent process : i'll be the writer
-	   		close(fd[0]);			/* Close read side of pipe */
- 		  	printf( "Enter line: " );	/* Accept line of input	*/	
-   	  		fgets(line,MAX,stdin);						
+	default:		// Parent process : i'll be the writer
+		close(fd[0]);	/* Close read side of pipe */
+		printf("Enter line: ");	/* Accept line of input */
+		fgets(line, MAX, stdin);
 
-  			printf( "Parent: Writing your line to child with pipe...\n" );
-			/* TODO: must check that all bytes are actually written ! */
-  	  		n=write( fd[1], line, strlen(line) ); /* Write line to pipe */
-			if( n==-1 ) {
-				perror("parent write"); close(fd[1]); exit(1);
-			}
-  		 	close(fd[1]);			/* Close write side of pipe  */
-   	  		wait(0);		 	/* Wait for child to exit    */
-   	}
-	exit (0);	/* just to avoid compiler warning */
-} /* main - pipe1.c */
-
+		printf("Parent: Writing your line to child with pipe...\n");
+		/* TODO: must check that all bytes are actually written ! */
+		n = write(fd[1], line, strlen(line));	/* Write line to pipe */
+		if (n == -1) {
+			perror("parent write");
+			close(fd[1]);
+			exit(1);
+		}
+		close(fd[1]);	/* Close write side of pipe  */
+		wait(0);	/* Wait for child to exit    */
+	}
+	exit(0);		/* just to avoid compiler warning */
+}				/* main - pipe1.c */
