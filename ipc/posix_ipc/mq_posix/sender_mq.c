@@ -48,7 +48,7 @@ https://w3.cs.jmu.edu/kirkpams/OpenCSF/Books/csf/html/MQueues.html
 
 #define fatal_error(msg) \
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
-#define MQNAME "/myposixmq"
+#define MQNAME "/myposixmq" // actually under /dev/mqueue/myposixmq
 
 int main(int argc, char **argv)
 {
