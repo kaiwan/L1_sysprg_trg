@@ -3,7 +3,6 @@
 * Simple demo client program for UNIX domain C/S;
 * server program is unix_svr.c
 */
-
 #include "unet.h"
 
 int main(int argc, char **argv)
@@ -19,21 +18,28 @@ int main(int argc, char **argv)
 	}
 
 	// Create UNIX domain socket
-	if ((sd = socket(PF_UNIX, SOCK_STREAM, 0)) == -1)
+	if ((sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
 		perror("socket error"), exit(1);
 
 	// connect to the server
-	cli_addr.sun_family = PF_UNIX;
+	cli_addr.sun_family = AF_UNIX;
 	strncpy(cli_addr.sun_path, SOCKET_NAME, sizeof(cli_addr.sun_path) - 1);
+	// int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 	if (connect(sd, (struct sockaddr *)&cli_addr, sizeof(cli_addr)) == -1)
 		perror("socket connect error"), exit(1);
 
-	// read from socket
+	/* This isn't typical; usually, the client writes a request to the server,
+	 * the server processes it & replies; the client reads the reply... exits;
+	 * here, we simply read from the socket, knowing that the server writes!
+	 */
 	if ((n = read(sd, buf, sizeof(buf))) == -1)
 		perror("socket read error"), exit(1);
 	buf[n] = '\0';
 
-	printf("Client: read \"%s\"\n", buf);
-	close(sd);
+	printf("Client: received msg from server:\n\"%s\"\n", buf);
+	//close(sd);
+	if (shutdown(sd, SHUT_RDWR) < 0) {
+		perror("shutdown"); exit(1);
+	}
 	exit(0);
-}				// main()
+}
