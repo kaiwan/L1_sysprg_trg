@@ -3,16 +3,15 @@
 
 ALL := unix_svr unix_cli
 
-CC=gcc
-CFLAGS_DBG=-D_REENTRANT -g -ggdb -O0 -Wall
-CFLAGS=-D_REENTRANT -Wall
+CC=${CROSS_COMPILE}gcc
+CFLAGS_DBG=-g -ggdb -Og -Wall -Wextra
+CFLAGS=-O2 -Wall
 
 all: ${ALL}
 CB_FILES := *.[ch]
 
 unix_svr: unix_svr.c unet.h
 	${CC} ${CFLAGS} unix_svr.c -o unix_svr
-
 unix_cli: unix_cli.c unet.h
 	${CC} ${CFLAGS} unix_cli.c -o unix_cli
 
@@ -25,4 +24,3 @@ cb: ${CB_FILES}
 clean:
 	rm -f ${ALL}
 	sudo rm -f /run/sockname.sk
-

@@ -1,7 +1,6 @@
 /* unet.h
  * Common header file
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
