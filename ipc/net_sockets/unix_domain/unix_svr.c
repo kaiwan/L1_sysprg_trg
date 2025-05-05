@@ -12,7 +12,7 @@ static void sig_child(int signum)
 	int status;
 	while (wait3(&status, WNOHANG, 0) > 0) ;
 #else
-	printf("%s(): using SA_NOCLDWAIT...\n", __func__);
+	printf("%s(): using SA_NOCLDWAIT, so no zombie, no problem!\n", __func__);
 #endif
 }
 
@@ -27,7 +27,6 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "%s: requires root (to create sock file under /run).\n", argv[0]);
 		exit (1);
 	}
-
 	unlink(SOCKET_NAME);
 
 	if ((sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
@@ -36,12 +35,11 @@ int main(int argc, char *argv[])
 	// Initialize server's address & bind it
 	svr_addr.sun_family = AF_UNIX;
 	strncpy(svr_addr.sun_path, SOCKET_NAME, sizeof(svr_addr.sun_path) - 1);
-	if (bind(sd, (struct sockaddr *)&svr_addr, sizeof(struct sockaddr_un))
-	    == -1)
+	if (bind(sd, (struct sockaddr *)&svr_addr, sizeof(struct sockaddr_un)) == -1)
 		perror("socket bind error"), exit(1);
 
 	// listen for connections
-	if (listen(sd, 1) == -1)
+	if (listen(sd, 5) == -1)
 		perror("socket listen error"), exit(1);
 
 	act.sa_handler = sig_child;
@@ -53,8 +51,15 @@ int main(int argc, char *argv[])
 	if (sigaction(SIGCHLD, &act, 0) == -1)
 		perror("signal handling error"), exit(1);
 
-	for (;;) {
+	while (1) {
+		char msg[] = "hello, unix domain socket world";
+
 		fromlen = sizeof(struct sockaddr_un);
+		/* ns = new socket; the accept() returns a new socket that the svr is
+		 * connected to the client upon; the original socket - sd - still exists.
+		 * The parent server continues to listen for new clients on sd via accept(), whereas
+		 * the child server talks to the just-connected client on the ns socket!
+		 */
 		ns = accept(sd, (struct sockaddr *)&cli_addr, &fromlen);	// server blocks here..
 		if (ns == -1)
 			perror("socket accept error"), exit(1);
@@ -71,14 +76,16 @@ int main(int argc, char *argv[])
 
 		case 0:	// Child server
 			close(sd);
-			if (write(ns, "hello world", 11) == -1)
+			if (write(ns, msg, strlen(msg)) == -1)
 				perror("write error"), exit(1);
+			if (shutdown(ns, SHUT_RDWR) < 0) {
+				perror("shutdown"); exit(1);
+			}
 			exit(0);
-
 		default:	// Parent server
 			close(ns);
-		}		// switch
-	}			// for
+		}
+	}
 
 	return 0;
-}				// main()
+}
