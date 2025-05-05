@@ -4,11 +4,11 @@
  * Client/server architecture
  *
  * Server: [this program]
- * Initilializes and waits for the client to 'connect'; by sending a message into
- * a POSIX 'client request' MQ (or 'mailbox')...
+ * Initilializes and waits for the client to 'connect'; the client 'connects'
+ * by sending a message into a POSIX 'client request' MQ (or 'mailbox')...
  *
  * Client:
- * Initilaized and sends a message into the 'client request' MQ (or 'mailbox')..
+ * Initilaizes and sends a message into the 'client request' MQ (or 'mailbox')..
  * This of course unblocks the server which then performs the 'work' - we just sleep
  * for 3s - and then the server 'unlocks' by incrementing the sem.
  *
@@ -17,7 +17,7 @@
  * next one *has to wait* until existing clients finish... this behaviour is implemented
  * via the counting semaphore!
  *
- * Kaiwan NB
+ * (c) Kaiwan NB, kaianTECH
  * License: MIT
  */
 #include "sem_counting_common.h"
@@ -72,7 +72,8 @@ static void receive_client_msg(void)
 	/* ssize_t mq_receive(mqd_t mqdes, char msg_ptr[.msg_len],
                          size_t msg_len, unsigned int *msg_prio); 
 	   3rd param len must be attr.mq_msgsize (usually 8192)
-	   If MQ empty, it blocks by default, unless O_NONBLOCK enabled (in the mq_open() oflag param)
+	   If MQ empty, it blocks by default, unless O_NONBLOCK enabled
+	   (in the mq_open() oflag param)
 	 */
 	printf("server: awaiting msg from client...\n");
 	if ((nr = mq_receive(client_request_mq, buf, attr.mq_msgsize, &prio)) == -1) {
@@ -121,7 +122,7 @@ int main(int argc, char **argv)
 		// Deliberately emulate taking some time, for demo purposes...
 		printf(" server: performing 'work' for 3s... ");
 		fflush(stdout);
-		sleep(3); //(5);
+		sleep(3);
 		printf(" done! (will now 'unlock' by incrementing the sem...)\n\n");
 
 		if (sem_post(sem) == -1) // increments sem val
