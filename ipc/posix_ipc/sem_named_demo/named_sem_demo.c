@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
-#define SEM_NAME "/my_named_semaphore"
+#define SEM_NAME "/my_named_semaphore"  // actually here under /dev/shm
 
 void write_to_file(const char *msg)
 {
@@ -23,7 +23,13 @@ void write_to_file(const char *msg)
 
 int main(void)
 {
-	// Create a named semaphore and initialize it to 1 ('unlocked' state)
+	// start afresh
+	sem_unlink(SEM_NAME);
+	unlink("output.txt");
+	
+	/* Create a named semaphore and initialize it to 1
+	 * 1 => it's a binary sem or mutex usage and set to 'unlocked' state
+	 */
 	sem_t *sem = sem_open(SEM_NAME, O_CREAT | O_EXCL, 0644, 1);
 	if (sem == SEM_FAILED) {
 		perror("sem_open");
@@ -37,10 +43,22 @@ int main(void)
 		sem_unlink(SEM_NAME);
 		exit(1);
 	}
-	if (pid)
-		unlink("output.txt");
 
-	// BOTH parent & child run the code below in parallel
+	/* BOTH parent & child run the code below in parallel
+	 *
+	 * Diagrmatically:
+	 * Y-axis is the semaphore value
+	 *
+	 * P/C* calls sem_wait()
+
+	1 |________________                        ____ [...repeats...]
+	  |               |LOCK                    ^
+  	  |               | <...work...>           |
+	0 |               v______________sem_post()|UNLOCK
+	  +--------------------------------------------------------------> t
+	 *
+	 * P/C : Parent or Child process
+	 */
 	for (int i = 0; i < 5; i++) {
 		sem_wait(sem);	/* LOCK: 
 		                 *  if sem value is +ve, decrement & proceed
