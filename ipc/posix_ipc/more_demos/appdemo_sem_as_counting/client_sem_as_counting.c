@@ -36,7 +36,8 @@ static void sem_setup(void)
 /* Send a request to the server by writing a msg into the 'client request' MQ */
 static void client_send_request(char *msg, int prio)
 {
-/*	mqd_t mymq = mq_open(MQNAME, O_RDWR|O_CREAT|O_EXCL, 0644, NULL);// 'attr' as NULL => use defaults
+/*	mqd_t mymq = mq_open(MQNAME, O_RDWR|O_CREAT|O_EXCL, 0644, NULL);
+                       // 'attr' as NULL => use defaults
 	if (mymq == -1) {
 		if (EEXIST == errno) {	// failed as the MQ already exists!
 		*/

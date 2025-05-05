@@ -1,7 +1,7 @@
 # Makefile
 CFLAGS = -Wall -Os
 CFLAGS_DBG = -Wall -Wextra -O0 -g
-OUT = server_sem_as_counting client_sem_as_counting
+OUT := server_sem_as_counting client_sem_as_counting
 
 all: ${OUT}
 
