@@ -14,18 +14,22 @@ name=$(basename $0)
 	echo "Usage: ${name} src-filename ONLY (do NOT put any extension)."
 	exit 1
 }
-[ ! -f Makefile ] && {
-	echo "${name}: Makefile not present? aborting..."
+[[ ! -f Makefile ]] && {
+	echo "${name}: current Makefile not present? aborting..."
+	exit 1
+}
+grep "^FNAME_C " Makefile || {
+	echo "${name}: no FNAME_C in Makefile?"
 	exit 1
 }
 fname_c=$1
 sed -i "s/^FNAME_C :=.*$/FNAME_C := ${fname_c}/" Makefile
-[ $? -ne 0 ] && {
-	echo "${name}: sed: find/replace failed(1)..."
+[[ $? -ne 0 ]] && {
+	echo "${name}: sed: find/replace failed: $?"
 	exit 1
 }
 grep -q "^FNAME_C := ${fname_c}" Makefile || {
-	echo "${name}: sed: find/replace failed(2)..."
+	echo "${name}: grep failed: $?"
 	exit 1
 }
 #make
