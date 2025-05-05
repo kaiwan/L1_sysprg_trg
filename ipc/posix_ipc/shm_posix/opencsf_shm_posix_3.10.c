@@ -14,7 +14,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define SHM_NAME "/opencsf_shm"
+#define SHM_NAME "/opencsf_shm"	// actually created here: /dev/shm/opencsf_shm
 
 struct udata {
 	size_t lat, longt, alt;
@@ -24,16 +24,15 @@ struct udata {
 
 int main(void)
 {
+	shm_unlink(SHM_NAME);
 /* Create unsized shared memory object;
    return value is a file descriptor */
-	int shmfd =
-	    shm_open(SHM_NAME, O_CREAT|O_EXCL|O_RDWR, 0600); //S_IRUSR|S_IWUSR);
+	int shmfd = shm_open(SHM_NAME, O_CREAT | O_EXCL | O_RDWR, 0600);	//S_IRUSR|S_IWUSR);
 	if (shmfd == -1) {
 		if (errno == EEXIST) {
 			shmfd = shm_open(SHM_NAME, 0, 0600);
 			if (shmfd == -1) {
-				perror("shm_open() failed");
-				exit(1);
+				perror("shm_open() failed"); exit(1);
 			}
 		}
 	}
@@ -44,15 +43,18 @@ int main(void)
 		shm_unlink(SHM_NAME);
 		exit(1);
 	}
-	//assert(ftruncate(shmfd, sizeof(struct udata)) != -1);
 
 /* Map the object into memory so file operations aren't needed */
 	struct udata *udata = mmap(NULL, sizeof(struct udata),
-				       PROT_READ | PROT_WRITE, MAP_SHARED,
-				       shmfd, 0);
-	assert(udata != MAP_FAILED);
+				   PROT_READ | PROT_WRITE, MAP_SHARED,
+				   shmfd, 0);
+	if (udata == MAP_FAILED) {
+		perror("mmap failed");
+		shm_unlink(SHM_NAME);
+		exit(1);
+	}
 	printf("Location data before mod: (%zu,%zu,%zu)\n",
-	udata->lat, udata->longt, udata->alt);
+	       udata->lat, udata->longt, udata->alt);
 
 /* Create a child process and write to the mapped/shared region */
 	pid_t child_pid = fork();
@@ -68,16 +70,14 @@ int main(void)
 	}
 
 	/* Make the parent wait until the child has exited */
-	wait(NULL);
+	wait(0);
 
 /* Read from the mapped/shared memory region */
 	printf("Location data after mod: (%zu,%zu,%zu)\n",
-	udata->lat, udata->longt, udata->alt);
+	       udata->lat, udata->longt, udata->alt);
 
 /* Unmap, close, and delete the shared memory object */
 	munmap(udata, sizeof(struct udata));
 	close(shmfd);
-#if 1
 	shm_unlink(SHM_NAME);
-#endif
 }
