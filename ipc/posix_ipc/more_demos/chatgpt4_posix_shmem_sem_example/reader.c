@@ -11,6 +11,10 @@
 int main()
 {
 	int shm_fd = shm_open(SHM_NAME, O_RDONLY, 0666);
+	if (shm_fd < 0) {
+		perror("shm_open() failed");
+		exit(1);
+	}
 	void *ptr = mmap(0, SHM_SIZE, PROT_READ, MAP_SHARED, shm_fd, 0);
 	if (!ptr) {
 		perror("mmap() failed");
@@ -28,7 +32,7 @@ int main()
 		}
 	}
 
-	if (sem_wait(sem) < 0) {	// Wait for writer
+	if (sem_wait(sem) < 0) {	// Writer has the lock initially, wait for writer
 		perror("sem_wait() failed");
 		return -errno;
 	}
