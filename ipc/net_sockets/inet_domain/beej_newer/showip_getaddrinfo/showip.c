@@ -22,9 +22,10 @@ int main(int argc, char *argv[])
 	/*
 	   From the man page on getaddrinfo(3):
 	   ...
-	   int getaddrinfo(const char *node, const char *service,
-	   const struct addrinfo *hints,
-	   struct addrinfo **res);
+		int getaddrinfo(const char *restrict node,
+                       const char *restrict service,
+                       const struct addrinfo *restrict hints,
+                       struct addrinfo **restrict res);
 	   ...
 	   Given node and service, which identify an Internet host and a service,
 	   getaddrinfo() returns one or more addrinfo structures, each of which
@@ -33,6 +34,7 @@ int main(int argc, char *argv[])
 	   by the getservbyname(3) and getservbyport(3) functions into a single interface,
 	   but unlike the latter functions, getaddrinfo() is reentrant and allows programs
 	   to eliminate IPv4-versus-IPv6 dependencies.
+	   << getaddrinfo() and friends are also MT-Safe >>
 	   ...
 	   The hints argument points to an addrinfo structure that specifies criteria for
 	   selecting the socket address structures returned in the list pointed  to by res.
@@ -59,7 +61,7 @@ int main(int argc, char *argv[])
 	   of the list in res.  The items in the linked list are linked by the ai_next field.
 	   ...
 	 */
-	printf("IP addresses for %s:\n\n", argv[1]);
+	printf("IP addresses for %s:%s\n\n", argv[1], argv[2]);
 
 	for (p = res; p != NULL; p = p->ai_next) {
 		void *addr;
