@@ -1,7 +1,7 @@
 /* 
 *  unix_svr.c
 *  Simple Unix-domain C/S demo program
-*  UNIX domain connection-oriented streams socket server; concurrent server
+*  UNIX domain connection-oriented streams socket server; multiprocess concurrent server
 */
 #include "unet.h"
 
@@ -12,7 +12,9 @@ static void sig_child(int signum)
 	int status;
 	while (wait3(&status, WNOHANG, 0) > 0) ;
 #else
-	printf("%s(): using SA_NOCLDWAIT, so no zombie, no problem!\n", __func__);
+	// don't call printf() here in production...
+	printf("%s(): signal %d: using SA_NOCLDWAIT, so no zombie, no problem!\n",
+		__func__, signum);
 #endif
 }
 
@@ -38,10 +40,11 @@ int main(int argc, char *argv[])
 	if (bind(sd, (struct sockaddr *)&svr_addr, sizeof(struct sockaddr_un)) == -1)
 		perror("socket bind error"), exit(1);
 
-	// listen for connections
+	// listen for connections; setup the queue length
 	if (listen(sd, 5) == -1)
 		perror("socket listen error"), exit(1);
 
+	// avoid zombies!
 	act.sa_handler = sig_child;
 	sigemptyset(&act.sa_mask);
 	/* using the SA_NOCLDWAIT flag makes it easy- zombies are prevented.
@@ -64,7 +67,7 @@ int main(int argc, char *argv[])
 		if (ns == -1)
 			perror("socket accept error"), exit(1);
 
-		/* This is a concurrent server. So when a client connects, fork; 
+		/* This is a multiprocess concurrent server. So when a client connects, fork; 
 		 * the child server processes the client, the parent goes back to waiting
 		 * on new incoming connections...
 		 */
@@ -73,9 +76,9 @@ int main(int argc, char *argv[])
 			perror("fork error");
 			fflush(stdout);
 			break;
-
 		case 0:	// Child server
 			close(sd);
+			// The client is connected to the server on this socket: ns !
 			if (write(ns, msg, strlen(msg)) == -1)
 				perror("write error"), exit(1);
 			if (shutdown(ns, SHUT_RDWR) < 0) {

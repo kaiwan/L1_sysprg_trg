@@ -10,8 +10,9 @@ int main(int argc, char **argv)
 	int sd;
 	ssize_t n;
 	char buf[80];
-	struct sockaddr_un cli_addr;
+	struct sockaddr_un svr_addr;
 
+	// TODO : avoid needing root to execute
 	if (geteuid() != 0 || getuid() != 0) {
 		fprintf(stderr, "%s: requires root (to create sock file under /run).\n", argv[0]);
 		exit (1);
@@ -22,10 +23,10 @@ int main(int argc, char **argv)
 		perror("socket error"), exit(1);
 
 	// connect to the server
-	cli_addr.sun_family = AF_UNIX;
-	strncpy(cli_addr.sun_path, SOCKET_NAME, sizeof(cli_addr.sun_path) - 1);
+	svr_addr.sun_family = AF_UNIX;
+	strncpy(svr_addr.sun_path, SOCKET_NAME, sizeof(svr_addr.sun_path) - 1);
 	// int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
-	if (connect(sd, (struct sockaddr *)&cli_addr, sizeof(cli_addr)) == -1)
+	if (connect(sd, (struct sockaddr *)&svr_addr, sizeof(svr_addr)) == -1)
 		perror("socket connect error"), exit(1);
 
 	/* This isn't typical; usually, the client writes a request to the server,
