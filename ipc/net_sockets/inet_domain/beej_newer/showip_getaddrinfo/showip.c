@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 		void *addr;
 		in_port_t port;
 		char *ipver;
-		char *proto;
+		char *proto = NULL;
 
 // get the pointer to the address itself,
 // different fields in IPv4 and IPv6:
