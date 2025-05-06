@@ -45,23 +45,22 @@ ALL :=  prod prod_2part
 FNAME_C := cpudtl_tstsvr
 #--- CHECK: manually add params as required
 # Populate any required cmdline arguments to the process here:
-CMDLINE_ARGS=""
+CMDLINE_ARGS="60001"
 
 
 # Can remove the 'msan' one if it doesn't build - requires clang
 ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_dbg_lsan ${FNAME_C}_gcov ${FNAME_C}_dbg_msan ${FNAME_C}_dbg_tsan
 
 # Decide which compiler to use; GCC doesn't support MSAN, clang does
-CC := gcc
+CC := ${CROSS_COMPILE}gcc
+LINKIN := -static-libasan   # use this lib for ASAN with GCC
 ifeq (, $(shell which clang))
   $(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' or equivalent ===)
 else
   CC := clang
   LINKIN := -static-libsan
 endif
-#CC := gcc
-#LINKIN := -static-libasan
-$(info Compiler set to $(CC))
+$(info Compiler set to $(CC); LINKIN = $(LINKIN))
 
 STRIP=${CROSS_COMPILE}strip
 OBJCOPY=${CROSS_COMPILE}objcopy
@@ -72,27 +71,18 @@ POSIX_STD=201112L
 STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE
 
 # Add this option switch to CFLAGS / CFLAGS_DBG if you want ltrace to work on Ubuntu!
+# (Although ltrace now works fine on recent versions of Ubuntu)
 LTRACE_ENABLE=-z lazy
 
 PROD_OPTLEVEL=2
-  # -O<N>; N can be 0-3 or s (optimize for speed & size);
-  #  in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
+  # -O<N>; N can be 0,1,2,3 or s (s: optimize for speed & size);
+  # NOTE: in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
 
-# TODO : verify..
-SECURITY_CFLAGS=-fstack-protector-strong -Wformat-security \
-	-O${PROD_OPTLEVEL} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL} \
-	-fPIE \
-	-fsanitize=bounds -fsanitize-undefined-trap-on-error
-
-#ifeq (gcc, $(CC))
-#  SECURITY_CFLAGS=${SECURITY_CFLAGS} -fstrict-flex-arrays
-#endif
-
-CFLAGS=-Wall -UDEBUG ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} ${SECURITY_CFLAGS}
+WARNING_FLAGS=-Wall -Wextra -Wconversion -Wsign-conversion -Wshadow
+CFLAGS=${WARNING_FLAGS} -UDEBUG -O${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-#CFLAGS_DBG=-g -ggdb -gdwarf-4 -Og -Wall -Wextra -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -Og -Wall -Wextra -Wpedantic -DDEBUG -fno-omit-frame-pointer ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} ${SECURITY_CFLAGS}
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -Og ${WARNING_FLAGS} -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}
 # Why -Og and not -O0?
 # man gcc
 # '... Optimize debugging experience.  -Og should be the optimization level of
@@ -140,7 +130,7 @@ prod: ${FNAME_C}.c
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
-	${STRIP} --strip-debug ./${FNAME_C}
+	${STRIP} --strip-all ./${FNAME_C}
 
 # The '2-part executable' solution : use strip and objcopy to generate a
 # binary executable that has the ability to retrieve debug symbolic information
@@ -174,11 +164,9 @@ debug: ${FNAME_C}.c
 	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK} ${LINKIN}
 	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK} ${LINKIN}
 # GCC doesn't support MSAN, clang does
-ifeq (gcc, $(CC))
-	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' or equivalent ===)
-else
-	${CC} ${CFLAGS_DBG_MSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_msan ${LINK}
-endif
+	@echo
+	@echo "=== ALERT/FYI: GCC doesn't support MSAN, clang does ==="
+	@echo
 	${CC} ${CFLAGS_DBG_LSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_lsan ${LINK} ${LINKIN}
 # ThreadSanitizer (TSan):
 # For clang ver < 18.1.0 (Mar '24), need to set vm.mmap_rnd_bits sysctl to 28 (default is 32)
@@ -381,13 +369,18 @@ clean:
 # rm some of the code coverage metadata
 	rm -rfv ${FNAME_C}_gcov *.[ch].gcov *.gcda *.gcno *.info
 
-	@echo "Note: Special case wrt the 'clean' target and the code coverage target (covg):"
-	@echo " It deliberately does NOT delete the LCOV metadata, intermediate and final LCOV coverage"
-	@echo " report folders - the ones named 0lcov_meta/, lcov_onerun_html/ and lcov_merged_html/ resp,"
-	@echo " as they're required to generate a merged / cumulative code coverage report."
-	@echo "To start code coverage analysis from scratch, you can either:"
-	@echo "- invoke the special 'make clean_lcov' (it manually delete these 3 folders), OR,"
-	@echo "- change the invocation of the lcov_gen.sh script in the Makefile, passing the -r option"
+	@if [ -d lcov_onerun_html ]; then \
+	  echo "------------------- NOTE: clean for lcov (covg target) ----------------------------" ;\
+	  echo "Special case wrt the 'clean' target and the code coverage target (covg):" ;\
+	  echo " It deliberately does NOT delete the LCOV metadata, intermediate and final LCOV coverage" ;\
+	  echo " report folders - the ones named 0lcov_meta/, lcov_onerun_html/ and lcov_merged_html/ resp," ;\
+	  echo " as they're required to generate a merged or cumulative code coverage report." ;\
+	  echo "So: to start code coverage analysis from scratch, you can either:" ;\
+	  echo "- Invoke the special 'make clean_lcov' (it manually delete these 3 folders)" ;\
+	  echo "  OR" ;\
+	  echo "- Change the invocation of the lcov_gen.sh script in the Makefile, passing the -r option" ;\
+	  echo "-----------------------------------------------------------------------------------" ;\
+	fi
 
 clean_lcov:
 	@echo
