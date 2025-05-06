@@ -102,7 +102,7 @@ static void sig_child(int signum)
 	int status;
 	int pid;
 #endif
-	QP;
+	printf("--signal %d--\n", signum);
 	return;
 #if 0				// not reqd on 2.6+ with SA_NOCLDWAIT flag..
 	while ((pid = wait3(&status, WNOHANG, 0)) > 0) {
@@ -139,7 +139,7 @@ static int process_client(int sd, char *prg)
 {
 #define LINESZ 128
 	char tmpbuf[LINESZ], *reply;
-	int total = 0;
+	size_t total = 0;
 	FILE *fp;
 
 	reply = (char *)malloc(MAXBUF);
@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
 	// Required to be in Network-Byte-Order
 	svr_addr.sin_family = AF_INET;
 	svr_addr.sin_addr.s_addr = INADDR_ANY;	// INADDR_ANY == "0.0.0.0" =>any available system IPaddr
-	svr_addr.sin_port = htons(port);
+	svr_addr.sin_port = htons((uint16_t)port);
 
 	if (bind(sd, (struct sockaddr *)&svr_addr, sizeof(svr_addr)) == -1)
 		ErrExit(argv[0], "socket bind error", 2);
