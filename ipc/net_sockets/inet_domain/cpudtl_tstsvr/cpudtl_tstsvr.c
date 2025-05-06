@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
 	// Initialize server's address & bind it
 	// Required to be in Network-Byte-Order
 	svr_addr.sin_family = AF_INET;
-	svr_addr.sin_addr.s_addr = INADDR_ANY;	// INADDR_ANY == "0.0.0.0" =>any available system IPaddr
+	svr_addr.sin_addr.s_addr = htonl(INADDR_ANY); // INADDR_ANY == "0.0.0.0" =>any available system IP addr
 	svr_addr.sin_port = htons((uint16_t)port);
 
 	if (bind(sd, (struct sockaddr *)&svr_addr, sizeof(svr_addr)) == -1)
