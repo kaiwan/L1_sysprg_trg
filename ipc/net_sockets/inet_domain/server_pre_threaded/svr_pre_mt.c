@@ -32,8 +32,8 @@
 #include <pthread.h>
 #include <errno.h>
 
-#define DEFAULT_SERVER_PORT         8000
-#define QLEN_MAX					10
+#define DEFAULT_SERVER_PORT      8000
+#define QLEN_MAX		   10
 #define METHOD_HANDLED              0
 
 static char prg_name[128];
@@ -322,12 +322,13 @@ void *enter_server_loop(void *targ)
 		long client_socket = accept(server_socket,
 					    (struct sockaddr *)&client_addr,
 					    &client_addr_len);
-		if (client_socket == -1)
+		if (client_socket == -1) {
+			pthread_mutex_unlock(&mlock);
 			fatal_error("accept()");
+		}
 #if 1
 		pthread_mutex_unlock(&mlock);
 #endif
-
 		handle_client(client_socket, thrdnum);
 	}
 }
@@ -358,7 +359,7 @@ int setup_listening_socket(int port)
 	int sock;
 	struct sockaddr_in srv_addr;
 
-	sock = socket(PF_INET, SOCK_STREAM, 0);
+	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == -1)
 		fatal_error("socket()");
 
