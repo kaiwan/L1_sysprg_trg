@@ -88,11 +88,7 @@ $
  * SERV_IP as local loopback addr. Else, use the IP address of the 
  * machine it's on.
  */
-//#define       SERV_IP         "192.168.43.228" //"127.0.0.1" 
-//#define SERV_PORT     6100
 #define MAXBUF		5120
-#define RE_MAXLEN	100+256+48+8+8+1024+4096+128
-
 #define	QLENGTH		5
 #define DBG_MUST_SLEEP  0
 #define	DEBUG_SLEEP	20
@@ -179,7 +175,7 @@ static int process_client(int sd, char *prg)
 #endif
 
 	/* !NOTE! SECURITY ALERT!
-	   Doing nonsense like an arbit 'popen' this can be deadly!!!
+	   Doing nonsense like an arbitrary 'popen' - this can be deadly!!!
 	   Esp in 'w' mode!
 	 */
 	fp = popen("lscpu", "r");
@@ -304,7 +300,6 @@ port # %d\n", argv[0], inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 			perror("fork error");
 			fflush(stdout);
 			break;
-
 		case 0:	// Child server
 			/* for debugging with gdb/ddd etc, keep it asleep
 			 * until user can have the debugger can attach to it..
@@ -330,9 +325,8 @@ port # %d\n", argv[0], inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 				fflush(stdout);
 			}
 			exit(0);
-
 		default:	// Parent server
 			close(newsd);
-		}		// switch
-	}			// while
-}				// main()
+		}	// switch
+	}	// while
+}	// main()

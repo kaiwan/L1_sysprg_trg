@@ -1,7 +1,7 @@
 #!/bin/bash
 # runsvr
-# This service has been registered on remote.io a/c with 
-# hostname proxy72.rt3.io and port # 30193  (60001 in little endian)
+# [[Testing only: This service has been registered on remote.io a/c with 
+# hostname proxy72.rt3.io and port # 30193  (60001 in little endian)]]
 svr=cpudtl_tstsvr
 port=60001
 pgrep ${svr} && {
@@ -15,7 +15,7 @@ grep -w ${port} /etc/services && {
 ./${svr} ${port} -v &
 
 #--- Client:
-# Now connect from the client to the server process like this:
+# Now connect from the client to the server process via netcat (nc) like this:
 # 1. On the local network (LAN):
 #  nc <any-ipaddr-on-client> <port#-of-server>
 # f.e.
