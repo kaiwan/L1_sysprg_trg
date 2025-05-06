@@ -53,15 +53,13 @@ ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNA
 
 # Decide which compiler to use; GCC doesn't support MSAN, clang does
 CC := ${CROSS_COMPILE}gcc
-LINKIN := -static-libasan  # use this for GCC
+LINKIN := -static-libasan   # use this lib for ASAN with GCC
 ifeq (, $(shell which clang))
   $(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' or equivalent ===)
 else
   CC := clang
   LINKIN := -static-libsan
 endif
-CC := ${CROSS_COMPILE}gcc   # hard-coding to GCC here
-LINKIN := -static-libasan   # use this lib for ASAN with GCC
 $(info Compiler set to $(CC); LINKIN = $(LINKIN))
 
 STRIP=${CROSS_COMPILE}strip
@@ -73,11 +71,12 @@ POSIX_STD=201112L
 STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE
 
 # Add this option switch to CFLAGS / CFLAGS_DBG if you want ltrace to work on Ubuntu!
+# (Although ltrace now works fine on recent versions of Ubuntu)
 LTRACE_ENABLE=-z lazy
 
 PROD_OPTLEVEL=2
-  # -O<N>; N can be 0-3 or s (optimize for speed & size);
-  #  in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
+  # -O<N>; N can be 0,1,2,3 or s (s: optimize for speed & size);
+  # NOTE: in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
 
 WARNING_FLAGS=-Wall -Wextra -Wconversion -Wsign-conversion -Wshadow
 CFLAGS=${WARNING_FLAGS} -UDEBUG -O${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
@@ -131,7 +130,7 @@ prod: ${FNAME_C}.c
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
-	${STRIP} --strip-debug ./${FNAME_C}
+	${STRIP} --strip-all ./${FNAME_C}
 
 # The '2-part executable' solution : use strip and objcopy to generate a
 # binary executable that has the ability to retrieve debug symbolic information
