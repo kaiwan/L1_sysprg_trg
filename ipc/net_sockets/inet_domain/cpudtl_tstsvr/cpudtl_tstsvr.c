@@ -225,6 +225,11 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	port = atoi(argv[1]);
+	if (port < 32768) {
+		fprintf(stderr, "%s: port-num should be in the range specified here: /proc/sys/net/ipv4/ip_local_port_range\n",
+			argv[0]);
+		exit(1);
+	}
 
 	if ((argc == 3) && (strcmp(argv[2], "-v") == 0))
 		verbose = 1;
