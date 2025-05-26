@@ -63,6 +63,7 @@ endif
 $(info Compiler set to $(CC); LINKIN = $(LINKIN))
 
 STRIP=${CROSS_COMPILE}strip
+READELF=${CROSS_COMPILE}readelf
 OBJCOPY=${CROSS_COMPILE}objcopy
 
 CSTD=-ansi -std=c99 -std=c11 -std=c18  # the last one wins; else if unsupported, earlier ones...
@@ -147,6 +148,8 @@ prod_2part: ${FNAME_C}.c
 # Most IMP, setup the 'debug link' in the release binary, pointing to the debug
 # info file; this, in effect, is the 2part solution!
 	${OBJCOPY} --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
+# verify it's setup
+	${READELF} --debug-dump ./${FNAME_C} | grep -A2 "debuglink"
 
 # 'debug' target: -Og, debug symbolic info (-g -ggdb), not stripped.
 # Generates the regular debug build, debug+ASAN, debug+UB, debug+LSAN, debug+MSAN builds'
