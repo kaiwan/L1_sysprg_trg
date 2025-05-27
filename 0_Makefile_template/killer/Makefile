@@ -175,7 +175,8 @@ debug: ${FNAME_C}.c
 # ThreadSanitizer (TSan):
 # For clang ver < 18.1.0 (Mar '24), need to set vm.mmap_rnd_bits sysctl to 28 (default is 32)
 # else it bombs on execution (ref: https://stackoverflow.com/a/77856955/779269)
-	sudo sysctl vm.mmap_rnd_bits=28
+# (The leading hyphen ensures that make doesn't abort on error.)
+	-sudo sysctl vm.mmap_rnd_bits=28
 	${CC} ${CFLAGS_DBG_TSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_tsan ${LINK} ${LINKIN}
 
 
