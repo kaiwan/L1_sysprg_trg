@@ -207,7 +207,7 @@ else
 	@echo "--- applying Linux kernel code-style indentation with indent ---"
 	@echo -n "\e[0m"
 	mkdir bkp 2>/dev/null; cp -f ${SRC_FILES} bkp/
-	${INDENT} -linux ${SRC_FILES}
+	-${INDENT} -linux ${SRC_FILES}
 endif
 # RELOOK
 # !WARNING!
@@ -222,7 +222,7 @@ checkpatch:
 	@echo -n "\e[1m\e[41m"
 	@echo "--- applying Linux kernel code-style checking with checkpatch.pl ---"
 	@echo -n "\e[0m"
-	${CHECKPATCH} -f --no-tree --max-line-length=95 ${SRC_FILES}
+	-${CHECKPATCH} -f --no-tree --max-line-length=95 ${SRC_FILES}
 
 # sa : "wrapper" target over the following static analyzer targets
 sa:   # static analysis
@@ -239,7 +239,7 @@ else
 	@echo -n "\e[1m\e[41m"
 	@echo "--- static analysis with clang-tidy ---"
 	@echo -n "\e[0m"
-	CHECKS_ON="-*,clang-analyzer-*,bugprone-*,cert-*,concurrency-*,performance-*,portability-*,linuxkernel-*,readability-*,misc-*"; CHECKS_OFF="-clang-analyzer-cplusplus*,-misc-include-cleaner,-readability-identifier-length,-readability-braces-around-statements" ; ${CLANGTIDY} -header-filter=.* --use-color *.[ch] -checks=$$CHECKS_ON,$$CHECKS_OFF
+	-CHECKS_ON="-*,clang-analyzer-*,bugprone-*,cert-*,concurrency-*,performance-*,portability-*,linuxkernel-*,readability-*,misc-*"; CHECKS_OFF="-clang-analyzer-cplusplus*,-misc-include-cleaner,-readability-identifier-length,-readability-braces-around-statements" ; ${CLANGTIDY} -header-filter=.* --use-color *.[ch] -checks=$$CHECKS_ON,$$CHECKS_OFF
 endif
 
 # static analysis with flawfinder
@@ -251,7 +251,7 @@ else
 	@echo -n "\e[1m\e[41m"
 	@echo "--- static analysis with flawfinder ---"
 	@echo -n "\e[0m"
-	${FLAWFINDER} --neverignore --context *.[ch]
+	-${FLAWFINDER} --neverignore --context *.[ch]
 endif
 
 # static analysis with cppcheck
@@ -263,7 +263,7 @@ else
 	@echo -n "\e[1m\e[41m"
 	@echo "--- static analysis with cppcheck ---"
 	@echo -n "\e[0m"
-	${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
+	-${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
 endif
 
 # Dynamic Analysis
@@ -278,7 +278,7 @@ else
 	@echo -n "\e[0m"
 #--- CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	@if test -z "${CMDLINE_ARGS}"; then echo -n "\e[1m\e[31m" ; echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test via Valgrind ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; echo -n "\e[0m" ; fi
-	- ${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg ${CMDLINE_ARGS}
+	-${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg ${CMDLINE_ARGS}
 endif
 
 # dynamic analysis with the Sanitizer tooling
@@ -288,22 +288,22 @@ san:
 	@echo "--- dynamic analysis with the Address Sanitizer (ASAN) ---"
 	@echo -n "\e[0m"
 	@if test -z "${CMDLINE_ARGS}"; then echo -n "\e[1m\e[31m" ; echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${FNAME_C}_dbg_asan ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; echo -n "\e[0m" ; fi
-	- ./${FNAME_C}_dbg_asan ${CMDLINE_ARGS}
+	-./${FNAME_C}_dbg_asan ${CMDLINE_ARGS}
 
 	@echo -n "\e[1m\e[41m"
 	@echo "--- dynamic analysis with the Undefined Behavior Sanitizer (UBSAN) ---"
 	@echo -n "\e[0m"
-	- ./${FNAME_C}_dbg_ub ${CMDLINE_ARGS}
+	-./${FNAME_C}_dbg_ub ${CMDLINE_ARGS}
 
 	@echo -n "\e[1m\e[41m"
 	@echo "--- dynamic analysis with the Memory Sanitizer (MSAN) ---"
 	@echo -n "\e[0m"
-	- ./${FNAME_C}_dbg_msan ${CMDLINE_ARGS}
+	-./${FNAME_C}_dbg_msan ${CMDLINE_ARGS}
 
 	@echo -n "\e[1m\e[41m"
 	@echo "--- dynamic analysis with the Thread Sanitizer (TSAN) ---"
 	@echo -n "\e[0m"
-	- ./${FNAME_C}_dbg_tsan ${CMDLINE_ARGS}
+	-./${FNAME_C}_dbg_tsan ${CMDLINE_ARGS}
 
 # dynamic analysis run with LSan binary not done here (as ASan typically covers leakage)
 
@@ -345,7 +345,7 @@ endif
 	@echo -n "\e[1m\e[41m"
 	@echo "-------------- Running via our wrapper ${LCOV_SCRIPT} --------------"
 	@echo -n "\e[0m"
-	- ${LCOV_SCRIPT} ${FNAME_C}_gcov ${CMDLINE_ARGS}
+	-${LCOV_SCRIPT} ${FNAME_C}_gcov ${CMDLINE_ARGS}
 # lcov_gen.sh Notes:
 #  - If you want a cumulative / merged code coverage report, run your next coverage
 #    test case via this script. In effect, simply adjust the CMDLINE_ARGS variable here
