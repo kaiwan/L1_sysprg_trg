@@ -106,6 +106,7 @@ LINK=  #-pthread
 all: ${ALL}
 SRC_FILES := *.[ch]
 INDENT := indent
+CLANGTIDY := clang-tidy
 FLAWFINDER := flawfinder
 CPPCHECK := cppcheck
 VALGRIND := valgrind
@@ -216,8 +217,21 @@ checkpatch:
 
 # sa : "wrapper" target over the following static analyzer targets
 sa:   # static analysis
+	make --ignore-errors sa_clangtidy
 	make --ignore-errors sa_flawfinder
 	make --ignore-errors sa_cppcheck
+
+# static analysis with clang-tidy
+sa_clangtidy:
+ifeq (, $(shell which ${CLANGTIDY}))
+	$(warning === WARNING! ${CLANGTIDY} not installed; consider doing 'sudo apt install clang-tidy' or equivalent ===)
+else
+	make clean
+	@echo
+	@echo "--- static analysis with clang-tidy ---"
+	@echo
+	CHECKS_ON="-*,clang-analyzer-*,bugprone-*,cert-*,concurrency-*,performance-*,portability-*,linuxkernel-*,readability-*,misc-*"; CHECKS_OFF="-clang-analyzer-cplusplus*,-misc-include-cleaner,-readability-identifier-length,-readability-braces-around-statements" ; ${CLANGTIDY} -header-filter=.* --use-color *.[ch] -checks=$$CHECKS_ON,$$CHECKS_OFF
+endif
 
 # static analysis with flawfinder
 sa_flawfinder:
