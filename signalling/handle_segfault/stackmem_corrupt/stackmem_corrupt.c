@@ -157,16 +157,22 @@ static void write_underflow_corruptstack(void)
 	FILE *fp;
 	unsigned long stacksz_hex = 0;
 
+	/* Typically, with a downward-growing stack, the last local var is at
+	 * the lowest addr, thus the approx 'top' of the stack
+	 */
 	printf("%s(): approx stack top (~ curr sp) is %p\n",
-		__func__, (void *)&stack);
+		__func__, (void *)&stacksz_hex);
 	if (prlimit(0, RLIMIT_STACK, 0, &reslimit) < 0) {
 		perror("prlimit failed");
 		return;
 	}
-	printf("%s(): stack resource limits: soft=%ld, hard=%ld\n",
+	printf("%s(): stack resource limits: soft=%lu, hard=%lu\n",
 		__func__, reslimit.rlim_cur, reslimit.rlim_max);
 
-	// Get actual size of stack mapping for this process via /proc/PID/maps
+	/* Get actual size of stack mapping for this process via /proc/PID/maps
+	 * We have placed the bash script getmapsize - which does the job -
+	 * in the current dir..
+	 */
 	memset(cmd, 0, 128);
 	snprintf(cmd, 128, "./getmapsize %d stack", getpid());
 	fp = popen(cmd, "r");
@@ -193,7 +199,7 @@ static void write_underflow_corruptstack(void)
 
 #if 1
 	// OVERWRITE - and thus corrupt - stack memory !
-	memset((void *)(stackptr - stacksz_hex), 'x', stacksz);
+	memset((void *)(stackptr - stacksz_hex), 'x', stacksz); // 'x' is ASCII 0x78
 #endif
 	/*
 	 * The WORNG way :)
@@ -237,6 +243,9 @@ Program terminated with signal SIGSEGV, Segmentation fault.
 #1  0x000056174d8fcb4f in write_underflow_corruptstack () at stackmem_corrupt.c:196
 #2  0x000056174d8fccc9 in main (argc=1, argv=0x7ffca7376318) at stackmem_corrupt.c:278
 (gdb)
+
+	* CAVEAT: it seems to be able to show that it originated at main():write_underflow_corruptstack()
+	* only when the debug-info ver is run! (Even though we use the '2-part' technique...??)
 	*/
 }
 
