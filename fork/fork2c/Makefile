@@ -55,7 +55,9 @@ ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNA
 CC := ${CROSS_COMPILE}gcc
 LINKIN := -static-libasan   # use this lib for ASAN with GCC
 ifeq (, $(shell which clang))
+  @echo -n "\e[1m\e[41m"
   $(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' or equivalent ===)
+  @echo -n "\e[0m"
 else
   CC := clang
   LINKIN := -static-libsan
@@ -63,6 +65,7 @@ endif
 $(info Compiler set to $(CC); LINKIN = $(LINKIN))
 
 STRIP=${CROSS_COMPILE}strip
+READELF=${CROSS_COMPILE}readelf
 OBJCOPY=${CROSS_COMPILE}objcopy
 
 CSTD=-ansi -std=c99 -std=c11 -std=c18  # the last one wins; else if unsupported, earlier ones...
@@ -105,6 +108,7 @@ LINK=  #-pthread
 all: ${ALL}
 SRC_FILES := *.[ch]
 INDENT := indent
+CLANGTIDY := clang-tidy
 FLAWFINDER := flawfinder
 CPPCHECK := cppcheck
 VALGRIND := valgrind
@@ -126,8 +130,10 @@ LCOV_SCRIPT := lcov_gen.sh
 # 3. 'debug' target(s): -Og, debug symbolic info (-g -ggdb), not stripped
 prod: ${FNAME_C}.c
 	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- building 'production'-ready target (-O${PROD_OPTLEVEL}, no debug, stripped) ---"
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
+	@echo -n "\e[0m"
 	@echo
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
 	${STRIP} --strip-all ./${FNAME_C}
@@ -137,8 +143,10 @@ prod: ${FNAME_C}.c
 # from the 'debug' binary!
 prod_2part: ${FNAME_C}.c
 	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- building 'production'-ready 2-part target (-O${PROD_OPTLEVEL}, no debug, strip-debug) ---"
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
+	@echo -n "\e[0m"
 	@echo
 # We require the 'debug' build for the 2part, so do that first
 	make --ignore-errors debug
@@ -147,6 +155,8 @@ prod_2part: ${FNAME_C}.c
 # Most IMP, setup the 'debug link' in the release binary, pointing to the debug
 # info file; this, in effect, is the 2part solution!
 	${OBJCOPY} --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
+# verify it's setup
+	${READELF} --debug-dump ./${FNAME_C} | grep -A2 "debuglink"
 
 # 'debug' target: -Og, debug symbolic info (-g -ggdb), not stripped.
 # Generates the regular debug build, debug+ASAN, debug+UB, debug+LSAN, debug+MSAN builds'
@@ -156,22 +166,25 @@ prod_2part: ${FNAME_C}.c
 # (libasan, libubsan, liblsan) are required (pkg: lib<name>-<gcc ver>-...)
 debug: ${FNAME_C}.c
 	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
+	@echo -n "\e[0m"
 	@echo
 	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg ${LINK}
 #-- Sanitizers (use clang or GCC)
 	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK} ${LINKIN}
 	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK} ${LINKIN}
 # GCC doesn't support MSAN, clang does
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "=== ALERT/FYI: GCC doesn't support MSAN, clang does ==="
-	@echo
+	@echo -n "\e[0m"
 	${CC} ${CFLAGS_DBG_LSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_lsan ${LINK} ${LINKIN}
 # ThreadSanitizer (TSan):
 # For clang ver < 18.1.0 (Mar '24), need to set vm.mmap_rnd_bits sysctl to 28 (default is 32)
 # else it bombs on execution (ref: https://stackoverflow.com/a/77856955/779269)
-	sudo sysctl vm.mmap_rnd_bits=28
+# (The leading hyphen ensures that make doesn't abort on error.)
+	-sudo sysctl vm.mmap_rnd_bits=28
 	${CC} ${CFLAGS_DBG_TSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_tsan ${LINK} ${LINKIN}
 
 
@@ -190,11 +203,11 @@ ifeq (, $(shell which ${INDENT}))
 	$(warning === WARNING! ${INDENT} not installed; consider doing 'sudo apt install indent' or equivalent ===)
 else
 	make clean
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- applying Linux kernel code-style indentation with indent ---"
-	@echo
+	@echo -n "\e[0m"
 	mkdir bkp 2>/dev/null; cp -f ${SRC_FILES} bkp/
-	${INDENT} -linux ${SRC_FILES}
+	-${INDENT} -linux ${SRC_FILES}
 endif
 # RELOOK
 # !WARNING!
@@ -206,15 +219,28 @@ endif
 
 checkpatch:
 	make clean
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- applying Linux kernel code-style checking with checkpatch.pl ---"
-	@echo
-	${CHECKPATCH} -f --no-tree --max-line-length=95 ${SRC_FILES}
+	@echo -n "\e[0m"
+	-${CHECKPATCH} -f --no-tree --max-line-length=95 ${SRC_FILES}
 
 # sa : "wrapper" target over the following static analyzer targets
 sa:   # static analysis
+	make --ignore-errors sa_clangtidy
 	make --ignore-errors sa_flawfinder
 	make --ignore-errors sa_cppcheck
+
+# static analysis with clang-tidy
+sa_clangtidy:
+ifeq (, $(shell which ${CLANGTIDY}))
+	$(warning === WARNING! ${CLANGTIDY} not installed; consider doing 'sudo apt install clang-tidy' or equivalent ===)
+else
+	make clean
+	@echo -n "\e[1m\e[41m"
+	@echo "--- static analysis with clang-tidy ---"
+	@echo -n "\e[0m"
+	-CHECKS_ON="-*,clang-analyzer-*,bugprone-*,cert-*,concurrency-*,performance-*,portability-*,linuxkernel-*,readability-*,misc-*"; CHECKS_OFF="-clang-analyzer-cplusplus*,-misc-include-cleaner,-readability-identifier-length,-readability-braces-around-statements" ; ${CLANGTIDY} -header-filter=.* --use-color *.[ch] -checks=$$CHECKS_ON,$$CHECKS_OFF
+endif
 
 # static analysis with flawfinder
 sa_flawfinder:
@@ -222,10 +248,10 @@ ifeq (, $(shell which ${FLAWFINDER}))
 	$(warning === WARNING! ${FLAWFINDER} not installed; consider doing 'sudo apt install flawfinder' or equivalent ===)
 else
 	make clean
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- static analysis with flawfinder ---"
-	@echo
-	${FLAWFINDER} --neverignore --context *.[ch]
+	@echo -n "\e[0m"
+	-${FLAWFINDER} --neverignore --context *.[ch]
 endif
 
 # static analysis with cppcheck
@@ -234,10 +260,10 @@ ifeq (, $(shell which ${CPPCHECK}))
 	$(warning === WARNING! ${CPPCHECK} not installed; consider doing 'sudo apt install cppcheck' or equivalent ===)
 else
 	make clean
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- static analysis with cppcheck ---"
-	@echo
-	${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
+	@echo -n "\e[0m"
+	-${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
 endif
 
 # Dynamic Analysis
@@ -247,46 +273,46 @@ ifeq (, $(shell which ${VALGRIND}))
 	$(warning === WARNING! ${VALGRIND} not installed; consider doing 'sudo apt install valgrind' or equivalent ===)
 else
 	make --ignore-errors debug
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- dynamic analysis with Valgrind memcheck ---"
-	@echo
+	@echo -n "\e[0m"
 #--- CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
-	@if test -z "${CMDLINE_ARGS}"; then echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${FNAME_C}_gcov ? @@@\n"; fi
-	${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg ${CMDLINE_ARGS}
+	@if test -z "${CMDLINE_ARGS}"; then echo -n "\e[1m\e[31m" ; echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test via Valgrind ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; echo -n "\e[0m" ; fi
+	-${VALGRIND} --tool=memcheck --trace-children=yes ./${FNAME_C}_dbg ${CMDLINE_ARGS}
 endif
 
 # dynamic analysis with the Sanitizer tooling
 san:
 	make --ignore-errors debug
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- dynamic analysis with the Address Sanitizer (ASAN) ---"
-	@echo
-	@if test -z "${CMDLINE_ARGS}"; then echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${FNAME_C}_gcov ? @@@\n"; fi
-	./${FNAME_C}_dbg_asan ${CMDLINE_ARGS}
+	@echo -n "\e[0m"
+	@if test -z "${CMDLINE_ARGS}"; then echo -n "\e[1m\e[31m" ; echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${FNAME_C}_dbg_asan ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; echo -n "\e[0m" ; fi
+	-./${FNAME_C}_dbg_asan ${CMDLINE_ARGS}
 
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- dynamic analysis with the Undefined Behavior Sanitizer (UBSAN) ---"
-	@echo
-	./${FNAME_C}_dbg_ub ${CMDLINE_ARGS}
+	@echo -n "\e[0m"
+	-./${FNAME_C}_dbg_ub ${CMDLINE_ARGS}
 
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- dynamic analysis with the Memory Sanitizer (MSAN) ---"
-	@echo
-	./${FNAME_C}_dbg_msan ${CMDLINE_ARGS}
+	@echo -n "\e[0m"
+	-./${FNAME_C}_dbg_msan ${CMDLINE_ARGS}
 
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- dynamic analysis with the Thread Sanitizer (TSAN) ---"
-	@echo
-	./${FNAME_C}_dbg_tsan ${CMDLINE_ARGS}
+	@echo -n "\e[0m"
+	-./${FNAME_C}_dbg_tsan ${CMDLINE_ARGS}
 
 # dynamic analysis run with LSan binary not done here (as ASan typically covers leakage)
 
 #----- Testing: line coverage with gcov(1), lcov(1)
 # ref: https://backstreetcoder.com/code-coverage-using-gcov-lcov-in-linux/
 covg:
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "=== Code coverage (funcs/lines/branches) with gcov+lcov ==="
-	@echo
+	@echo -n "\e[0m"
 
 ifeq (,$(wildcard /etc/lcovrc))
 	$(error ERROR: install lcov first)
@@ -308,14 +334,18 @@ endif
 # ${FNAME_C}_covg and the .gcno ('notes') files as well
 	make clean
 	@echo "___"
+	@echo -n "\e[1m\e[41m"
 	@echo "> Forcing compiler to GCC for coverage, as gcov/lcov seem to require it"
+	@echo -n "\e[0m"
 	$(eval CC := gcc)
 # For coverage analysis, gcov/lcov seems to require compilation via GCC (not clang)
 	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov ${LINK}
-	@if test -z "${CMDLINE_ARGS}"; then echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${FNAME_C}_gcov ? @@@\n"; fi
+	@if test -z "${CMDLINE_ARGS}"; then echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${FNAME_C}_gcov ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; fi
 
+	@echo -n "\e[1m\e[41m"
 	@echo "-------------- Running via our wrapper ${LCOV_SCRIPT} --------------"
-	${LCOV_SCRIPT} ${FNAME_C}_gcov ${CMDLINE_ARGS}
+	@echo -n "\e[0m"
+	-${LCOV_SCRIPT} ${FNAME_C}_gcov ${CMDLINE_ARGS}
 # lcov_gen.sh Notes:
 #  - If you want a cumulative / merged code coverage report, run your next coverage
 #    test case via this script. In effect, simply adjust the CMDLINE_ARGS variable here
@@ -336,7 +366,9 @@ endif
 # when run with --ignore-errors).
 test:
 	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "=== Test All ==="
+	@echo -n "\e[0m"
 	@echo "-------------------------------------------------------------------------------"
 	make --ignore-errors code-style
 	@echo "-------------------------------------------------------------------------------"
@@ -350,9 +382,9 @@ test:
 
 # packaging
 package:
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- packaging ---"
-	@echo
+	@echo -n "\e[0m"
 	rm -f ../${PKG_NAME}.tar.xz
 	make clean
 	tar caf ../${PKG_NAME}.tar.xz *
@@ -362,9 +394,9 @@ package:
 	@echo ' do: tar -xvf ${PKG_NAME}.tar.xz --one-top-level'
 
 clean:
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- cleaning ---"
-	@echo
+	@echo -n "\e[0m"
 	rm -vf ${ALL_NM} core* vgcore* *.o *~
 # rm some of the code coverage metadata
 	rm -rfv ${FNAME_C}_gcov *.[ch].gcov *.gcda *.gcno *.info
@@ -383,14 +415,16 @@ clean:
 	fi
 
 clean_lcov:
-	@echo
+	@echo -n "\e[1m\e[41m"
 	@echo "--- cleaning LCOV metadata ---"
-	@echo
+	@echo -n "\e[0m"
 	# NOTE! depedency on the lcov_gen.sh script, on these folder names
 	rm -rvf 0lcov_meta/  lcov_merged_html/  lcov_onerun_html/
 
 help:
+	@echo -n "\e[1m\e[41m"
 	@echo '=== Makefile Help : additional targets available ==='
+	@echo -n "\e[0m"
 	@echo
 	@echo 'This Makefile is appropriate for single-sourcefile program builds'
 	@echo 'If your purpose is to build an app with multiple source files (across'
@@ -399,7 +433,9 @@ help:
 	@echo 'TIP: type make <tab><tab> to show all valid targets'
 	@echo
 
+	@echo -n "\e[1m\e[34m"
 	@echo 'Regular targets ::'
+	@echo -n "\e[0m"
 	@echo ' 1. 'prod'  : regular production target: -O${PROD_OPTLEVEL}, no debug symbolic info, stripped'
 	@echo ' 2. 'debug' : -Og, debug symbolic info (-g -ggdb), not stripped. Generates the regular debug build, debug+ASAN, debug+UB, debug+LSAN, debug+MSAN builds'
 	@echo ' 3. 'prod_2part': production target : -O${PROD_OPTLEVEL}, no debug symbolic info, strip-debug; \
@@ -409,24 +445,33 @@ help:
 	@echo 'Doing a 'make' will build all three shown above.'
 
 	@echo
+	@echo -n "\e[1m\e[34m"
 	@echo '--- code style targets ---'
+	@echo -n "\e[0m"
 	@echo 'code-style : "wrapper" target over the following kernel code style targets'
 	@echo ' indent     : run the $(INDENT) utility on source file(s) to indent them as per the kernel code style'
 	@echo ' checkpatch : run the kernel code style checker tool on source file(s)'
 
 	@echo
+	@echo -n "\e[1m\e[34m"
 	@echo '--- static analyzer targets ---'
+	@echo -n "\e[0m"
 	@echo 'sa          : "wrapper" target over the following static analyzer targets'
+	@echo ' sa_clangtidy  : run the static analysis clang-tidy tool on the source file(s)'
 	@echo ' sa_flawfinder : run the static analysis flawfinder tool on the source file(s)'
 	@echo ' sa_cppcheck   : run the static analysis cppcheck tool on the source file(s)'
 
 	@echo
+	@echo -n "\e[1m\e[34m"
 	@echo '--- dynamic analysis targets ---'
+	@echo -n "\e[0m"
 	@echo ' valgrind   : run the dynamic analysis tool ($(VALGRIND)) on the binary executable'
 	@echo ' san        : run dynamic analysis via ASAN, UBSAN, MSAN and TSAN tooling on the binary executable'
 
 	@echo
+	@echo -n "\e[1m\e[34m"
 	@echo '--- code coverage ---'
+	@echo -n "\e[0m"
 	@echo ' covg       : run the gcov+lcov code coverage tooling on the source (generates html output!). NOTE: this target requires our ${LCOV_SCRIPT} wrapper script installed (location: https://github.com/kaiwan/usefulsnips/blob/master/lcov_gen.sh)'
 	@echo " Note: Special case wrt the 'clean' target and the code coverage target (covg):"
 	@echo "  It deliberately does NOT delete the LCOV metadata, intermediate and final LCOV coverage"
@@ -437,13 +482,17 @@ help:
 	@echo " - change the invocation of the lcov_gen.sh script in the Makefile, passing the -r option"
 
 	@echo
+	@echo -n "\e[1m\e[34m"
 	@echo '--- TEST all ---'
+	@echo -n "\e[0m"
 	@echo ' test       : run all targets (it runs them in this order): code-style, sa, valgrind, san, covg'
 	@echo '              Tip: run "make -i test > out 2>&1" to save all output to a file "out".'
 	@echo '                             -i = --ignore-errors'
 
 	@echo
+	@echo -n "\e[1m\e[34m"
 	@echo '--- misc targets ---'
+	@echo -n "\e[0m"
 	@echo ' clean      : cleanup - remove all the binaries, core files, etc'
 	@echo '              See special note wrt code coverage'
 	@echo ' clean_lcov : cleanup the LCOV metadata folders; implies code coverage starts from scratch'
