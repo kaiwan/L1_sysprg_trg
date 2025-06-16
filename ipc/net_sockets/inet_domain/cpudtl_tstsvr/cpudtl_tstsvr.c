@@ -134,6 +134,45 @@ static int ErrExit(char *prg, char *err, int exitcode)
 	exit(exitcode);
 }				// ErrExit()
 
+//------------------- Better read/write, loops over the I/O------------
+ssize_t fd_read(int fd, void *dbuf, size_t n)
+{
+	ssize_t rd = 0;
+	ssize_t tr = 0;
+
+	do {
+		rd = read(fd, dbuf, n);
+		if (rd < 0)
+			return -1;
+		if (rd == 0)
+			break;
+		tr += rd;
+#ifdef DEBUG
+		printf(" requested=%9lu, actualrd=%9zu, totalrd=%9zu\n", n, rd,
+		       tr);
+#endif
+	} while ((size_t)tr < n);
+	return tr;
+}
+ssize_t fd_write(int fd, void *sbuf, size_t n)
+{
+	ssize_t wr = 0;
+	ssize_t tw = 0;
+
+	do {
+		wr = write(fd, sbuf, n);
+		if (wr < 0)
+			return -1;
+		tw += wr;
+#ifdef DEBUG
+		printf(" requested=%9zu, actualwr=%9zu, totalwr=%9lu\n", n, wr,
+		       tw);
+#endif
+	} while ((size_t)tw < n);
+	return tw;
+}
+//---------------------------------------------------------------------
+
 // Child server processes this function
 static int process_client(int sd, char *prg)
 {
@@ -200,7 +239,7 @@ static int process_client(int sd, char *prg)
 	}
 
 	// TODO : make the write() run in a loop guaranteeing that all data is transferred
-	if ((write(sd, reply, strlen(reply))) == -1) {
+	if ((fd_write(sd, reply, strlen(reply))) == -1) {
 		free(reply);
 		ErrExit(prg, "socket write error", 6);
 	}
