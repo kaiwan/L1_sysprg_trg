@@ -238,7 +238,7 @@ static int process_client(int sd, char *prg)
 		strncat(reply, tmpbuf, LINESZ);
 	}
 
-	// TODO : make the write() run in a loop guaranteeing that all data is transferred
+	// Make the write() run in a loop guaranteeing that all data is transferred
 	if ((fd_write(sd, reply, strlen(reply))) == -1) {
 		free(reply);
 		ErrExit(prg, "socket write error", 6);
