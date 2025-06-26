@@ -17,7 +17,7 @@ void *do_nothing(void *null)
 {
 	int i;
 	i = 0;
-//	pause();
+//      pause();
 	pthread_exit(NULL);
 }
 

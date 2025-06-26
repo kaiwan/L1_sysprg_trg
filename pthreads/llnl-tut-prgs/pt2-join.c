@@ -37,7 +37,9 @@ int main()
 		printf("Creating thread %ld\n", t);
 		rc = pthread_create(&work_thrd[t], &attr, BusyWork, (void *)t);
 		if (rc) {
-			printf("ERROR; return code from pthread_create() is %d\n", rc);
+			printf
+			    ("ERROR; return code from pthread_create() is %d\n",
+			     rc);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -50,10 +52,12 @@ int main()
 		/* Note: "status" should not be local to the dying thread */
 		rc = pthread_join(work_thrd[t], (void **)&status);
 		if (rc) {
-			printf("ERROR; return code from pthread_join() is %d\n", rc);
+			printf("ERROR; return code from pthread_join() is %d\n",
+			       rc);
 			exit(EXIT_FAILURE);
 		}
-		printf("main: completed join with thread %ld status %d\n", t, status);
+		printf("main: completed join with thread %ld status %d\n", t,
+		       status);
 		//sleep(1);
 	}
 
