@@ -52,17 +52,24 @@ void *dotprod(void *arg)
 
 	MSG("Thread T%d\n", offset);
 
+	/*
+	 * NOTE:
+	 * 1. We skip the error checking code of the mutex [un]lock for conciseness; pl check!
+	 * 2. Why take the lock here (below)? As we're _reading_ the global and that can still
+	 *    constitute a critical section, a data race! (admittedly, it's a bit pedantic here)
+	 */
+	pthread_mutex_lock(&mutexsum);
 	len = dotstr.veclen;
 	start = offset * len;
 	end = start + len;
 	x = dotstr.a;
 	y = dotstr.b;
+	pthread_mutex_unlock(&mutexsum);
 
 	/*
 	   Perform the dot product and assign result
 	   to the appropriate variable in the structure. 
 	 */
-
 	mysum = 0;
 	for (i = start; i < end; i++) {
 		mysum += (x[i] * y[i]);
@@ -132,7 +139,7 @@ int main(int argc, char *argv[])
 
 	pthread_attr_destroy(&attr);
 
-	/* Wait on the other threads */
+	/* Wait on the worker threads to die */
 	for (i = 0; i < NUMTHRDS; i++) {
 		pthread_join(callThd[i], (void **)&status);
 	}
