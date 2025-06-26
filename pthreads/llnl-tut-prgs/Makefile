@@ -28,6 +28,9 @@ matrixmul-dbg: matrixmul-dbg.c convenient.h
 pt3-matrixmul: pt3-matrixmul.c
 	gcc ${CFLAGS} pt3-matrixmul.c -o pt3-matrixmul ${LINKIN}
 
+pt4-condvar: pt4-condvar.c
+	gcc ${CFLAGS} pt4-condvar.c -o pt4-condvar ${LINKIN}
+
 stacksz: stacksz.c
 	gcc ${CFLAGS_DBG} stacksz.c -o stacksz ${LINKIN}
 
