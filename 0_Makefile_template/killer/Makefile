@@ -78,6 +78,7 @@ STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE
 LTRACE_ENABLE=-z lazy
 
 PROD_OPTLEVEL=2
+DEBUG_OPTLEVEL=0  # g
   # -O<N>; N can be 0,1,2,3 or s (s: optimize for speed & size);
   # NOTE: in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
 
@@ -85,14 +86,21 @@ WARNING_FLAGS=-Wall -Wextra -Wconversion -Wsign-conversion -Wshadow
 CFLAGS=${WARNING_FLAGS} -UDEBUG -O${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -Og ${WARNING_FLAGS} -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}
-# Why -Og and not -O0?
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -O${DEBUG_OPTLEVEL} ${WARNING_FLAGS} -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}
+# Optimization level for debug binaries: -Og vs -O0
 # man gcc
 # '... Optimize debugging experience.  -Og should be the optimization level of
 # choice for the standard edit-compile-debug cycle, offering a reasonable level
 # of  optimization  while maintaining  fast  compilation  and a good debugging
 # experience. It is a better choice than -O0 for producing debuggable code
 # because some compiler passes that collect debug information are disabled at -O0.'
+#
+# Having seen that, I find that - esp for smaller programs - using -Og can cause
+# the compiler to not really generate the code! Thus we can then have ill effects,
+# including GDB failing to find breakpoints and other weird errors...
+# Hence, we keep the debug optimization level flag as -O0 ; feel free to change
+# it - via the variable DEBUG_OPTLEVEL above - to 'g' if applicable.
+# So botton line: for larger projects, we recommend -Og, smaller code -O0 .
 
 # For MSan, don't use the -D_FORTIFY_SOURCE option
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address -fsanitize-address-use-after-scope
