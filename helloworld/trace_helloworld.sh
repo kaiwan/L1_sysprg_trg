@@ -24,6 +24,6 @@ hash ${TRCCMD} || {
 }
 [[ ! -f ./helloworld ]] && die "./helloworld not found; build and retry"
 
-#${TRCCMD} -F ./helloworld
-${TRCCMD} -e syscalls -F ./helloworld
+${TRCCMD} -F ./helloworld
+#${TRCCMD} -e syscalls -F ./helloworld
 exit 0
