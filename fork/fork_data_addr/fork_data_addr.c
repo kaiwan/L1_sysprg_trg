@@ -22,14 +22,14 @@
 static char *p;
 
 #define PR(pi, pj)   do { \
-printf ("   i=%d j=%d\n" \
+printf("   i=%d j=%d\n" \
 		"   &i=%p &j=%p\n", pi, pj, (void *)&pi, (void *)&pj); \
 } while (0)
 
 int main(int argc, char **argv)
 {
 	pid_t ret = 0;
-	int i = 5, j = 6, pgsz = getpagesize(); // typically returns 4096
+	int i = 5, j = 6, pgsz = getpagesize();	// typically returns 4096
 
 	p = malloc(pgsz);
 	if (!p) {
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 #endif
 		exit(0);
 	default:		// the Parent process
-//		wait(0);	// synchronize: let the child run first
+//              wait(0);        // synchronize: let the child run first
 
 		printf("\nParent: before var update: ");
 		PR(i, j);
@@ -99,6 +99,6 @@ int main(int argc, char **argv)
 	 * procmap util!
 	 * https://github.com/kaiwan/procmap
 	 */
-	//pause(); 
+	//pause();
 	exit(0);
 }
