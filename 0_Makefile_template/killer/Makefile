@@ -95,7 +95,7 @@ CFLAGS_DBG=-g -ggdb -gdwarf-4 -O${DEBUG_OPTLEVEL} ${WARNING_FLAGS} -DDEBUG -fno-
 # experience. It is a better choice than -O0 for producing debuggable code
 # because some compiler passes that collect debug information are disabled at -O0.'
 #
-# Having seen that, I find that - esp for smaller programs - using -Og can cause
+# Having said that, I find that - esp for smaller programs - using -Og can cause
 # the compiler to not really generate the code! Thus we can then have ill effects,
 # including GDB failing to find breakpoints and other weird errors...
 # Hence, we keep the debug optimization level flag as -O0 ; feel free to change
@@ -110,6 +110,8 @@ CFLAGS_DBG_LSAN=${CFLAGS_DBG} -fsanitize=leak
 CFLAGS_DBG_TSAN=${CFLAGS_DBG} -fsanitize=thread
 
 CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage -lgcov
+# glibc >= 2.34, libpthread is a part of it; hence were not required to link
+# with -pthread any longer
 LINK=  #-pthread
 
 # Required vars
@@ -123,7 +125,7 @@ VALGRIND := valgrind
 # update as required
 PKG_NAME := ${FNAME_C}
 CHECKPATCH := /lib/modules/$(shell uname -r)/build/scripts/checkpatch.pl
-GCOV := gcov
+GCOV := ${CROSS_COMPILE}gcov
 LCOV := lcov
 GENINFO := geninfo
 GENHTML := genhtml
