@@ -65,6 +65,7 @@ endif
 $(info Compiler set to $(CC); LINKIN = $(LINKIN))
 
 STRIP=${CROSS_COMPILE}strip
+STRIP_SPEC=--strip-debug
 READELF=${CROSS_COMPILE}readelf
 OBJCOPY=${CROSS_COMPILE}objcopy
 
@@ -146,7 +147,7 @@ prod: ${FNAME_C}.c
 	@echo -n "\e[0m"
 	@echo
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
-	${STRIP} --strip-all ./${FNAME_C}
+	${STRIP} $(STRIP_SPEC) ./${FNAME_C}
 
 # The '2-part executable' solution : use strip and objcopy to generate a
 # binary executable that has the ability to retrieve debug symbolic information
@@ -161,7 +162,7 @@ prod_2part: ${FNAME_C}.c
 # We require the 'debug' build for the 2part, so do that first
 	make --ignore-errors debug
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
-	${STRIP} --strip-debug ./${FNAME_C}
+	${STRIP} $(STRIP_SPEC) ./${FNAME_C}
 # Most IMP, setup the 'debug link' in the release binary, pointing to the debug
 # info file; this, in effect, is the 2part solution!
 	${OBJCOPY} --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
