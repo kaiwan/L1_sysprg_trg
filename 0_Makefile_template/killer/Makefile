@@ -65,7 +65,8 @@ endif
 $(info Compiler set to $(CC); LINKIN = $(LINKIN))
 
 STRIP=${CROSS_COMPILE}strip
-STRIP_SPEC=--strip-debug
+STRIP_SPEC=--strip-unneeded
+# "Remove all symbols that are not needed for relocation processing in addition to debugging symbols and sections stripped by --strip-debug"
 READELF=${CROSS_COMPILE}readelf
 OBJCOPY=${CROSS_COMPILE}objcopy
 
