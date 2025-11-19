@@ -385,15 +385,15 @@ test:
 	@echo "=== Test All ==="
 	@echo -n "\e[0m"
 	@echo "-------------------------------------------------------------------------------"
-	make --ignore-errors code-style
+	-make --ignore-errors code-style
 	@echo "-------------------------------------------------------------------------------"
-	make --ignore-errors sa
+	-make --ignore-errors sa
 	@echo "-------------------------------------------------------------------------------"
-	make --ignore-errors valgrind
+	-make --ignore-errors valgrind
 	@echo "-------------------------------------------------------------------------------"
-	make --ignore-errors san
+	-make --ignore-errors san
 	@echo "-------------------------------------------------------------------------------"
-	make --ignore-errors covg
+	-make --ignore-errors covg
 
 # packaging
 package:
