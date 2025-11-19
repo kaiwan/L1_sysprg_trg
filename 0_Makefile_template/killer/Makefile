@@ -135,6 +135,7 @@ LCOV := lcov
 GENINFO := geninfo
 GENHTML := genhtml
 LCOV_SCRIPT := lcov_gen.sh
+CHECKSEC := checksec
 
 # Targets and their rules
 # Three types:
@@ -368,7 +369,19 @@ endif
 #  - If you want to start from scratch, *wiping* previous coverage data, then
 #    add the -r (reset) option when invoking this script (above) -OR-
 #    simply invoke the 'clean_lcov' target (which deletes all the lcov meta dirs)
-	
+
+# Security
+checksec:
+ifeq (, $(shell which ${CHECKSEC} 2>/dev/null))
+   $(warning === WARNING! ${CHECKSEC} not installed; consider doing 'sudo apt install checksec' or equivalent ===)
+else
+	make prod_2part
+	checksec --file=$(FNAME_C)
+endif
+
+### More targets? Add them below
+
+
 # exit unconditionally
 %:
 	@true
@@ -394,6 +407,8 @@ test:
 	-make --ignore-errors san
 	@echo "-------------------------------------------------------------------------------"
 	-make --ignore-errors covg
+	@echo "-------------------------------------------------------------------------------"
+	-make --ignore-errors checksec
 
 # packaging
 package:
@@ -495,6 +510,12 @@ help:
 	@echo " To start code coverage analysis from scratch, you can either:"
 	@echo " - invoke the special 'make clean_lcov' (it manually delete these 3 folders), OR,"
 	@echo " - change the invocation of the lcov_gen.sh script in the Makefile, passing the -r option"
+
+	@echo
+	@echo -n "\e[1m\e[34m"
+	@echo '--- security: checksec target ---'
+	@echo -n "\e[0m"
+	@echo ' checksec   : run the checksec Bash script on the binary executable'
 
 	@echo
 	@echo -n "\e[1m\e[34m"
