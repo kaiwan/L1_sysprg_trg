@@ -32,7 +32,8 @@ int main(void)
 		if (errno == EEXIST) {
 			shmfd = shm_open(SHM_NAME, 0, 0600);
 			if (shmfd == -1) {
-				perror("shm_open() failed"); exit(1);
+				perror("shm_open() failed");
+				exit(1);
 			}
 		}
 	}
@@ -44,7 +45,7 @@ int main(void)
 		exit(1);
 	}
 
-/* Map the object into memory so file operations / syscalls aren't needed! */
+	/* Map the object into memory so file operations / syscalls aren't needed! */
 	struct udata *udata = mmap(NULL, sizeof(struct udata),
 				   PROT_READ | PROT_WRITE, MAP_SHARED,
 				   shmfd, 0);
@@ -59,9 +60,10 @@ int main(void)
 /* Create a child process and write to the mapped/shared region */
 	pid_t child_pid = fork();
 	if (child_pid < 0) {
-		perror("fork"); exit(1);
+		perror("fork");
+		exit(1);
 	}
-	if (child_pid == 0) { // have child write into our shmem region!
+	if (child_pid == 0) {	// have child write into our shmem region!
 		udata->lat = 77;
 		udata->longt = 13;
 		udata->alt = 900;
