@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 		printf("\nSending signal #%d to child process (%d) now...\n",
 		       SIG2SEND, pid);
 		if (kill(pid, SIG2SEND) < 0) {
-		//if (kill(pid, 67) < 0) {
+			//if (kill(pid, 67) < 0) {
 			perror("kill(2) failed");
 			exit(1);
 		}
