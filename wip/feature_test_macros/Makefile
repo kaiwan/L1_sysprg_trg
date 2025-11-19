@@ -65,6 +65,8 @@ endif
 $(info Compiler set to $(CC); LINKIN = $(LINKIN))
 
 STRIP=${CROSS_COMPILE}strip
+STRIP_SPEC=--strip-unneeded
+# "Remove all symbols that are not needed for relocation processing in addition to debugging symbols and sections stripped by --strip-debug"
 READELF=${CROSS_COMPILE}readelf
 OBJCOPY=${CROSS_COMPILE}objcopy
 
@@ -77,22 +79,53 @@ STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE
 # (Although ltrace now works fine on recent versions of Ubuntu)
 LTRACE_ENABLE=-z lazy
 
-PROD_OPTLEVEL=2
+PROD_OPTLEVEL=3
+  # -O<N>; N can be 0-3 or s (optimize for speed & size);
+  #  in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
+DEBUG_OPTLEVEL=0  # g
   # -O<N>; N can be 0,1,2,3 or s (s: optimize for speed & size);
   # NOTE: in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
 
-WARNING_FLAGS=-Wall -Wextra -Wconversion -Wsign-conversion -Wshadow
-CFLAGS=${WARNING_FLAGS} -UDEBUG -O${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
-# Dynamic analysis includes the compiler itself!
-# Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -Og ${WARNING_FLAGS} -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}
-# Why -Og and not -O0?
+#--- Security-related compiler flags !
+# Ref: GCC security related flags reference [https://gist.github.com/kaiwan/d82d8271459c90c3accc3f795dcaf228]
+SECURITY_CFLAGS_REG = -fstack-protector-strong \
+	-O${PROD_OPTLEVEL} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL} \
+	-pie -fPIE \
+	-fsanitize=bounds -fsanitize-undefined-trap-on-error \
+	-fcf-protection \
+	-fsanitize=signed-integer-overflow -fsanitize-undefined-trap-on-error
+### NOTE- the -fcf-protection* flag(s) might not work on all archs ###
+
+SECURITY_CFLAGS = ${SECURITY_CFLAGS_REG}
+ifeq (gcc, $(CC))
+   SECURITY_CFLAGS = ${SECURITY_CFLAGS_REG} -fstrict-flex-arrays
+endif
+
+# Compiler warnings
+WARN = -Wall -Wextra -Wstack-protector -Wformat -Werror=format-security
+WARN_MORE = ${WARN} -Wpedantic #-Werror
+
+CFLAGS = -UDEBUG ${WARN} ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} \
+	${SECURITY_CFLAGS}
+CFLAGS_DBG = -DDEBUG -g -ggdb -gdwarf-4 -O$(DEBUG_OPTLEVEL) \
+	$(WARN) ${WARN_MORE} -fno-omit-frame-pointer \
+	${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} \
+	${SECURITY_CFLAGS}
+# Optimization level for debug binaries: -Og vs -O0
 # man gcc
 # '... Optimize debugging experience.  -Og should be the optimization level of
 # choice for the standard edit-compile-debug cycle, offering a reasonable level
 # of  optimization  while maintaining  fast  compilation  and a good debugging
 # experience. It is a better choice than -O0 for producing debuggable code
 # because some compiler passes that collect debug information are disabled at -O0.'
+#
+# Having said that, I find that - esp for smaller programs - using -Og can cause
+# the compiler to not really generate the code as required! Thus we can then
+# have side effects, including GDB failing to find breakpoints and other weird
+# errors...
+# Hence, we keep the debug optimization level flag as -O0 ; feel free to change
+# it - via the variable DEBUG_OPTLEVEL above - to 'g' if applicable.
+# So botton line: for larger projects, we recommend -Og, smaller code -O0 .
 
 # For MSan, don't use the -D_FORTIFY_SOURCE option
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address -fsanitize-address-use-after-scope
@@ -102,7 +135,22 @@ CFLAGS_DBG_LSAN=${CFLAGS_DBG} -fsanitize=leak
 CFLAGS_DBG_TSAN=${CFLAGS_DBG} -fsanitize=thread
 
 CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage -lgcov
-LINK=  #-pthread
+
+
+#--- Linker flags
+# -Wl,-z,now -Wl,-z,relro : enable 'full RELRO' (relocation read-only)
+LDFLAGS1=-Wl,-z,now -Wl,-z,relro
+# -Wl,-z,noexecstack : enable non-executable stack
+LDFLAGS2=-Wl,-z,noexecstack  #, -Wl,-z,noexecheap
+LDFLAGS = ${LDFLAGS1} ${LDFLAGS2}
+# For Windows add:
+# -Wl,dynamicbase : tell linker to use ASLR protection
+# -Wl,nxcompat : tell linker to use DEP protection
+$(info LDFLAGS = $(LDFLAGS))
+
+# glibc >= 2.34, libpthread is a part of it; hence were not required to link
+# with -pthread any longer
+#LINK=  #-pthread
 
 # Required vars
 all: ${ALL}
@@ -115,11 +163,12 @@ VALGRIND := valgrind
 # update as required
 PKG_NAME := ${FNAME_C}
 CHECKPATCH := /lib/modules/$(shell uname -r)/build/scripts/checkpatch.pl
-GCOV := gcov
+GCOV := ${CROSS_COMPILE}gcov
 LCOV := lcov
 GENINFO := geninfo
 GENHTML := genhtml
 LCOV_SCRIPT := lcov_gen.sh
+CHECKSEC := checksec
 
 # Targets and their rules
 # Three types:
@@ -135,8 +184,8 @@ prod: ${FNAME_C}.c
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo -n "\e[0m"
 	@echo
-	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
-	${STRIP} --strip-all ./${FNAME_C}
+	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LDFLAGS}
+	${STRIP} $(STRIP_SPEC) ./${FNAME_C}
 
 # The '2-part executable' solution : use strip and objcopy to generate a
 # binary executable that has the ability to retrieve debug symbolic information
@@ -150,8 +199,8 @@ prod_2part: ${FNAME_C}.c
 	@echo
 # We require the 'debug' build for the 2part, so do that first
 	make --ignore-errors debug
-	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
-	${STRIP} --strip-debug ./${FNAME_C}
+	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LDFLAGS}
+	${STRIP} $(STRIP_SPEC) ./${FNAME_C}
 # Most IMP, setup the 'debug link' in the release binary, pointing to the debug
 # info file; this, in effect, is the 2part solution!
 	${OBJCOPY} --add-gnu-debuglink=./${FNAME_C}_dbg ./${FNAME_C}
@@ -171,21 +220,21 @@ debug: ${FNAME_C}.c
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo -n "\e[0m"
 	@echo
-	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg ${LINK}
+	${CC} ${CFLAGS_DBG} ${FNAME_C}.c -o ${FNAME_C}_dbg ${LDFLAGS}
 #-- Sanitizers (use clang or GCC)
-	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LINK} ${LINKIN}
-	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LINK} ${LINKIN}
+	${CC} ${CFLAGS_DBG_ASAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_asan ${LDFLAGS} ${LINKIN}
+	${CC} ${CFLAGS_DBG_UB} ${FNAME_C}.c -o ${FNAME_C}_dbg_ub ${LDFLAGS} ${LINKIN}
 # GCC doesn't support MSAN, clang does
 	@echo -n "\e[1m\e[41m"
 	@echo "=== ALERT/FYI: GCC doesn't support MSAN, clang does ==="
 	@echo -n "\e[0m"
-	${CC} ${CFLAGS_DBG_LSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_lsan ${LINK} ${LINKIN}
+	${CC} ${CFLAGS_DBG_LSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_lsan ${LDFLAGS} ${LINKIN}
 # ThreadSanitizer (TSan):
 # For clang ver < 18.1.0 (Mar '24), need to set vm.mmap_rnd_bits sysctl to 28 (default is 32)
 # else it bombs on execution (ref: https://stackoverflow.com/a/77856955/779269)
 # (The leading hyphen ensures that make doesn't abort on error.)
 	-sudo sysctl vm.mmap_rnd_bits=28
-	${CC} ${CFLAGS_DBG_TSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_tsan ${LINK} ${LINKIN}
+	${CC} ${CFLAGS_DBG_TSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_tsan ${LDFLAGS} ${LINKIN}
 
 
 #--------------- More (useful) targets! -------------------------------
@@ -339,7 +388,7 @@ endif
 	@echo -n "\e[0m"
 	$(eval CC := gcc)
 # For coverage analysis, gcov/lcov seems to require compilation via GCC (not clang)
-	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov ${LINK}
+	${CC} ${CFLAGS_GCOV} ${FNAME_C}.c -o ${FNAME_C}_gcov ${LDFLAGS}
 	@if test -z "${CMDLINE_ARGS}"; then echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${FNAME_C}_gcov ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; fi
 
 	@echo -n "\e[1m\e[41m"
@@ -353,7 +402,19 @@ endif
 #  - If you want to start from scratch, *wiping* previous coverage data, then
 #    add the -r (reset) option when invoking this script (above) -OR-
 #    simply invoke the 'clean_lcov' target (which deletes all the lcov meta dirs)
-	
+
+# Security
+checksec:
+ifeq (, $(shell which ${CHECKSEC} 2>/dev/null))
+   $(warning === WARNING! ${CHECKSEC} not installed; consider doing 'sudo apt install checksec' or equivalent ===)
+else
+	make prod_2part
+	checksec --file=$(FNAME_C)
+endif
+
+### More targets? Add them below
+
+
 # exit unconditionally
 %:
 	@true
@@ -370,15 +431,17 @@ test:
 	@echo "=== Test All ==="
 	@echo -n "\e[0m"
 	@echo "-------------------------------------------------------------------------------"
-	make --ignore-errors code-style
+	-make --ignore-errors code-style
 	@echo "-------------------------------------------------------------------------------"
-	make --ignore-errors sa
+	-make --ignore-errors sa
 	@echo "-------------------------------------------------------------------------------"
-	make --ignore-errors valgrind
+	-make --ignore-errors valgrind
 	@echo "-------------------------------------------------------------------------------"
-	make --ignore-errors san
+	-make --ignore-errors san
 	@echo "-------------------------------------------------------------------------------"
-	make --ignore-errors covg
+	-make --ignore-errors covg
+	@echo "-------------------------------------------------------------------------------"
+	-make --ignore-errors checksec
 
 # packaging
 package:
@@ -480,6 +543,12 @@ help:
 	@echo " To start code coverage analysis from scratch, you can either:"
 	@echo " - invoke the special 'make clean_lcov' (it manually delete these 3 folders), OR,"
 	@echo " - change the invocation of the lcov_gen.sh script in the Makefile, passing the -r option"
+
+	@echo
+	@echo -n "\e[1m\e[34m"
+	@echo '--- security: checksec target ---'
+	@echo -n "\e[0m"
+	@echo ' checksec   : run the checksec Bash script on the binary executable'
 
 	@echo
 	@echo -n "\e[1m\e[34m"
