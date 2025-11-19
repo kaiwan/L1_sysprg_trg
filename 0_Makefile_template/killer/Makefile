@@ -85,10 +85,13 @@ DEBUG_OPTLEVEL=0  # g
   # NOTE: in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
 
 WARNING_FLAGS=-Wall -Wextra -Wconversion -Wsign-conversion -Wshadow
-CFLAGS=${WARNING_FLAGS} -UDEBUG -O${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
+CFLAGS=${WARNING_FLAGS} -UDEBUG -O${PROD_OPTLEVEL} -Werror=format-security \
+	${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
 # Dynamic analysis includes the compiler itself!
 # Especially the powerful Address Sanitizer (ASAN) toolset
-CFLAGS_DBG=-g -ggdb -gdwarf-4 -O${DEBUG_OPTLEVEL} ${WARNING_FLAGS} -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}
+CFLAGS_DBG=-g -ggdb -gdwarf-4 -O${DEBUG_OPTLEVEL} ${WARNING_FLAGS} -DDEBUG \
+	-fno-omit-frame-pointer -Werror=format-security \
+	${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}
 # Optimization level for debug binaries: -Og vs -O0
 # man gcc
 # '... Optimize debugging experience.  -Og should be the optimization level of
