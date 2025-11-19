@@ -62,6 +62,7 @@ else
   CC := clang
   LINKIN := -static-libsan
 endif
+CC := ${CROSS_COMPILE}gcc
 $(info Compiler set to $(CC); LINKIN = $(LINKIN))
 
 STRIP=${CROSS_COMPILE}strip
@@ -136,7 +137,7 @@ prod: ${FNAME_C}.c
 	@echo -n "\e[0m"
 	@echo
 	${CC} ${CFLAGS} ${FNAME_C}.c -o ${FNAME_C} ${LINK}
-	${STRIP} --strip-all ./${FNAME_C}
+	-${STRIP} --strip-all ./${FNAME_C}
 
 # The '2-part executable' solution : use strip and objcopy to generate a
 # binary executable that has the ability to retrieve debug symbolic information
