@@ -70,8 +70,8 @@ else
   LINKIN := -static-libsan
 endif
 # If required, the below 2 lines can be uncommented to force GCC as the compiler
-#CC := ${CROSS_COMPILE}gcc
-#LINKIN := -static-libasan
+CC := ${CROSS_COMPILE}gcc
+LINKIN := -static-libasan
 $(info Compiler set to $(CC); LINKIN = $(LINKIN))
 
 STRIP=${CROSS_COMPILE}strip
@@ -114,7 +114,6 @@ endif
 # Compiler warnings
 WARN = -Wall -Wextra -Wstack-protector -Wformat -Werror=format-security
 WARN_MORE = ${WARN} -Wpedantic #-Werror
-
 CFLAGS = -UDEBUG ${WARN} ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} \
 	${SECURITY_CFLAGS}
 CFLAGS_DBG = -DDEBUG -g -ggdb -gdwarf-4 -O$(DEBUG_OPTLEVEL) \
@@ -204,9 +203,6 @@ CHECKSEC := checksec
 %.lsan.o: %.c
 	${CC} ${CFLAGS_DBG_LSAN} -c $< -o $@
 
-%.msan.o: %.c
-	${CC} ${CFLAGS_DBG_MSAN} -c $< -o $@
-
 %.tsan.o: %.c
 	${CC} ${CFLAGS_DBG_TSAN} -c $< -o $@
 
@@ -218,12 +214,7 @@ OBJS_DBG := $(SRCS:.c=.dbg.o)
 OBJS_ASAN := $(SRCS:.c=.asan.o)
 OBJS_UB := $(SRCS:.c=.ub.o)
 OBJS_LSAN := $(SRCS:.c=.lsan.o)
-## Only build MSAN objects when using clang (GCC doesn't support MSAN)
-ifneq (,$(findstring clang,$(CC)))
-OBJS_MSAN := $(SRCS:.c=.msan.o)
-else
-OBJS_MSAN :=
-endif
+## MSAN builds are handled explicitly in the debug recipe (only when using clang)
 OBJS_TSAN := $(SRCS:.c=.tsan.o)
 OBJS_GCOV := $(SRCS:.c=.gcov.o)
 
@@ -263,7 +254,7 @@ prod_2part: ${OBJS}
 # When using clang on Debian/Fedora-type distros, use -static-libsan (LINKIN is
 # set to this value); with GCC, and on Fedora-type distros, other libraries
 # (libasan, libubsan, liblsan) are required (pkg: lib<name>-<gcc ver>-...)
-debug: ${OBJS_DBG} ${OBJS_ASAN} ${OBJS_UB} ${OBJS_LSAN} ${OBJS_MSAN} ${OBJS_TSAN}
+debug: ${OBJS_DBG} ${OBJS_ASAN} ${OBJS_UB} ${OBJS_LSAN} ${OBJS_TSAN}
 	@echo
 	@echo -n "\e[1m\e[41m"
 	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
@@ -275,12 +266,9 @@ debug: ${OBJS_DBG} ${OBJS_ASAN} ${OBJS_UB} ${OBJS_LSAN} ${OBJS_MSAN} ${OBJS_TSAN
 	${CC} ${CFLAGS_DBG_ASAN} ${OBJS_ASAN} -o ${PROG_NAME}_dbg_asan ${LDFLAGS} ${LINKIN}
 	${CC} ${CFLAGS_DBG_UB} ${OBJS_UB} -o ${PROG_NAME}_dbg_ub ${LDFLAGS} ${LINKIN}
 # GCC doesn't support MSAN, clang does
-	@echo -n "\e[1m\e[41m"
-	@echo "=== ALERT/FYI: GCC doesn't support MSAN, clang does ==="
-	@echo -n "\e[0m"
-	# Build MSAN debug binary only when using clang
-	@if [ "$(findstring clang,$(CC))" ]; then \
-		$(CC) ${CFLAGS_DBG_MSAN} ${OBJS_MSAN} -o ${PROG_NAME}_dbg_msan ${LDFLAGS} ${LINKIN}; \
+	# Build MSAN debug binary only when using clang; compile directly from sources
+	@if echo "$(CC)" | grep -q clang; then \
+		$(CC) ${CFLAGS_DBG_MSAN} $(SRCS) -o ${PROG_NAME}_dbg_msan ${LDFLAGS} ${LINKIN}; \
 	else \
 		echo "--- MSAN build skipped (CC is not clang, gcc doesn't support MSAN) ---"; \
 	fi
@@ -289,7 +277,21 @@ debug: ${OBJS_DBG} ${OBJS_ASAN} ${OBJS_UB} ${OBJS_LSAN} ${OBJS_MSAN} ${OBJS_TSAN
 # For clang ver < 18.1.0 (Mar '24), need to set vm.mmap_rnd_bits sysctl to 28 (default is 32)
 # else it bombs on execution (ref: https://stackoverflow.com/a/77856955/779269)
 # (The leading hyphen ensures that make doesn't abort on error.)
-	-sudo sysctl vm.mmap_rnd_bits=28
+	# Only set vm.mmap_rnd_bits when using clang versions < 18.1.0
+	@if echo "$(CC)" | grep -q clang; then \
+		ver_line="$$( $(CC) --version | head -n1 )"; \
+		maj=$$(echo "$$ver_line" | sed -E 's/.*version[[:space:]]*([0-9]+)\.([0-9]+).*/\1/'); \
+		min=$$(echo "$$ver_line" | sed -E 's/.*version[[:space:]]*([0-9]+)\.([0-9]+).*/\2/'); \
+		if [ -n "$$maj" ]; then \
+			if [ "$$maj" -lt 18 ] || { [ "$$maj" -eq 18 ] && [ "$$min" -lt 1 ]; }; then \
+				sudo sysctl vm.mmap_rnd_bits=28 || true; \
+			else \
+				echo "clang version $$maj.$$min >= 18.1 — skipping vm.mmap_rnd_bits tweak"; \
+			fi; \
+		else \
+			echo "Unable to determine clang version; skipping vm.mmap_rnd_bits tweak"; \
+		fi; \
+	fi
 	${CC} ${CFLAGS_DBG_TSAN} ${OBJS_TSAN} -o ${PROG_NAME}_dbg_tsan ${LDFLAGS} ${LINKIN}
 
 
