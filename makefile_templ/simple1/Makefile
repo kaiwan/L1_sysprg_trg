@@ -47,6 +47,8 @@ SRCS := main.c s2.c audio/s4.c engine/s3.c
 # Automatically generate object file names from source files
 OBJS := $(SRCS:.c=.o)
 
+
+#----------------- Typically no need to change below this line -----------------
 # For coverage builds, we need alternate object file names
 OBJS_GCOV := $(SRCS:.c=.gcov.o)
 
@@ -70,8 +72,8 @@ else
   LINKIN := -static-libsan
 endif
 # If required, the below 2 lines can be uncommented to force GCC as the compiler
-CC := ${CROSS_COMPILE}gcc
-LINKIN := -static-libasan
+#CC := ${CROSS_COMPILE}gcc
+#LINKIN := -static-libasan
 $(info Compiler set to $(CC); LINKIN = $(LINKIN))
 
 STRIP=${CROSS_COMPILE}strip
@@ -90,20 +92,19 @@ STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE
 LTRACE_ENABLE=-z lazy
 
 PROD_OPTLEVEL=3
-  # -O<N>; N can be 0-3 or s (optimize for speed & size);
+  # -O<N>; for production N is typically 1, 2, 3 or s (optimize for speed & size);
   #  in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
 DEBUG_OPTLEVEL=0  # g
-  # -O<N>; N can be 0,1,2,3 or s (s: optimize for speed & size);
-  # NOTE: in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
+  # -O<N>; for debug N is typically 0 or g; see comments below re: -Og vs -O0
 
 #--- Security-related compiler flags !
 # Ref: GCC security related flags reference [https://gist.github.com/kaiwan/d82d8271459c90c3accc3f795dcaf228]
 SECURITY_CFLAGS_REG = -fstack-protector-strong \
-	-O${PROD_OPTLEVEL} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL} \
 	-pie -fPIE \
 	-fsanitize=bounds -fsanitize-undefined-trap-on-error \
 	-fcf-protection \
 	-fsanitize=signed-integer-overflow -fsanitize-undefined-trap-on-error
+#	-D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
 ### NOTE- the -fcf-protection* flag(s) might not work on all archs ###
 
 SECURITY_CFLAGS = ${SECURITY_CFLAGS_REG}
@@ -119,7 +120,12 @@ CFLAGS = -UDEBUG ${WARN} ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} \
 CFLAGS_DBG = -DDEBUG -g -ggdb -gdwarf-4 -O$(DEBUG_OPTLEVEL) \
 	$(WARN) ${WARN_MORE} -fno-omit-frame-pointer \
 	${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} \
-	${SECURITY_CFLAGS}
+	-pie -fPIE \
+	-fsanitize=bounds -fsanitize-undefined-trap-on-error \
+	-fcf-protection \
+	-fsanitize=signed-integer-overflow -fsanitize-undefined-trap-on-error
+#	${SECURITY_CFLAGS}
+
 # Optimization level for debug binaries: -Og vs -O0
 # man gcc
 # '... Optimize debugging experience.  -Og should be the optimization level of
@@ -221,7 +227,7 @@ OBJS_GCOV := $(SRCS:.c=.gcov.o)
 prod: ${OBJS}
 	@echo
 	@echo -n "\e[1m\e[41m"
-	@echo "--- building 'production'-ready target (-O${PROD_OPTLEVEL}, no debug, stripped) ---"
+	@echo "--- Building 'production'-ready target (-O${PROD_OPTLEVEL}, no debug, stripped) ---"
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo -n "\e[0m"
 	@echo
@@ -234,7 +240,7 @@ prod: ${OBJS}
 prod_2part: ${OBJS}
 	@echo
 	@echo -n "\e[1m\e[41m"
-	@echo "--- building 'production'-ready 2-part target (-O${PROD_OPTLEVEL}, no debug, strip-debug) ---"
+	@echo "--- Building 'production'-ready 2-part target (-O${PROD_OPTLEVEL}, no debug, strip-debug) ---"
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo -n "\e[0m"
 	@echo
@@ -257,7 +263,7 @@ prod_2part: ${OBJS}
 debug: ${OBJS_DBG} ${OBJS_ASAN} ${OBJS_UB} ${OBJS_LSAN} ${OBJS_TSAN}
 	@echo
 	@echo -n "\e[1m\e[41m"
-	@echo "--- building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
+	@echo "--- Building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@echo -n "\e[0m"
 	@echo
