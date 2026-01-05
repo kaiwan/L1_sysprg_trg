@@ -33,6 +33,7 @@ int main()
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
 	printf("NUM_THREADS = %d\n", NUM_THREADS);
+	/* Creation loop */
 	for (t = 0; t < NUM_THREADS; t++) {
 		printf("Creating thread %ld\n", t);
 		rc = pthread_create(&work_thrd[t], &attr, BusyWork, (void *)t);
@@ -44,9 +45,11 @@ int main()
 		}
 	}
 
-	/* Free attribute and wait for the other threads */
+	/* Free attribute structure and wait for the other threads */
 	pthread_attr_destroy(&attr);
 	printf("NUM_THREADS = %d\n", NUM_THREADS);
+
+	/* Join loop */
 	for (t = 0; t < NUM_THREADS; t++) {
 		printf("join loop # %ld\n", t);
 		/* Note: "status" should not be local to the dying thread */

@@ -36,7 +36,11 @@ $ ./svr: tcp socket created
 
 On the host:
 
-$ ./client_any 192.168.24.130 6105
+$ netcat 192.168.24.130 6105
+...
+
+-OR- via our 'client_any' program:
+./client_any 192.168.24.130 6105
 ./client_any: issuing the getaddrinfo syscall now...
  ./client_any: loop iteration #1: got socket fd..
  ./client_any: now attempting to connect to 192.168.24.130:port # 6105...
@@ -102,7 +106,9 @@ static void sig_child(int signum)
 	int status;
 	int pid;
 #endif
-	printf("--signal %d--\n", signum);
+	char *msg = "--signal recvd--";
+	//printf("--signal %d--\n", signum); // printf() in a sig hdlr is a BUG!
+	write(STDOUT_FILENO, msg, strlen(msg));
 	return;
 #if 0				// not reqd on 2.6+ with SA_NOCLDWAIT flag..
 	while ((pid = wait3(&status, WNOHANG, 0)) > 0) {
@@ -230,9 +236,10 @@ static int process_client(int sd, char *prg)
 
 	while (fgets(tmpbuf, LINESZ, fp)) {
 		total += strlen(tmpbuf);
-		if (total > MAXBUF) {
+		if (total > MAXBUF) {   //-strlen(tmpbuf)-1) {
 			printf("%s: buffer limit exceeded, aborting...\n", prg);
 			free(reply);
+			pclose(fp);
 			exit(1);
 		}
 		strncat(reply, tmpbuf, LINESZ);
@@ -241,10 +248,12 @@ static int process_client(int sd, char *prg)
 	// Make the write() run in a loop guaranteeing that all data is transferred
 	if ((fd_write(sd, reply, strlen(reply))) == -1) {
 		free(reply);
+		pclose(fp);
 		ErrExit(prg, "socket write error", 6);
 	}
 
 	free(reply);
+	pclose(fp);
 	close(sd);
 
 	return (0);

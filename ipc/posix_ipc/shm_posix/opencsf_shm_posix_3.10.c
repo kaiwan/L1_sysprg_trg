@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <string.h>
 
 #define SHM_NAME "/opencsf_shm"	// actually created here: /dev/shm/opencsf_shm
 
@@ -54,8 +55,8 @@ int main(void)
 		shm_unlink(SHM_NAME);
 		exit(1);
 	}
-	printf("Location data before mod: (%zu,%zu,%zu)\n",
-	       udata->lat, udata->longt, udata->alt);
+	printf("Location data before modification: location \"%s\":(%zu,%zu,%zu)\n",
+	       udata->location_name, udata->lat, udata->longt, udata->alt);
 
 /* Create a child process and write to the mapped/shared region */
 	pid_t child_pid = fork();
@@ -64,9 +65,12 @@ int main(void)
 		exit(1);
 	}
 	if (child_pid == 0) {	// have child write into our shmem region!
+		char *loc;
+
 		udata->lat = 77;
 		udata->longt = 13;
 		udata->alt = 900;
+		strncpy(udata->location_name, "blore", 5);
 
 		/* Unmap and close the child's shared memory access */
 		munmap(udata, sizeof(struct udata));
@@ -78,8 +82,8 @@ int main(void)
 	wait(0);
 
 /* Read from the mapped/shared memory region */
-	printf("Location data after mod: (%zu,%zu,%zu)\n",
-	       udata->lat, udata->longt, udata->alt);
+	printf("Location data after modification : location \"%s\":(%zu,%zu,%zu)\n",
+	       udata->location_name, udata->lat, udata->longt, udata->alt);
 
 /* Unmap, close, and delete the shared memory object */
 	munmap(udata, sizeof(struct udata));

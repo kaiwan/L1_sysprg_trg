@@ -1,0 +1,3 @@
+Compiler set to gcc; LINKIN = -static-libasan   
+LDFLAGS = -Wl,-z,now -Wl,-z,relro -Wl,-z,noexecstack  
+Makefile:100: *** Recursive variable 'SECURITY_CFLAGS_REG' references itself (eventually).  Stop.

@@ -21,7 +21,7 @@
  $ 
 
  Here, in this simple demo, as there's only one MQ and the send/recv calls are
- synchrounous (blocking by default), there's no chance of a race... If, though,
+ synchronous (blocking by default), there's no chance of a race... If, though,
  we had multiple MQs and multiple concurrent sender/receiver processes (with
  possibly non-blocking IO), then we should employ a POSIX semaphore to handle
  concurrency.

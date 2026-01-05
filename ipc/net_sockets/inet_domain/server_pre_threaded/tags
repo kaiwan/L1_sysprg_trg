@@ -1,0 +1,72 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ALL	Makefile	/^ALL :=  prod prod_2part$/;"	m
+ALL_NM	Makefile	/^ALL_NM :=  ${FNAME_C} ${FNAME_C}_dbg ${FNAME_C}_dbg_asan ${FNAME_C}_dbg_ub ${FNAME_C}_dbg_lsan ${FNAME_C}_gcov ${FNAME_C}_dbg_msan ${FNAME_C}_dbg_tsan$/;"	m
+CC	Makefile	/^  CC := clang$/;"	m
+CC	Makefile	/^CC := ${CROSS_COMPILE}gcc$/;"	m
+CFLAGS	Makefile	/^CFLAGS=${WARNING_FLAGS} -UDEBUG -O${PROD_OPTLEVEL} -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}$/;"	m
+CFLAGS_DBG	Makefile	/^CFLAGS_DBG=-g -ggdb -gdwarf-4 -Og ${WARNING_FLAGS} -DDEBUG -fno-omit-frame-pointer -Werror=format-security ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS}$/;"	m
+CFLAGS_DBG_ASAN	Makefile	/^CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address -fsanitize-address-use-after-scope$/;"	m
+CFLAGS_DBG_LSAN	Makefile	/^CFLAGS_DBG_LSAN=${CFLAGS_DBG} -fsanitize=leak$/;"	m
+CFLAGS_DBG_MSAN	Makefile	/^CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory -fPIE -pie$/;"	m
+CFLAGS_DBG_TSAN	Makefile	/^CFLAGS_DBG_TSAN=${CFLAGS_DBG} -fsanitize=thread$/;"	m
+CFLAGS_DBG_UB	Makefile	/^CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined$/;"	m
+CFLAGS_GCOV	Makefile	/^CFLAGS_GCOV=${CFLAGS_DBG} -fprofile-arcs -ftest-coverage -lgcov$/;"	m
+CHECKPATCH	Makefile	/^CHECKPATCH := \/lib\/modules\/$(shell uname -r)\/build\/scripts\/checkpatch.pl$/;"	m
+CMDLINE_ARGS	Makefile	/^CMDLINE_ARGS=""$/;"	m
+CPPCHECK	Makefile	/^CPPCHECK := cppcheck$/;"	m
+CSTD	Makefile	/^CSTD=-ansi -std=c99 -std=c11 -std=c18  # the last one wins; else if unsupported, earlier ones...$/;"	m
+DEFAULT_SERVER_PORT	svr_pre_mt.c	35;"	d	file:
+FILE_TO_TRANSFER	svr_pre_mt.c	243;"	d	file:
+FLAWFINDER	Makefile	/^FLAWFINDER := flawfinder$/;"	m
+FNAME_C	Makefile	/^FNAME_C := svr_pre_mt$/;"	m
+GCOV	Makefile	/^GCOV := gcov$/;"	m
+GENHTML	Makefile	/^GENHTML := genhtml$/;"	m
+GENINFO	Makefile	/^GENINFO := geninfo$/;"	m
+INDENT	Makefile	/^INDENT := indent$/;"	m
+LCOV	Makefile	/^LCOV := lcov$/;"	m
+LCOV_SCRIPT	Makefile	/^LCOV_SCRIPT := lcov_gen.sh$/;"	m
+LINK	Makefile	/^LINK=  #-pthread$/;"	m
+LINKIN	Makefile	/^  LINKIN := -static-libsan$/;"	m
+LINKIN	Makefile	/^LINKIN := -static-libasan   # use this lib for ASAN with GCC$/;"	m
+LTRACE_ENABLE	Makefile	/^LTRACE_ENABLE=-z lazy$/;"	m
+METHOD_HANDLED	svr_pre_mt.c	37;"	d	file:
+OBJCOPY	Makefile	/^OBJCOPY=${CROSS_COMPILE}objcopy$/;"	m
+PER_THRD_STACKSIZE	svr_pre_mt.c	335;"	d	file:
+PKG_NAME	Makefile	/^PKG_NAME := ${FNAME_C}$/;"	m
+POSIX_STD	Makefile	/^POSIX_STD=201112L$/;"	m
+PROD_OPTLEVEL	Makefile	/^PROD_OPTLEVEL=2$/;"	m
+QLEN_MAX	svr_pre_mt.c	36;"	d	file:
+SRC_FILES	Makefile	/^SRC_FILES := *.[ch]$/;"	m
+STD_DEFS	Makefile	/^STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE$/;"	m
+STRIP	Makefile	/^STRIP=${CROSS_COMPILE}strip$/;"	m
+THREADS_COUNT	svr_pre_mt.c	41;"	d	file:
+VALGRIND	Makefile	/^VALGRIND := valgrind$/;"	m
+WARNING_FLAGS	Makefile	/^WARNING_FLAGS=-Wall -Wextra -Wconversion -Wsign-conversion -Wshadow$/;"	m
+create_thread	svr_pre_mt.c	/^void create_thread(long index)$/;"	f
+enter_server_loop	svr_pre_mt.c	/^void *enter_server_loop(void *targ)$/;"	f
+fatal_error	svr_pre_mt.c	/^void fatal_error(const char *syscall)$/;"	f
+from_hex	svr_pre_mt.c	/^char from_hex(char ch)$/;"	f
+get_filename_ext	svr_pre_mt.c	/^const char *get_filename_ext(const char *filename)$/;"	f
+get_line	svr_pre_mt.c	/^int get_line(int sock, char *buf, int size)$/;"	f
+handle_client	svr_pre_mt.c	/^void handle_client(int client_socket, long thrdnum)$/;"	f
+handle_http_404	svr_pre_mt.c	/^void handle_http_404(int client_socket)$/;"	f
+handle_unimplemented_method	svr_pre_mt.c	/^void handle_unimplemented_method(int client_socket)$/;"	f
+http_404_content	svr_pre_mt.c	/^const char *http_404_content =$/;"	v
+m.mmap_rnd_bits	Makefile	/^	sudo sysctl vm.mmap_rnd_bits=28$/;"	m
+main	svr_pre_mt.c	/^int main(int argc, char *argv[])$/;"	f
+mlock	svr_pre_mt.c	/^pthread_mutex_t mlock = PTHREAD_MUTEX_INITIALIZER;$/;"	v
+oes	Makefile	/^	@echo "=== ALERT\/FYI: GCC doesn't support MSAN, clang does ==="$/;"	m
+prg_name	svr_pre_mt.c	/^static char prg_name[128];$/;"	v	file:
+print_stats	svr_pre_mt.c	/^void print_stats(int signo)$/;"	f
+server_socket	svr_pre_mt.c	/^int server_socket;$/;"	v
+setup_listening_socket	svr_pre_mt.c	/^int setup_listening_socket(int port)$/;"	f
+strtolower	svr_pre_mt.c	/^void strtolower(char *str)$/;"	f
+threads	svr_pre_mt.c	/^pthread_t threads[THREADS_COUNT];$/;"	v
+transfer_file_contents	svr_pre_mt.c	/^int transfer_file_contents(char *file_path, int client_socket)$/;"	f
+unimplemented_content	svr_pre_mt.c	/^const char *unimplemented_content =$/;"	v
+urlencoding_decode	svr_pre_mt.c	/^char *urlencoding_decode(char *str)$/;"	f

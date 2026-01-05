@@ -62,6 +62,9 @@ else
   CC := clang
   LINKIN := -static-libsan
 endif
+#- force GCC
+#CC := ${CROSS_COMPILE}gcc
+#LINKIN := -static-libasan   # use this lib for ASAN with GCC
 $(info Compiler set to $(CC); LINKIN = $(LINKIN))
 
 STRIP=${CROSS_COMPILE}strip
@@ -89,28 +92,32 @@ DEBUG_OPTLEVEL=0  # g
 #--- Security-related compiler flags !
 # Ref: GCC security related flags reference [https://gist.github.com/kaiwan/d82d8271459c90c3accc3f795dcaf228]
 SECURITY_CFLAGS_REG = -fstack-protector-strong \
-	-O${PROD_OPTLEVEL} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL} \
 	-pie -fPIE \
 	-fsanitize=bounds -fsanitize-undefined-trap-on-error \
 	-fcf-protection \
 	-fsanitize=signed-integer-overflow -fsanitize-undefined-trap-on-error
 ### NOTE- the -fcf-protection* flag(s) might not work on all archs ###
 
-SECURITY_CFLAGS = ${SECURITY_CFLAGS_REG}
 ifeq (gcc, $(CC))
    SECURITY_CFLAGS = ${SECURITY_CFLAGS_REG} -fstrict-flex-arrays
 endif
+SECURITY_CFLAGS_PROD = ${SECURITY_CFLAGS} \
+	-O${PROD_OPTLEVEL} -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
 
 # Compiler warnings
 WARN = -Wall -Wextra -Wstack-protector -Wformat -Werror=format-security
 WARN_MORE = ${WARN} -Wpedantic #-Werror
 
 CFLAGS = -UDEBUG ${WARN} ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} \
-	${SECURITY_CFLAGS}
+	${SECURITY_CFLAGS_REG}
+
+#-- TODO :  use -O0 for debug mode!
+SECURITY_CFLAGS_DBG = $(SECURITY_CFLAGS_REG) \
+	-O${DEBUG_OPTLEVEL} -D_FORTIFY_SOURCE=${DEBUG_OPTLEVEL}
 CFLAGS_DBG = -DDEBUG -g -ggdb -gdwarf-4 -O$(DEBUG_OPTLEVEL) \
 	$(WARN) ${WARN_MORE} -fno-omit-frame-pointer \
 	${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} \
-	${SECURITY_CFLAGS}
+	${SECURITY_CFLAGS_DBG}
 # Optimization level for debug binaries: -Og vs -O0
 # man gcc
 # '... Optimize debugging experience.  -Og should be the optimization level of
@@ -233,7 +240,8 @@ debug: ${FNAME_C}.c
 # For clang ver < 18.1.0 (Mar '24), need to set vm.mmap_rnd_bits sysctl to 28 (default is 32)
 # else it bombs on execution (ref: https://stackoverflow.com/a/77856955/779269)
 # (The leading hyphen ensures that make doesn't abort on error.)
-	-sudo sysctl vm.mmap_rnd_bits=28
+# The line below's commented out by default; enable it if you're using clang < 18.1.0
+#	-sudo sysctl vm.mmap_rnd_bits=28
 	${CC} ${CFLAGS_DBG_TSAN} ${FNAME_C}.c -o ${FNAME_C}_dbg_tsan ${LDFLAGS} ${LINKIN}
 
 

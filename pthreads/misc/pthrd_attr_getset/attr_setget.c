@@ -1,7 +1,7 @@
 /*
  * attr_setget.c
  * Set and get pthread attributes..
- * From man page on pthrd_attr_init(3)
+ * From man page on pthread_attr_init(3)
  *
  */
 #define _GNU_SOURCE		/* To get pthread_getattr_np() declaration */

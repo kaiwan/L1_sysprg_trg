@@ -63,6 +63,7 @@ threadFunc(void *arg)
 	 * a) call pthread_cleanup_pop() with a positive arg
 	 * -OR-
 	 * b) call pthread_cleanup_pop(0) AND call pthread_exit()
+	 * c) ALSO invoked if the thread's cancelled
 	 */
     pthread_cleanup_pop(1);             /* Executes cleanup handler */
     return NULL;
@@ -89,13 +90,13 @@ main(int argc, char *argv[])
 
     } else {                    /* Signal condition variable */
         printf("main:    about to signal condition variable\n");
-		s = pthread_mutex_lock(&mtx);       /* Not a cancellation point */
-		if (s != 0)
-			fatalError(s, "pthread_mutex_lock");
+	s = pthread_mutex_lock(&mtx);       /* Not a cancellation point */
+	if (s != 0)
+		fatalError(s, "pthread_mutex_lock");
         glob = 1;
-		s = pthread_mutex_unlock(&mtx);       /* Not a cancellation point */
-		if (s != 0)
-			fatalError(s, "pthread_mutex_unlock");
+	s = pthread_mutex_unlock(&mtx);       /* Not a cancellation point */
+	if (s != 0)
+		fatalError(s, "pthread_mutex_unlock");
         s = pthread_cond_signal(&cond);
         if (s != 0)
             fatalError(s, "pthread_cond_signal");

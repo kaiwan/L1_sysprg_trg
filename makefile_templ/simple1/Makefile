@@ -43,14 +43,23 @@ PROG_NAME := demo1
 #  SRCS := main.c helper.c utils.c
 #  SRCS := src/main.c src/helper.c src/utils.c
 SRCS := main.c s2.c audio/s4.c engine/s3.c
+
+#--- CHECK: manually add params as required
+# Populate any required cmdline arguments to the process here:
+CMDLINE_ARGS=""
 #----------------- END User configurable section ------------------------------
 #----------------- Typically no need to change anything below this line -------
 
 # Automatically generate object file names from source files
-OBJS := $(SRCS:.c=.o)
+# Build directory for object and intermediate files (out-of-source build)
+# You can override on the make command line: `make OBJDIR=build`.
+OBJDIR ?= build
+
+# Automatically generate object file names from source files (preserve subdirs under OBJDIR)
+OBJS := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
 
 # For coverage builds, we need alternate object file names
-OBJS_GCOV := $(SRCS:.c=.gcov.o)
+OBJS_GCOV := $(patsubst %.c,$(OBJDIR)/%.gcov.o,$(SRCS))
 
 # ANSI color sequences for pretty messages (use with printf '%b')
 BOLD_ESC := $(shell printf '\\033')
@@ -62,11 +71,6 @@ YELLOW := $(ESC)[33m
 BLUE := $(ESC)[34m
 BG_RED := $(ESC)[41m
 RESET := $(ESC)[0m
-
-#--- CHECK: manually add params as required
-# Populate any required cmdline arguments to the process here:
-CMDLINE_ARGS=""
-
 
 # Can remove the 'msan' one if it doesn't build - requires clang
 ALL_NM :=  ${PROG_NAME} ${PROG_NAME}_dbg ${PROG_NAME}_dbg_asan ${PROG_NAME}_dbg_ub ${PROG_NAME}_dbg_lsan ${PROG_NAME}_gcov ${PROG_NAME}_dbg_msan ${PROG_NAME}_dbg_tsan
@@ -176,6 +180,7 @@ LDFLAGS = ${LDFLAGS1} ${LDFLAGS2}
 # -Wl,nxcompat : tell linker to use DEP protection
 .PHONY: all
 all:
+	@printf '%b\n' '$(BOLD)$(GREEN)Compiler = $(CC)$(RESET)'
 	@printf '%b\n' '$(BOLD)$(BLUE)LDFLAGS = $(LDFLAGS)$(RESET)'
 	@printf '%b\n' '$(BOLD)$(GREEN)CFLAGS = $(CFLAGS)$(RESET)'
 	@printf '%b\n\n' '$(BOLD)$(BLUE)CFLAGS_DBG = $(CFLAGS_DBG)$(RESET)'
@@ -211,35 +216,42 @@ CHECKSEC := checksec
 # 3. 'debug' target(s): -Og, debug symbolic info (-g -ggdb), not stripped
 
 #--- Compilation rules for object files
-%.o: %.c
+$(OBJDIR)/%.o: %.c
+	@mkdir -p $(dir $@)
 	${CC} ${CFLAGS} -c $< -o $@
 
-%.dbg.o: %.c
+$(OBJDIR)/%.dbg.o: %.c
+	@mkdir -p $(dir $@)
 	${CC} ${CFLAGS_DBG} -c $< -o $@
 
-%.asan.o: %.c
+$(OBJDIR)/%.asan.o: %.c
+	@mkdir -p $(dir $@)
 	${CC} ${CFLAGS_DBG_ASAN} -c $< -o $@
 
-%.ub.o: %.c
+$(OBJDIR)/%.ub.o: %.c
+	@mkdir -p $(dir $@)
 	${CC} ${CFLAGS_DBG_UB} -c $< -o $@
 
-%.lsan.o: %.c
+$(OBJDIR)/%.lsan.o: %.c
+	@mkdir -p $(dir $@)
 	${CC} ${CFLAGS_DBG_LSAN} -c $< -o $@
 
-%.tsan.o: %.c
+$(OBJDIR)/%.tsan.o: %.c
+	@mkdir -p $(dir $@)
 	${CC} ${CFLAGS_DBG_TSAN} -c $< -o $@
 
-%.gcov.o: %.c
+$(OBJDIR)/%.gcov.o: %.c
+	@mkdir -p $(dir $@)
 	${CC} ${CFLAGS_GCOV} -c $< -o $@
 
 #--- Generate object file lists for different builds
-OBJS_DBG := $(SRCS:.c=.dbg.o)
-OBJS_ASAN := $(SRCS:.c=.asan.o)
-OBJS_UB := $(SRCS:.c=.ub.o)
-OBJS_LSAN := $(SRCS:.c=.lsan.o)
+OBJS_DBG := $(patsubst %.c,$(OBJDIR)/%.dbg.o,$(SRCS))
+OBJS_ASAN := $(patsubst %.c,$(OBJDIR)/%.asan.o,$(SRCS))
+OBJS_UB := $(patsubst %.c,$(OBJDIR)/%.ub.o,$(SRCS))
+OBJS_LSAN := $(patsubst %.c,$(OBJDIR)/%.lsan.o,$(SRCS))
 ## MSAN builds are handled explicitly in the debug recipe (only when using clang)
-OBJS_TSAN := $(SRCS:.c=.tsan.o)
-OBJS_GCOV := $(SRCS:.c=.gcov.o)
+OBJS_TSAN := $(patsubst %.c,$(OBJDIR)/%.tsan.o,$(SRCS))
+OBJS_GCOV := $(patsubst %.c,$(OBJDIR)/%.gcov.o,$(SRCS))
 
 
 prod: ${OBJS}
@@ -507,6 +519,8 @@ test:
 
 clean:
 		@printf '%b\n' '$(BOLD)$(BG_RED)--- cleaning ---$(RESET)'
+	# remove build artifacts in OBJDIR (out-of-source build)
+	rm -rfv $(OBJDIR) || true
 	rm -vf ${ALL_NM} core* vgcore* *.o *.dbg.o *.asan.o *.ub.o *.lsan.o *.msan.o *.tsan.o *.gcov.o *~
 # rm some of the code coverage metadata
 	rm -rfv ${PROG_NAME}_gcov *.[ch].gcov *.gcda *.gcno *.info

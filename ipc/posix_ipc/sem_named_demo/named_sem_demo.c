@@ -46,7 +46,7 @@ int main(void)
 
 	/* BOTH parent & child run the code below in parallel
 	 *
-	 * Diagrmatically:
+	 * Diagramatically:
 	 * Y-axis is the semaphore value
 	 *
 	 * P/C* calls sem_wait()

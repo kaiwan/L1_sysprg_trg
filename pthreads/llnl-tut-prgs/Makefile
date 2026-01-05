@@ -33,6 +33,7 @@ pt4-condvar: pt4-condvar.c
 
 stacksz: stacksz.c
 	gcc ${CFLAGS_DBG} stacksz.c -o stacksz ${LINKIN}
+	gcc ${CFLAGS_DBG} -fsanitize=address stacksz.c -o stacksz_asan ${LINKIN}
 
 cb: ${CB_FILES}
 	mkdir bkp 2>/dev/null; cp -f ${CB_FILES} bkp/
