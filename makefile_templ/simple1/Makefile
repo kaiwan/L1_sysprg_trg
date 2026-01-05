@@ -47,7 +47,7 @@ PROG_NAME := demo1
 SRCS := main.c s2.c audio/s4.c engine/s3.c
 
 # Verbosity in builds
-VERBOSE ?= 0  # set to 1 for verbose builds; or run as 'make V=1'
+VERBOSE ?= 1  # set to 0 for disabling verbose builds; or run as 'make V=0'
 
 #--- CHECK: manually add params as required
 # Populate any required cmdline arguments to the process here:
@@ -66,8 +66,8 @@ OBJS := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
 # For coverage builds, we need alternate object file names
 OBJS_GCOV := $(patsubst %.c,$(OBJDIR)/%.gcov.o,$(SRCS))
 
-# Verbose toggle: set V=1 or VERBOSE=1 to enable verbose builds
-V ?= 0
+# Verbose toggle: set V=0 or VERBOSE=0 to disable verbose builds
+V ?= 1
 ifeq ($(VERBOSE),1)
 V := 1
 endif
