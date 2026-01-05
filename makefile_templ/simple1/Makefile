@@ -46,6 +46,9 @@ PROG_NAME := demo1
 #SRCS := $(wildcard *.c)
 SRCS := main.c s2.c audio/s4.c engine/s3.c
 
+# Verbosity in builds
+VERBOSE ?= 0  # set to 1 for verbose builds; or run as 'make V=1'
+
 #--- CHECK: manually add params as required
 # Populate any required cmdline arguments to the process here:
 CMDLINE_ARGS=""
@@ -62,6 +65,17 @@ OBJS := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
 
 # For coverage builds, we need alternate object file names
 OBJS_GCOV := $(patsubst %.c,$(OBJDIR)/%.gcov.o,$(SRCS))
+
+# Verbose toggle: set V=1 or VERBOSE=1 to enable verbose builds
+V ?= 0
+ifeq ($(VERBOSE),1)
+V := 1
+endif
+ifeq ($(V),1)
+Q :=
+else
+Q := @
+endif
 
 # ANSI color sequences for pretty messages (use with printf '%b')
 BOLD_ESC := $(shell printf '\\033')
@@ -185,10 +199,11 @@ LDFLAGS = ${LDFLAGS1} ${LDFLAGS2}
 	code-style indent checkpatch sa sa_clangtidy sa_flawfinder sa_cppcheck \
 	valgrind san test package
 all:
-	@printf '%b\n' '$(BOLD)$(GREEN)Compiler = $(CC)$(RESET)'
-	@printf '%b\n' '$(BOLD)$(BLUE)LDFLAGS = $(LDFLAGS)$(RESET)'
-	@printf '%b\n' '$(BOLD)$(GREEN)CFLAGS = $(CFLAGS)$(RESET)'
-	@printf '%b\n\n' '$(BOLD)$(BLUE)CFLAGS_DBG = $(CFLAGS_DBG)$(RESET)'
+	@printf '%b\n' '$(BOLD)$(GREEN)Compiler    = $(CC)$(RESET)'
+	@printf '%b\n' '$(BOLD)$(BLUE)LDFLAGS     = $(LDFLAGS)$(RESET)'
+	@printf '%b\n' '$(BOLD)$(GREEN)CFLAGS      = $(CFLAGS)$(RESET)'
+	@printf '%b\n' '$(BOLD)$(BLUE)CFLAGS_DBG  = $(CFLAGS_DBG)$(RESET)'
+	@printf '%b\n\n' '$(BOLD)$(GREEN)Verbosity   = $(VERBOSE)$(RESET)'
 	@$(MAKE) ${ALL}
 
 # glibc >= 2.34, libpthread is a part of it; hence were not required to link
@@ -223,31 +238,31 @@ CHECKSEC := checksec
 #--- Compilation rules for object files
 $(OBJDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
-	${CC} ${CFLAGS} -c $< -o $@
+	$(Q)${CC} ${CFLAGS} -c $< -o $@
 
 $(OBJDIR)/%.dbg.o: %.c
 	@mkdir -p $(dir $@)
-	${CC} ${CFLAGS_DBG} -c $< -o $@
+	$(Q)${CC} ${CFLAGS_DBG} -c $< -o $@
 
 $(OBJDIR)/%.asan.o: %.c
 	@mkdir -p $(dir $@)
-	${CC} ${CFLAGS_DBG_ASAN} -c $< -o $@
+	$(Q)${CC} ${CFLAGS_DBG_ASAN} -c $< -o $@
 
 $(OBJDIR)/%.ub.o: %.c
 	@mkdir -p $(dir $@)
-	${CC} ${CFLAGS_DBG_UB} -c $< -o $@
+	$(Q)${CC} ${CFLAGS_DBG_UB} -c $< -o $@
 
 $(OBJDIR)/%.lsan.o: %.c
 	@mkdir -p $(dir $@)
-	${CC} ${CFLAGS_DBG_LSAN} -c $< -o $@
+	$(Q)${CC} ${CFLAGS_DBG_LSAN} -c $< -o $@
 
 $(OBJDIR)/%.tsan.o: %.c
 	@mkdir -p $(dir $@)
-	${CC} ${CFLAGS_DBG_TSAN} -c $< -o $@
+	$(Q)${CC} ${CFLAGS_DBG_TSAN} -c $< -o $@
 
 $(OBJDIR)/%.gcov.o: %.c
 	@mkdir -p $(dir $@)
-	${CC} ${CFLAGS_GCOV} -c $< -o $@
+	$(Q)${CC} ${CFLAGS_GCOV} -c $< -o $@
 
 #--- Generate object file lists for different builds
 OBJS_DBG := $(patsubst %.c,$(OBJDIR)/%.dbg.o,$(SRCS))
@@ -264,8 +279,8 @@ prod: ${OBJS}
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- Building production-ready target (-O${PROD_OPTLEVEL}, no debug, stripped) ---$(RESET)'
 	@printf '%s\n' " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@printf '\n'
-	${CC} ${CFLAGS} ${OBJS} -o ${PROG_NAME} ${LDFLAGS}
-	${STRIP} $(STRIP_SPEC) ./${PROG_NAME}
+	$(Q)${CC} ${CFLAGS} ${OBJS} -o ${PROG_NAME} ${LDFLAGS}
+	$(Q)${STRIP} $(STRIP_SPEC) ./${PROG_NAME}
 
 # The '2-part executable' solution : use strip and objcopy to generate a
 # binary executable that has the ability to retrieve debug symbolic information
@@ -277,13 +292,14 @@ prod_2part: ${OBJS}
 	@printf '\n'
 # We require the 'debug' build for the 2part, so do that first
 	make --ignore-errors debug
-	${CC} ${CFLAGS} ${OBJS} -o ${PROG_NAME} ${LDFLAGS}
-	${STRIP} $(STRIP_SPEC) ./${PROG_NAME}
+	$(Q)${CC} ${CFLAGS} ${OBJS} -o ${PROG_NAME} ${LDFLAGS}
+	$(Q)${STRIP} $(STRIP_SPEC) ./${PROG_NAME}
 # Most IMP, setup the 'debug link' in the release binary, pointing to the debug
 # info file; this, in effect, is the 2part solution!
-	${OBJCOPY} --add-gnu-debuglink=./${PROG_NAME}_dbg ./${PROG_NAME}
+# quiet-friendly
+	$(Q)${OBJCOPY} --add-gnu-debuglink=./${PROG_NAME}_dbg ./${PROG_NAME}
 # verify it's setup
-	${READELF} --debug-dump ./${PROG_NAME} | grep -A2 "debuglink"
+	$(Q)${READELF} --debug-dump ./${PROG_NAME} | grep -A2 "debuglink"
 
 # 'debug' target: -Og, debug symbolic info (-g -ggdb), not stripped.
 # Generates the regular debug build, debug+ASAN, debug+UB, debug+LSAN, debug+MSAN builds'
@@ -298,18 +314,21 @@ debug: ${OBJS_DBG} ${OBJS_ASAN} ${OBJS_UB} ${OBJS_LSAN} ${OBJS_TSAN}
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- Building debug-ready targets (with debug symbolic info, not stripped) ---$(RESET)'
 	@printf '%s\n' " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@printf '\n'
-	${CC} ${CFLAGS_DBG} ${OBJS_DBG} -o ${PROG_NAME}_dbg ${LDFLAGS}
+# build debug binary
+	$(Q)${CC} ${CFLAGS_DBG} ${OBJS_DBG} -o ${PROG_NAME}_dbg ${LDFLAGS}
 #-- Sanitizers (use clang or GCC)
-	${CC} ${CFLAGS_DBG_ASAN} ${OBJS_ASAN} -o ${PROG_NAME}_dbg_asan ${LDFLAGS} ${LINKIN}
-	${CC} ${CFLAGS_DBG_UB} ${OBJS_UB} -o ${PROG_NAME}_dbg_ub ${LDFLAGS} ${LINKIN}
+# asan/ubsan builds
+	$(Q)${CC} ${CFLAGS_DBG_ASAN} ${OBJS_ASAN} -o ${PROG_NAME}_dbg_asan ${LDFLAGS} ${LINKIN}
+	$(Q)${CC} ${CFLAGS_DBG_UB} ${OBJS_UB} -o ${PROG_NAME}_dbg_ub ${LDFLAGS} ${LINKIN}
 # GCC doesn't support MSAN, clang does
 	# Build MSAN debug binary only when using clang; compile directly from sources
-	@if echo "$(CC)" | grep -q clang; then \
+	$(Q)if echo "$(CC)" | grep -q clang; then \
 		$(CC) ${CFLAGS_DBG_MSAN} $(SRCS) -o ${PROG_NAME}_dbg_msan ${LDFLAGS} ${LINKIN}; \
 	else \
 		printf '%b\n' '--- MSAN build skipped (CC is not clang, gcc does not support MSAN) ---'; \
 	fi
-	${CC} ${CFLAGS_DBG_LSAN} ${OBJS_LSAN} -o ${PROG_NAME}_dbg_lsan ${LDFLAGS} ${LINKIN}
+# lsan build
+	$(Q)${CC} ${CFLAGS_DBG_LSAN} ${OBJS_LSAN} -o ${PROG_NAME}_dbg_lsan ${LDFLAGS} ${LINKIN}
 # ThreadSanitizer (TSan):
 # For clang ver < 18.1.0 (Mar '24), need to set vm.mmap_rnd_bits sysctl to 28 (default is 32)
 # else it bombs on execution (ref: https://stackoverflow.com/a/77856955/779269)
@@ -329,7 +348,7 @@ debug: ${OBJS_DBG} ${OBJS_ASAN} ${OBJS_UB} ${OBJS_LSAN} ${OBJS_TSAN}
 			echo "Unable to determine clang version; skipping vm.mmap_rnd_bits tweak"; \
 		fi; \
 	fi
-	${CC} ${CFLAGS_DBG_TSAN} ${OBJS_TSAN} -o ${PROG_NAME}_dbg_tsan ${LDFLAGS} ${LINKIN}
+	$(Q)${CC} ${CFLAGS_DBG_TSAN} ${OBJS_TSAN} -o ${PROG_NAME}_dbg_tsan ${LDFLAGS} ${LINKIN}
 
 
 #--------------- More (useful) targets! -------------------------------
