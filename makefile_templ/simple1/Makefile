@@ -33,7 +33,7 @@
 ## (where <foo> is the program name) as desired.
 ALL :=  prod prod_2part
 
-###
+#----------------- User configurable section ---------------------------------
 # Update as required
 # Set the program name (executable name) here:
 PROG_NAME := demo1
@@ -43,14 +43,25 @@ PROG_NAME := demo1
 #  SRCS := main.c helper.c utils.c
 #  SRCS := src/main.c src/helper.c src/utils.c
 SRCS := main.c s2.c audio/s4.c engine/s3.c
+#----------------- END User configurable section ------------------------------
+#----------------- Typically no need to change anything below this line -------
 
 # Automatically generate object file names from source files
 OBJS := $(SRCS:.c=.o)
 
-
-#----------------- Typically no need to change below this line -----------------
 # For coverage builds, we need alternate object file names
 OBJS_GCOV := $(SRCS:.c=.gcov.o)
+
+# ANSI color sequences for pretty messages (use with printf '%b')
+BOLD_ESC := $(shell printf '\\033')
+ESC := $(BOLD_ESC)
+BOLD := $(ESC)[1m
+RED := $(ESC)[31m
+GREEN := $(ESC)[32m
+YELLOW := $(ESC)[33m
+BLUE := $(ESC)[34m
+BG_RED := $(ESC)[41m
+RESET := $(ESC)[0m
 
 #--- CHECK: manually add params as required
 # Populate any required cmdline arguments to the process here:
@@ -74,7 +85,7 @@ endif
 # If required, the below 2 lines can be uncommented to force GCC as the compiler
 #CC := ${CROSS_COMPILE}gcc
 #LINKIN := -static-libasan
-$(info Compiler set to $(CC); LINKIN = $(LINKIN))
+## Compiler info will be printed at runtime by the `all` recipe
 
 STRIP=${CROSS_COMPILE}strip
 STRIP_SPEC=--strip-unneeded
@@ -117,7 +128,7 @@ WARN = -Wall -Wextra -Wstack-protector -Wformat -Werror=format-security
 WARN_MORE = ${WARN} -Wpedantic #-Werror
 CFLAGS = -UDEBUG ${WARN} ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} \
 	${SECURITY_CFLAGS}
-$(info -- CFLAGS = $(CFLAGS))
+## CFLAGS printed at runtime by the `all` recipe
 CFLAGS_DBG = -DDEBUG -g -ggdb -gdwarf-4 -O$(DEBUG_OPTLEVEL) \
 	$(WARN) ${WARN_MORE} -fno-omit-frame-pointer \
 	${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} \
@@ -126,7 +137,7 @@ CFLAGS_DBG = -DDEBUG -g -ggdb -gdwarf-4 -O$(DEBUG_OPTLEVEL) \
 	-fcf-protection \
 	-fsanitize=signed-integer-overflow -fsanitize-undefined-trap-on-error
 #	${SECURITY_CFLAGS}
-$(info -- CFLAGS_DBG = $(CFLAGS_DBG))
+## CFLAGS_DBG printed at runtime by the `all` recipe
 
 # Optimization level for debug binaries: -Og vs -O0
 # man gcc
@@ -163,14 +174,18 @@ LDFLAGS = ${LDFLAGS1} ${LDFLAGS2}
 # For Windows add:
 # -Wl,dynamicbase : tell linker to use ASLR protection
 # -Wl,nxcompat : tell linker to use DEP protection
-$(info -- LDFLAGS = $(LDFLAGS))
+.PHONY: all
+all:
+	@printf '%b\n' '$(BOLD)$(BLUE)LDFLAGS = $(LDFLAGS)$(RESET)'
+	@printf '%b\n' '$(BOLD)$(GREEN)CFLAGS = $(CFLAGS)$(RESET)'
+	@printf '%b\n\n' '$(BOLD)$(BLUE)CFLAGS_DBG = $(CFLAGS_DBG)$(RESET)'
+	@$(MAKE) ${ALL}
 
 # glibc >= 2.34, libpthread is a part of it; hence were not required to link
 # with -pthread any longer
 #LINK=  #-pthread
 
 # Required vars
-all: ${ALL}
 SRC_FILES := *.[ch]
 INDENT := indent
 CLANGTIDY := clang-tidy
@@ -226,12 +241,11 @@ OBJS_LSAN := $(SRCS:.c=.lsan.o)
 OBJS_TSAN := $(SRCS:.c=.tsan.o)
 OBJS_GCOV := $(SRCS:.c=.gcov.o)
 
+
 prod: ${OBJS}
 	@echo
-	@echo -n "\e[1m\e[41m"
-	@echo "--- Building 'production'-ready target (-O${PROD_OPTLEVEL}, no debug, stripped) ---"
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- Building production-ready target (-O${PROD_OPTLEVEL}, no debug, stripped) ---$(RESET)'
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
-	@echo -n "\e[0m"
 	@echo
 	${CC} ${CFLAGS} ${OBJS} -o ${PROG_NAME} ${LDFLAGS}
 	${STRIP} $(STRIP_SPEC) ./${PROG_NAME}
@@ -241,10 +255,8 @@ prod: ${OBJS}
 # from the 'debug' binary!
 prod_2part: ${OBJS}
 	@echo
-	@echo -n "\e[1m\e[41m"
-	@echo "--- Building 'production'-ready 2-part target (-O${PROD_OPTLEVEL}, no debug, strip-debug) ---"
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- Building production-ready 2-part target (-O${PROD_OPTLEVEL}, no debug, strip-debug) ---$(RESET)'
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
-	@echo -n "\e[0m"
 	@echo
 # We require the 'debug' build for the 2part, so do that first
 	make --ignore-errors debug
@@ -262,12 +274,11 @@ prod_2part: ${OBJS}
 # When using clang on Debian/Fedora-type distros, use -static-libsan (LINKIN is
 # set to this value); with GCC, and on Fedora-type distros, other libraries
 # (libasan, libubsan, liblsan) are required (pkg: lib<name>-<gcc ver>-...)
+
 debug: ${OBJS_DBG} ${OBJS_ASAN} ${OBJS_UB} ${OBJS_LSAN} ${OBJS_TSAN}
 	@echo
-	@echo -n "\e[1m\e[41m"
-	@echo "--- Building 'debug'-ready targets (with debug symbolic info, not stripped) ---"
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- Building debug-ready targets (with debug symbolic info, not stripped) ---$(RESET)'
 	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
-	@echo -n "\e[0m"
 	@echo
 	${CC} ${CFLAGS_DBG} ${OBJS_DBG} -o ${PROG_NAME}_dbg ${LDFLAGS}
 #-- Sanitizers (use clang or GCC)
@@ -318,18 +329,14 @@ ifeq (, $(shell which ${INDENT}))
 	$(warning === WARNING! ${INDENT} not installed; consider doing 'sudo apt install indent' or equivalent ===)
 else
 	make clean
-	@echo -n "\e[1m\e[41m"
-	@echo "--- applying Linux kernel code-style indentation with indent ---"
-	@echo -n "\e[0m"
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- applying Linux kernel code-style indentation with indent ---$(RESET)'
 	-${INDENT} -linux ${SRC_FILES}
 	# Backup files auto-created with ~ suffix
 endif
 
 checkpatch:
 	make clean
-	@echo -n "\e[1m\e[41m"
-	@echo "--- applying Linux kernel code-style checking with checkpatch.pl ---"
-	@echo -n "\e[0m"
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- applying Linux kernel code-style checking with checkpatch.pl ---$(RESET)'
 	-${CHECKPATCH} -f --no-tree --max-line-length=95 ${SRC_FILES}
 
 # sa : "wrapper" target over the following static analyzer targets
@@ -344,9 +351,7 @@ ifeq (, $(shell which ${CLANGTIDY}))
 	$(warning === WARNING! ${CLANGTIDY} not installed; consider doing 'sudo apt install clang-tidy' or equivalent ===)
 else
 	make clean
-	@echo -n "\e[1m\e[41m"
-	@echo "--- static analysis with clang-tidy ---"
-	@echo -n "\e[0m"
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- static analysis with clang-tidy ---$(RESET)'
 	-CHECKS_ON="-*,clang-analyzer-*,bugprone-*,cert-*,concurrency-*,performance-*,portability-*,linuxkernel-*,readability-*,misc-*"; CHECKS_OFF="-clang-analyzer-cplusplus*,-misc-include-cleaner,-readability-identifier-length,-readability-braces-around-statements" ; ${CLANGTIDY} -header-filter=.* --use-color *.[ch] -checks=$$CHECKS_ON,$$CHECKS_OFF
 endif
 
@@ -356,9 +361,7 @@ ifeq (, $(shell which ${FLAWFINDER}))
 	$(warning === WARNING! ${FLAWFINDER} not installed; consider doing 'sudo apt install flawfinder' or equivalent ===)
 else
 	make clean
-	@echo -n "\e[1m\e[41m"
-	@echo "--- static analysis with flawfinder ---"
-	@echo -n "\e[0m"
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- static analysis with flawfinder ---$(RESET)'
 	-${FLAWFINDER} --neverignore --context *.[ch]
 endif
 
@@ -368,9 +371,7 @@ ifeq (, $(shell which ${CPPCHECK}))
 	$(warning === WARNING! ${CPPCHECK} not installed; consider doing 'sudo apt install cppcheck' or equivalent ===)
 else
 	make clean
-	@echo -n "\e[1m\e[41m"
-	@echo "--- static analysis with cppcheck ---"
-	@echo -n "\e[0m"
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- static analysis with cppcheck ---$(RESET)'
 	-${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
 endif
 
@@ -381,9 +382,7 @@ ifeq (, $(shell which ${VALGRIND}))
 	$(warning === WARNING! ${VALGRIND} not installed; consider doing 'sudo apt install valgrind' or equivalent ===)
 else
 	make --ignore-errors debug
-	@echo -n "\e[1m\e[41m"
-	@echo "--- dynamic analysis with Valgrind memcheck ---"
-	@echo -n "\e[0m"
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- dynamic analysis with Valgrind memcheck ---$(RESET)'
 #--- CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
 	@if test -z "${CMDLINE_ARGS}"; then echo -n "\e[1m\e[31m" ; echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test via Valgrind ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; echo -n "\e[0m" ; fi
 	-${VALGRIND} --tool=memcheck --trace-children=yes ./${PROG_NAME}_dbg ${CMDLINE_ARGS}
@@ -392,9 +391,7 @@ endif
 # dynamic analysis with the Sanitizer tooling
 san:
 	make --ignore-errors debug
-	@echo -n "\e[1m\e[41m"
-	@echo "--- dynamic analysis with the Address Sanitizer (ASAN) ---"
-	@echo -n "\e[0m"
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- dynamic analysis with the Address Sanitizer (ASAN) ---$(RESET)'
 	@if test -z "${CMDLINE_ARGS}"; then echo -n "\e[1m\e[31m" ; echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${PROG_NAME}_dbg_asan ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; echo -n "\e[0m" ; fi
 	-./${PROG_NAME}_dbg_asan ${CMDLINE_ARGS}
 
