@@ -42,6 +42,8 @@ PROG_NAME := demo1
 # Examples:
 #  SRCS := main.c helper.c utils.c
 #  SRCS := src/main.c src/helper.c src/utils.c
+# If appropriate, can do:
+#SRCS := $(wildcard *.c)
 SRCS := main.c s2.c audio/s4.c engine/s3.c
 
 #--- CHECK: manually add params as required
@@ -178,7 +180,10 @@ LDFLAGS = ${LDFLAGS1} ${LDFLAGS2}
 # For Windows add:
 # -Wl,dynamicbase : tell linker to use ASLR protection
 # -Wl,nxcompat : tell linker to use DEP protection
-.PHONY: all
+.DEFAULT_GOAL := all
+.PHONY: all prod prod_2part debug covg clean clean_lcov help \
+	code-style indent checkpatch sa sa_clangtidy sa_flawfinder sa_cppcheck \
+	valgrind san test package
 all:
 	@printf '%b\n' '$(BOLD)$(GREEN)Compiler = $(CC)$(RESET)'
 	@printf '%b\n' '$(BOLD)$(BLUE)LDFLAGS = $(LDFLAGS)$(RESET)'
