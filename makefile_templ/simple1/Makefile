@@ -548,31 +548,19 @@ test:
 #  make runtest        # like run but fails the build if program returns non-zero
 run: debug
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- Running ${PROG_NAME}_dbg ---$(RESET)'
-	@if [ "$(CI)" = "1" ]; then \
-		if command -v timeout >/dev/null 2>&1; then \
-			timeout $(TIMEOUT) ./$(PROG_NAME)_dbg $(CMDLINE_ARGS); \
-		else \
-			echo "Warning: 'timeout' not found; running without timeout"; ./$(PROG_NAME)_dbg $(CMDLINE_ARGS); \
-		fi; \
-	else \
-		./$(PROG_NAME)_dbg $(CMDLINE_ARGS); \
-	fi
+	@printf '>>> %s\n' "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"
+	# Need the command in a single line for it to work correctly
+	@if [ "$(CI)" = "1" ] && command -v timeout >/dev/null 2>&1; then timeout $(TIMEOUT) sh -c "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"; elif [ "$(CI)" = "1" ]; then echo "Warning: 'timeout' not found; running without timeout"; sh -c "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"; else sh -c "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"; fi
 
 runtest: debug
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- Running test: ${PROG_NAME}_dbg ---$(RESET)'
-	@if [ "$(CI)" = "1" ]; then \
-		if command -v timeout >/dev/null 2>&1; then \
-			timeout $(TIMEOUT) ./$(PROG_NAME)_dbg $(CMDLINE_ARGS); rc=$$?; \
-		else \
-			./$(PROG_NAME)_dbg $(CMDLINE_ARGS); rc=$$?; \
-		fi; \
-	else \
-		./$(PROG_NAME)_dbg $(CMDLINE_ARGS); rc=$$?; \
-	fi; \
-	if [ $$rc -ne 0 ]; then echo "*** runtest: FAILED (exit $$rc)" >&2; exit $$rc; else echo "*** runtest: PASSED"; fi
+	@printf '>>> %s\n' "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"
+	# Need the command in a single line for it to work correctly
+	@if [ "$(CI)" = "1" ] && command -v timeout >/dev/null 2>&1; then timeout $(TIMEOUT) sh -c "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"; rc=$$?; elif [ "$(CI)" = "1" ]; then sh -c "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"; rc=$$?; else sh -c "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"; rc=$$?; fi; if [ $$rc -ne 0 ]; then echo "*** runtest: FAILED (exit $$rc)" >&2; exit $$rc; else echo "*** runtest: PASSED"; fi
+
 
 # packaging
-	package:
+package:
 		@printf '%b\n' '$(BOLD)$(BG_RED)--- packaging ---$(RESET)'
 	rm -f ../${PKG_NAME}.tar.xz
 	make clean
