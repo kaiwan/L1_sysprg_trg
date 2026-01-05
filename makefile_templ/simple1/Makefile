@@ -125,7 +125,8 @@ LTRACE_ENABLE=-z lazy
 PROD_OPTLEVEL=3
   # -O<N>; for production N is typically 1, 2, 3 or s (optimize for speed & size);
   #  in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
-DEBUG_OPTLEVEL=0  # g
+DEBUG_OPTLEVEL=0
+  # g
   # -O<N>; for debug N is typically 0 or g; see comments below re: -Og vs -O0
 
 #--- Security-related compiler flags !
@@ -277,7 +278,7 @@ OBJS_GCOV := $(patsubst %.c,$(OBJDIR)/%.gcov.o,$(SRCS))
 prod: ${OBJS}
 	@printf '\n'
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- Building production-ready target (-O${PROD_OPTLEVEL}, no debug, stripped) ---$(RESET)'
-	@printf '%s\n' " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
+	@printf '%s\n' 'NPTL version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)'
 	@printf '\n'
 	$(Q)${CC} ${CFLAGS} ${OBJS} -o ${PROG_NAME} ${LDFLAGS}
 	$(Q)${STRIP} $(STRIP_SPEC) ./${PROG_NAME}
@@ -515,20 +516,20 @@ endif
 # programatically; else, a signal like ^C does abort it BUT make doesn't continue (even
 # when run with --ignore-errors).
 test:
-		@printf '\n'
-		@printf '%b\n' '$(BOLD)$(BG_RED)=== Test All ===$(RESET)'
-		@printf '%s\n' '-------------------------------------------------------------------------------'
-		-make --ignore-errors code-style
-		@printf '%s\n' '-------------------------------------------------------------------------------'
-		-make --ignore-errors sa
-		@printf '%s\n' '-------------------------------------------------------------------------------'
-		-make --ignore-errors valgrind
-		@printf '%s\n' '-------------------------------------------------------------------------------'
-		-make --ignore-errors san
-		@printf '%s\n' '-------------------------------------------------------------------------------'
-		-make --ignore-errors covg
-		@printf '%s\n' '-------------------------------------------------------------------------------'
-		-make --ignore-errors checksec
+	@printf '\n'
+	@printf '%b\n' '$(BOLD)$(BG_RED)=== Test All ===$(RESET)'
+	@printf '%s\n' '-------------------------------------------------------------------------------'
+	-make --ignore-errors code-style
+	@printf '%s\n' '-------------------------------------------------------------------------------'
+	-make --ignore-errors sa
+	@printf '%s\n' '-------------------------------------------------------------------------------'
+	-make --ignore-errors valgrind
+	@printf '%s\n' '-------------------------------------------------------------------------------'
+	-make --ignore-errors san
+	@printf '%s\n' '-------------------------------------------------------------------------------'
+	-make --ignore-errors covg
+	@printf '%s\n' '-------------------------------------------------------------------------------'
+	-make --ignore-errors checksec
 
 # packaging
 	package:
@@ -542,7 +543,7 @@ test:
 	@printf '%s\n' ' do: tar -xvf ${PKG_NAME}.tar.xz --one-top-level'
 
 clean:
-		@printf '%b\n' '$(BOLD)$(BG_RED)--- cleaning ---$(RESET)'
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- cleaning ---$(RESET)'
 	# remove build artifacts in OBJDIR (out-of-source build)
 	rm -rfv $(OBJDIR) || true
 	rm -vf ${ALL_NM} core* vgcore* *.o *.dbg.o *.asan.o *.ub.o *.lsan.o *.msan.o *.tsan.o *.gcov.o *~
@@ -583,7 +584,7 @@ help:
 	@printf '\n'
 	@printf '%b\n' '$(BOLD)$(BLUE)Regular targets::$(RESET)'
 	@printf '%s\n' "  prod      : production build (-O${PROD_OPTLEVEL}, stripped)"
-	@printf '%s\n' "  debug     : debug build (debug symbols, sanitizers, unstripped)"
+	@printf '%s\n' "  debug     : debug build (-O${DEBUG_OPTLEVEL}, debug symbols, sanitizers, unstripped)"
 	@printf '%s\n' "  prod_2part: 2-part production build (requires the debug build)"
 	@printf '\n'
 	@printf '%b\n' '$(BOLD)$(BLUE)Other useful targets::$(RESET)'
