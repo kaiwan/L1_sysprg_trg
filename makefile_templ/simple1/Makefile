@@ -75,12 +75,12 @@ ALL_NM :=  ${PROG_NAME} ${PROG_NAME}_dbg ${PROG_NAME}_dbg_asan ${PROG_NAME}_dbg_
 CC := ${CROSS_COMPILE}gcc
 LINKIN := -static-libasan   # use this lib for ASAN with GCC
 ifeq (, $(shell which clang))
-  @echo -n "\e[1m\e[41m"
-  $(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' or equivalent ===)
-  @echo -n "\e[0m"
+	@printf '%b' '$(BOLD)$(BG_RED)'
+	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' or equivalent ===)
+	@printf '%b' '$(RESET)'
 else
-  CC := clang
-  LINKIN := -static-libsan
+	CC := clang
+	LINKIN := -static-libsan
 endif
 # If required, the below 2 lines can be uncommented to force GCC as the compiler
 #CC := ${CROSS_COMPILE}gcc
@@ -243,10 +243,10 @@ OBJS_GCOV := $(SRCS:.c=.gcov.o)
 
 
 prod: ${OBJS}
-	@echo
+	@printf '\n'
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- Building production-ready target (-O${PROD_OPTLEVEL}, no debug, stripped) ---$(RESET)'
-	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
-	@echo
+	@printf '%s\n' " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
+	@printf '\n'
 	${CC} ${CFLAGS} ${OBJS} -o ${PROG_NAME} ${LDFLAGS}
 	${STRIP} $(STRIP_SPEC) ./${PROG_NAME}
 
@@ -254,10 +254,10 @@ prod: ${OBJS}
 # binary executable that has the ability to retrieve debug symbolic information
 # from the 'debug' binary!
 prod_2part: ${OBJS}
-	@echo
+	@printf '\n'
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- Building production-ready 2-part target (-O${PROD_OPTLEVEL}, no debug, strip-debug) ---$(RESET)'
-	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
-	@echo
+	@printf '%s\n' " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
+	@printf '\n'
 # We require the 'debug' build for the 2part, so do that first
 	make --ignore-errors debug
 	${CC} ${CFLAGS} ${OBJS} -o ${PROG_NAME} ${LDFLAGS}
@@ -275,11 +275,12 @@ prod_2part: ${OBJS}
 # set to this value); with GCC, and on Fedora-type distros, other libraries
 # (libasan, libubsan, liblsan) are required (pkg: lib<name>-<gcc ver>-...)
 
+
 debug: ${OBJS_DBG} ${OBJS_ASAN} ${OBJS_UB} ${OBJS_LSAN} ${OBJS_TSAN}
-	@echo
+	@printf '\n'
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- Building debug-ready targets (with debug symbolic info, not stripped) ---$(RESET)'
-	@echo " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
-	@echo
+	@printf '%s\n' " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
+	@printf '\n'
 	${CC} ${CFLAGS_DBG} ${OBJS_DBG} -o ${PROG_NAME}_dbg ${LDFLAGS}
 #-- Sanitizers (use clang or GCC)
 	${CC} ${CFLAGS_DBG_ASAN} ${OBJS_ASAN} -o ${PROG_NAME}_dbg_asan ${LDFLAGS} ${LINKIN}
@@ -289,7 +290,7 @@ debug: ${OBJS_DBG} ${OBJS_ASAN} ${OBJS_UB} ${OBJS_LSAN} ${OBJS_TSAN}
 	@if echo "$(CC)" | grep -q clang; then \
 		$(CC) ${CFLAGS_DBG_MSAN} $(SRCS) -o ${PROG_NAME}_dbg_msan ${LDFLAGS} ${LINKIN}; \
 	else \
-		echo "--- MSAN build skipped (CC is not clang, gcc doesn't support MSAN) ---"; \
+		printf '%b\n' '--- MSAN build skipped (CC is not clang, gcc does not support MSAN) ---'; \
 	fi
 	${CC} ${CFLAGS_DBG_LSAN} ${OBJS_LSAN} -o ${PROG_NAME}_dbg_lsan ${LDFLAGS} ${LINKIN}
 # ThreadSanitizer (TSan):
@@ -395,21 +396,15 @@ san:
 	@if test -z "${CMDLINE_ARGS}"; then echo -n "\e[1m\e[31m" ; echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${PROG_NAME}_dbg_asan ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; echo -n "\e[0m" ; fi
 	-./${PROG_NAME}_dbg_asan ${CMDLINE_ARGS}
 
-	@echo -n "\e[1m\e[41m"
-	@echo "--- dynamic analysis with the Undefined Behavior Sanitizer (UBSAN) ---"
-	@echo -n "\e[0m"
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- dynamic analysis with the Undefined Behavior Sanitizer (UBSAN) ---$(RESET)'
 	-./${PROG_NAME}_dbg_ub ${CMDLINE_ARGS}
 
-	ifneq (,$(findstring clang,$(CC)))
-	@echo -n "\e[1m\e[41m"
-	@echo "--- dynamic analysis with the Memory Sanitizer (MSAN) ---"
-	@echo -n "\e[0m"
-	-./${PROG_NAME}_dbg_msan ${CMDLINE_ARGS}
-	endif
+		ifneq (,$(findstring clang,$(CC)))
+		@printf '%b\n' '$(BOLD)$(BG_RED)--- dynamic analysis with the Memory Sanitizer (MSAN) ---$(RESET)'
+		-./${PROG_NAME}_dbg_msan ${CMDLINE_ARGS}
+		endif
 
-	@echo -n "\e[1m\e[41m"
-	@echo "--- dynamic analysis with the Thread Sanitizer (TSAN) ---"
-	@echo -n "\e[0m"
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- dynamic analysis with the Thread Sanitizer (TSAN) ---$(RESET)'
 	-./${PROG_NAME}_dbg_tsan ${CMDLINE_ARGS}
 
 # dynamic analysis run with LSan binary not done here (as ASan typically covers leakage)
@@ -417,17 +412,16 @@ san:
 #----- Testing: line coverage with gcov(1), lcov(1)
 # ref: https://backstreetcoder.com/code-coverage-using-gcov-lcov-in-linux/
 covg:
-	@echo -n "\e[1m\e[41m"
-	@echo "=== Code coverage (funcs/lines/branches) with gcov+lcov ==="
-	@echo -n "\e[0m"
+	@printf '%b\n' '$(BOLD)$(BG_RED)=== Code coverage (funcs/lines/branches) with gcov+lcov ===$(RESET)'
 
 ifeq (,$(wildcard /etc/lcovrc))
 	$(error ERROR: install lcov first)
 endif
 # Set up the ~/.lcovrc to include branch coverage
 # ref: https://stackoverflow.com/questions/12360167/generating-branch-coverage-data-for-lcov
+
 ifneq (,$(wildcard ~/.lcovrc))
-	@echo "~/.lcovrc in place"
+	@printf '%s\n' '~/.lcovrc in place'
 else
 	cp /etc/lcovrc ~/.lcovrc
 	sed -i 's/^#genhtml_branch_coverage = 1/genhtml_branch_coverage = 1/' ~/.lcovrc
@@ -440,10 +434,8 @@ endif
 #--- Build for coverage testing; this generates the binary executable named
 # ${PROG_NAME}_covg and the .gcno ('notes') files as well
 	make clean
-	@echo "___"
-	@echo -n "\e[1m\e[41m"
-	@echo "> Forcing compiler to GCC for coverage, as gcov/lcov seem to require it"
-	@echo -n "\e[0m"
+	@printf '%s\n' '___'
+	@printf '%b\n' '$(BOLD)$(BG_RED)> Forcing compiler to GCC for coverage, as gcov/lcov seem to require it$(RESET)'
 	$(eval CC := gcc)
 	# For coverage analysis, gcov/lcov seems to require compilation via GCC (not clang)
 	# Ensure coverage object files are built first
@@ -454,9 +446,7 @@ endif
 	${CC} ${CFLAGS_GCOV} ${OBJS_GCOV} -o ${PROG_NAME}_gcov ${LDFLAGS}
 	@if test -z "${CMDLINE_ARGS}"; then echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${PROG_NAME}_gcov ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; fi
 
-	@echo -n "\e[1m\e[41m"
-	@echo "-------------- Running via our wrapper ${LCOV_SCRIPT} --------------"
-	@echo -n "\e[0m"
+	@printf '%b\n' '$(BOLD)$(BG_RED)-------------- Running via our wrapper ${LCOV_SCRIPT} --------------$(RESET)'
 	-${LCOV_SCRIPT} ${PROG_NAME}_gcov ${CMDLINE_ARGS}
 # lcov_gen.sh Notes:
 #  - If you want a cumulative / merged code coverage report, run your next coverage
@@ -489,40 +479,34 @@ endif
 # programatically; else, a signal like ^C does abort it BUT make doesn't continue (even
 # when run with --ignore-errors).
 test:
-	@echo
-	@echo -n "\e[1m\e[41m"
-	@echo "=== Test All ==="
-	@echo -n "\e[0m"
-	@echo "-------------------------------------------------------------------------------"
-	-make --ignore-errors code-style
-	@echo "-------------------------------------------------------------------------------"
-	-make --ignore-errors sa
-	@echo "-------------------------------------------------------------------------------"
-	-make --ignore-errors valgrind
-	@echo "-------------------------------------------------------------------------------"
-	-make --ignore-errors san
-	@echo "-------------------------------------------------------------------------------"
-	-make --ignore-errors covg
-	@echo "-------------------------------------------------------------------------------"
-	-make --ignore-errors checksec
+		@printf '\n'
+		@printf '%b\n' '$(BOLD)$(BG_RED)=== Test All ===$(RESET)'
+		@printf '%s\n' '-------------------------------------------------------------------------------'
+		-make --ignore-errors code-style
+		@printf '%s\n' '-------------------------------------------------------------------------------'
+		-make --ignore-errors sa
+		@printf '%s\n' '-------------------------------------------------------------------------------'
+		-make --ignore-errors valgrind
+		@printf '%s\n' '-------------------------------------------------------------------------------'
+		-make --ignore-errors san
+		@printf '%s\n' '-------------------------------------------------------------------------------'
+		-make --ignore-errors covg
+		@printf '%s\n' '-------------------------------------------------------------------------------'
+		-make --ignore-errors checksec
 
 # packaging
-package:
-	@echo -n "\e[1m\e[41m"
-	@echo "--- packaging ---"
-	@echo -n "\e[0m"
+	package:
+		@printf '%b\n' '$(BOLD)$(BG_RED)--- packaging ---$(RESET)'
 	rm -f ../${PKG_NAME}.tar.xz
 	make clean
 	tar caf ../${PKG_NAME}.tar.xz *
 	ls -l ../${PKG_NAME}.tar.xz
-	@echo "=== $(PKG_NAME).tar.xz package created ==="
-	@echo 'Tip: when extracting, to extract into a dir of the same name as the tar file,'
-	@echo ' do: tar -xvf ${PKG_NAME}.tar.xz --one-top-level'
+	@printf '%s\n' '=== $(PKG_NAME).tar.xz package created ==='
+	@printf '%s\n' 'Tip: when extracting, to extract into a dir of the same name as the tar file,'
+	@printf '%s\n' ' do: tar -xvf ${PKG_NAME}.tar.xz --one-top-level'
 
 clean:
-	@echo -n "\e[1m\e[41m"
-	@echo "--- cleaning ---"
-	@echo -n "\e[0m"
+		@printf '%b\n' '$(BOLD)$(BG_RED)--- cleaning ---$(RESET)'
 	rm -vf ${ALL_NM} core* vgcore* *.o *.dbg.o *.asan.o *.ub.o *.lsan.o *.msan.o *.tsan.o *.gcov.o *~
 # rm some of the code coverage metadata
 	rm -rfv ${PROG_NAME}_gcov *.[ch].gcov *.gcda *.gcno *.info
@@ -542,101 +526,31 @@ clean:
 
 clean_lcov:
 	make clean
-	@echo -n "\e[1m\e[41m"
-	@echo "--- cleaning LCOV metadata ---"
-	@echo -n "\e[0m"
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- cleaning LCOV metadata ---$(RESET)'
 	# NOTE! depedency on the lcov_gen.sh script, on these folder names
 	rm -rvf 0lcov_meta/  lcov_merged_html/  lcov_onerun_html/
 
+
+
 help:
-	@echo -n "\e[1m\e[41m"
-	@echo '=== Makefile Help : additional targets available ==='
-	@echo -n "\e[0m"
-	@echo
-	@echo 'This Makefile supports building C programs with multiple source files.'
-	@echo 'To use:'
-	@echo '  1. Set PROG_NAME to your program name (default: killer)'
-	@echo '  2. Set SRCS to your list of source files (default: killer.c)'
-	@echo '     Example: SRCS := src/main.c src/helper.c util/utils.c'
-	@echo '  3. Object files are automatically compiled with proper dependencies'
-	@echo
-	@echo 'For advanced multi-directory projects, consider the'
-	@echo '<src>/makefile_templ/hdr_var/Makefile template.'
-	@echo
-	@echo 'TIP: type make <tab><tab> to show all valid targets'
-	@echo
-
-	@echo -n "\e[1m\e[34m"
-	@echo 'Regular targets ::'
-	@echo -n "\e[0m"
-	@echo ' 1. 'prod'  : regular production target: -O${PROD_OPTLEVEL}, no debug symbolic info, stripped'
-	@echo ' 2. 'debug' : -Og, debug symbolic info (-g -ggdb), not stripped. Generates the regular debug build, debug+ASAN, debug+UB, debug+LSAN, debug+MSAN builds'
-	@echo ' 3. 'prod_2part': production target : -O${PROD_OPTLEVEL}, no debug symbolic info, strip-debug; \
-    Excellent for production as it gives ability to debug as and when required! \
-    (shown as third option as it *requires* the 'debug' build as a step'
-	@echo
-	@echo 'Doing a 'make' will build all three shown above.'
-
-	@echo
-	@echo -n "\e[1m\e[34m"
-	@echo '--- code style targets ---'
-	@echo -n "\e[0m"
-	@echo 'code-style : "wrapper" target over the following kernel code style targets'
-	@echo ' indent     : run the $(INDENT) utility on source file(s) to indent them as per the kernel code style'
-	@echo ' checkpatch : run the kernel code style checker tool on source file(s)'
-
-	@echo
-	@echo -n "\e[1m\e[34m"
-	@echo '--- static analyzer targets ---'
-	@echo -n "\e[0m"
-	@echo 'sa          : "wrapper" target over the following static analyzer targets'
-	@echo ' sa_clangtidy  : run the static analysis clang-tidy tool on the source file(s)'
-	@echo ' sa_flawfinder : run the static analysis flawfinder tool on the source file(s)'
-	@echo ' sa_cppcheck   : run the static analysis cppcheck tool on the source file(s)'
-
-	@echo
-	@echo -n "\e[1m\e[34m"
-	@echo '--- dynamic analysis targets ---'
-	@echo -n "\e[0m"
-	@echo ' valgrind   : run the dynamic analysis tool ($(VALGRIND)) on the binary executable'
-	@echo ' san        : run dynamic analysis via ASAN, UBSAN, MSAN and TSAN tooling on the binary executable'
-
-	@echo
-	@echo -n "\e[1m\e[34m"
-	@echo '--- code coverage ---'
-	@echo -n "\e[0m"
-	@echo ' covg       : run the gcov+lcov code coverage tooling on the source (generates html output!). NOTE: this target requires our ${LCOV_SCRIPT} wrapper script installed (location: https://github.com/kaiwan/usefulsnips/blob/master/lcov_gen.sh)'
-	@echo " Note: Special case wrt the 'clean' target and the code coverage target (covg):"
-	@echo "  It deliberately does NOT delete the LCOV metadata, intermediate and final LCOV coverage"
-	@echo "  report folders - the ones named 0lcov_meta/, lcov_onerun_html/ and lcov_merged_html/ resp,"
-	@echo "  as they're required to generate a merged / cumulative code coverage report."
-	@echo " To start code coverage analysis from scratch, you can either:"
-	@echo " - invoke the special 'make clean_lcov' (it manually delete these 3 folders), OR,"
-	@echo " - change the invocation of the lcov_gen.sh script in the Makefile, passing the -r option"
-
-	@echo
-	@echo -n "\e[1m\e[34m"
-	@echo '--- security: checksec target ---'
-	@echo -n "\e[0m"
-	@echo ' checksec   : run the checksec Bash script on the binary executable'
-
-	@echo
-	@echo -n "\e[1m\e[34m"
-	@echo '--- TEST all ---'
-	@echo -n "\e[0m"
-	@echo ' test       : run all targets (it runs them in this order): code-style, sa, valgrind, san, covg'
-	@echo '              Tip: run "make -i test > out 2>&1" to save all output to a file "out".'
-	@echo '                             -i = --ignore-errors'
-
-	@echo
-	@echo -n "\e[1m\e[34m"
-	@echo '--- misc targets ---'
-	@echo -n "\e[0m"
-	@echo ' clean      : cleanup - remove all the binaries, core files, etc'
-	@echo '              See special note wrt code coverage'
-	@echo ' clean_lcov : cleanup the LCOV metadata folders; implies code coverage starts from scratch'
-	@echo ' package    : tar and compress the source files into the dir above'
-	@echo '  Tip: when extracting, to extract into a dir of the same name as the tar file, do:'
-	@echo '       tar -xvf ${PKG_NAME}.tar.xz --one-top-level'
-
-	@echo ' help       : this 'help' target'
+	@printf '%b\n' '$(BOLD)$(BG_RED)=== Makefile Help : additional targets available ===$(RESET)'
+	@printf '\n'
+	@printf '%s\n' 'This Makefile supports building C programs with multiple source files.'
+	@printf '%s\n' 'To use:'
+	@printf '%s\n' '  1. Set `PROG_NAME` to your program name (default: demo1)'
+	@printf '%s\n' '  2. Set `SRCS` to your list of source files (e.g. main.c s2.c audio/s4.c)'
+	@printf '%s\n' '  3. Object files are automatically compiled with proper dependencies'
+	@printf '\n'
+	@printf '%s\n' 'TIP: type make <tab><tab> to show all valid targets'
+	@printf '\n'
+	@printf '%b\n' '$(BOLD)$(BLUE)Regular targets::$(RESET)'
+	@printf '%s\n' "  prod      : production build (-O${PROD_OPTLEVEL}, stripped)"
+	@printf '%s\n' "  debug     : debug build (debug symbols, sanitizers, unstripped)"
+	@printf '%s\n' "  prod_2part: 2-part production build (requires the debug build)"
+	@printf '\n'
+	@printf '%b\n' '$(BOLD)$(BLUE)Other useful targets::$(RESET)'
+	@printf '%s\n' "  covg      : generate coverage via gcov+lcov (this Makefile forces GCC for covg)"
+	@printf '%s\n' "  sa        : static analysis (clang-tidy, flawfinder, cppcheck)"
+	@printf '%s\n' "  valgrind  : run valgrind (after debug build)"
+	@printf '%s\n' "  clean     : clean outputs"
+	@printf '\n'
