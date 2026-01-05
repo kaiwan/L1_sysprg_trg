@@ -321,16 +321,9 @@ else
 	@echo -n "\e[1m\e[41m"
 	@echo "--- applying Linux kernel code-style indentation with indent ---"
 	@echo -n "\e[0m"
-	mkdir bkp 2>/dev/null; cp -f ${SRC_FILES} bkp/
 	-${INDENT} -linux ${SRC_FILES}
+	# Backup files auto-created with ~ suffix
 endif
-# RELOOK
-# !WARNING!
-# I came across this apparent bug in indent when using it on Ubuntu 20.04:
-#  realloc(): invalid next size
-#  Aborted (core dumped)
-# Worse, it TRUNCATED the source file to 0 bytes !!! So backing them up - as we
-# indeed do - is good.
 
 checkpatch:
 	make clean
