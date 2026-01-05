@@ -117,6 +117,7 @@ WARN = -Wall -Wextra -Wstack-protector -Wformat -Werror=format-security
 WARN_MORE = ${WARN} -Wpedantic #-Werror
 CFLAGS = -UDEBUG ${WARN} ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} \
 	${SECURITY_CFLAGS}
+$(info -- CFLAGS = $(CFLAGS))
 CFLAGS_DBG = -DDEBUG -g -ggdb -gdwarf-4 -O$(DEBUG_OPTLEVEL) \
 	$(WARN) ${WARN_MORE} -fno-omit-frame-pointer \
 	${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} \
@@ -125,6 +126,7 @@ CFLAGS_DBG = -DDEBUG -g -ggdb -gdwarf-4 -O$(DEBUG_OPTLEVEL) \
 	-fcf-protection \
 	-fsanitize=signed-integer-overflow -fsanitize-undefined-trap-on-error
 #	${SECURITY_CFLAGS}
+$(info -- CFLAGS_DBG = $(CFLAGS_DBG))
 
 # Optimization level for debug binaries: -Og vs -O0
 # man gcc
@@ -161,7 +163,7 @@ LDFLAGS = ${LDFLAGS1} ${LDFLAGS2}
 # For Windows add:
 # -Wl,dynamicbase : tell linker to use ASLR protection
 # -Wl,nxcompat : tell linker to use DEP protection
-$(info LDFLAGS = $(LDFLAGS))
+$(info -- LDFLAGS = $(LDFLAGS))
 
 # glibc >= 2.34, libpthread is a part of it; hence were not required to link
 # with -pthread any longer
