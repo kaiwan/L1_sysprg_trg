@@ -204,7 +204,7 @@ DESTDIR ?=
 .DEFAULT_GOAL := all
 .PHONY: all prod prod_2part debug covg clean clean_lcov help \
 	install uninstall code-style indent checkpatch sa sa_clangtidy sa_flawfinder sa_cppcheck \
-	valgrind san test package
+	valgrind san test package distclean run runtest
 all:
 	@printf '%b\n' '$(BOLD)$(GREEN)Compiler    = $(CC)$(RESET)'
 	@printf '%b\n' '$(BOLD)$(BLUE)LDFLAGS     = $(LDFLAGS)$(RESET)'
@@ -233,6 +233,10 @@ GENINFO := geninfo
 GENHTML := genhtml
 LCOV_SCRIPT := lcov_gen.sh
 CHECKSEC := checksec
+
+# CI-friendly run options
+CI ?= 1
+TIMEOUT ?= 10
 
 # Targets and their rules
 # Three types:
@@ -537,6 +541,36 @@ test:
 	@printf '%s\n' '-------------------------------------------------------------------------------'
 	-make --ignore-errors checksec
 
+# Simple run/test harness
+# Usage:
+#  make run            # runs ./${PROG_NAME}_dbg with $(CMDLINE_ARGS)
+#  make CI=1 run       # CI-friendly: uses `timeout` with TIMEOUT seconds (default 10)
+#  make runtest        # like run but fails the build if program returns non-zero
+run: debug
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- Running ${PROG_NAME}_dbg ---$(RESET)'
+	@if [ "$(CI)" = "1" ]; then \
+		if command -v timeout >/dev/null 2>&1; then \
+			timeout $(TIMEOUT) ./$(PROG_NAME)_dbg $(CMDLINE_ARGS); \
+		else \
+			echo "Warning: 'timeout' not found; running without timeout"; ./$(PROG_NAME)_dbg $(CMDLINE_ARGS); \
+		fi; \
+	else \
+		./$(PROG_NAME)_dbg $(CMDLINE_ARGS); \
+	fi
+
+runtest: debug
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- Running test: ${PROG_NAME}_dbg ---$(RESET)'
+	@if [ "$(CI)" = "1" ]; then \
+		if command -v timeout >/dev/null 2>&1; then \
+			timeout $(TIMEOUT) ./$(PROG_NAME)_dbg $(CMDLINE_ARGS); rc=$$?; \
+		else \
+			./$(PROG_NAME)_dbg $(CMDLINE_ARGS); rc=$$?; \
+		fi; \
+	else \
+		./$(PROG_NAME)_dbg $(CMDLINE_ARGS); rc=$$?; \
+	fi; \
+	if [ $$rc -ne 0 ]; then echo "*** runtest: FAILED (exit $$rc)" >&2; exit $$rc; else echo "*** runtest: PASSED"; fi
+
 # packaging
 	package:
 		@printf '%b\n' '$(BOLD)$(BG_RED)--- packaging ---$(RESET)'
@@ -579,12 +613,28 @@ clean:
 	  echo "-----------------------------------------------------------------------------------" ;\
 	fi
 
-clean_lcov:
-	make clean
-	@printf '%b\n' '$(BOLD)$(BG_RED)--- cleaning LCOV metadata ---$(RESET)'
-	# NOTE! depedency on the lcov_gen.sh script, on these folder names
-	rm -rvf 0lcov_meta/  lcov_merged_html/  lcov_onerun_html/
 
+distclean: clean_lcov
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- distclean: removing all generated artifacts ---$(RESET)'
+	# remove object dir and build intermediates
+	rm -rfv $(OBJDIR) || true
+	# remove built binaries and intermediates
+	rm -vf ${ALL_NM} core* vgcore* *.o *.dbg.o *.asan.o *.ub.o *.lsan.o *.msan.o *.tsan.o *.gcov.o *~ || true
+	# remove packaging
+	rm -fv ../${PKG_NAME}.tar.xz || true
+	# remove Makefile backups created by helper script
+	rm -vf Makefile.bak.* || true
+
+clean_lcov:
+	# Fully wipe coverage metadata and generated gcov files
+	$(MAKE) clean
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- wiping LCOV and gcov metadata (full) ---$(RESET)'
+	# Remove lcov gen dirs
+	rm -rvf 0lcov_meta/ lcov_merged_html/ lcov_onerun_html/ || true
+	# Remove gcov/gcov data and llvm coverage artifacts
+	rm -vf *.info *.[ch].gcov *.gcda *.gcno *.profraw *.profdata || true
+	# Remove any remaining coverage html or cache dirs
+	rm -rvf coverage/ cov_html/ .lcov_cache/ || true
 
 
 help:
@@ -610,4 +660,6 @@ help:
 	@printf '%s\n' "  clean     : clean outputs"
 	@printf '%s\n' "  install   : install the built binary to \\$(DESTDIR)\\$(bindir) (use DESTDIR=... prefix=...)"
 	@printf '%s\n' "  uninstall : remove installed binary from \\$(DESTDIR)\\$(bindir)"
+	@printf '%s\n' "  run       : run the debug binary (use CMDLINE_ARGS). CI-friendly: make CI=1 TIMEOUT=15 run"
+	@printf '%s\n' "  runtest   : run and fail on non-zero exit (CI-friendly)"
 	@printf '\n'
