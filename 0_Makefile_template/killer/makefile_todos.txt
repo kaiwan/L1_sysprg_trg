@@ -12,7 +12,7 @@ Concise suggestions (pick any to implement):
 - Add header dependency generation (-MMD/-MF + include *.d).
 +  Build objects in a separate `OBJDIR` (out-of-source builds).
 + Declare `.PHONY` targets and make `all` the explicit default.
-- Add a `V=1` / `VERBOSE` toggle for quiet vs verbose builds.
++ Add a `V=1` / `VERBOSE` toggle for quiet vs verbose builds.
 - Add `install`/`uninstall` using `DESTDIR` and `prefix`.
 - Add `distclean` and make `clean_lcov` fully wipe coverage metadata.
 - Add tool presence checks with clear errors/warnings.

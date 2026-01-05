@@ -125,8 +125,7 @@ LTRACE_ENABLE=-z lazy
 PROD_OPTLEVEL=3
   # -O<N>; for production N is typically 1, 2, 3 or s (optimize for speed & size);
   #  in the -D_FORTIFY_SOURCE=N option, you must set N to the same number
-DEBUG_OPTLEVEL=0
-  # g
+DEBUG_OPTLEVEL=0  # g
   # -O<N>; for debug N is typically 0 or g; see comments below re: -Og vs -O0
 
 #--- Security-related compiler flags !
@@ -192,18 +191,12 @@ LDFLAGS1=-Wl,-z,now -Wl,-z,relro
 # -Wl,-z,noexecstack : enable non-executable stack
 LDFLAGS2=-Wl,-z,noexecstack  #, -Wl,-z,noexecheap
 LDFLAGS = ${LDFLAGS1} ${LDFLAGS2}
-
-# Install locations (can be overridden by caller)
-prefix ?= /usr/local
-bindir ?= $(prefix)/bin
-sysconfdir ?= $(prefix)/etc
-DESTDIR ?=
 # For Windows add:
 # -Wl,dynamicbase : tell linker to use ASLR protection
 # -Wl,nxcompat : tell linker to use DEP protection
 .DEFAULT_GOAL := all
 .PHONY: all prod prod_2part debug covg clean clean_lcov help \
-	install uninstall code-style indent checkpatch sa sa_clangtidy sa_flawfinder sa_cppcheck \
+	code-style indent checkpatch sa sa_clangtidy sa_flawfinder sa_cppcheck \
 	valgrind san test package
 all:
 	@printf '%b\n' '$(BOLD)$(GREEN)Compiler    = $(CC)$(RESET)'
@@ -284,7 +277,7 @@ OBJS_GCOV := $(patsubst %.c,$(OBJDIR)/%.gcov.o,$(SRCS))
 prod: ${OBJS}
 	@printf '\n'
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- Building production-ready target (-O${PROD_OPTLEVEL}, no debug, stripped) ---$(RESET)'
-	@printf '%s\n' 'NPTL version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)'
+	@printf '%s\n' " glibc (and NPTL) version: $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
 	@printf '\n'
 	$(Q)${CC} ${CFLAGS} ${OBJS} -o ${PROG_NAME} ${LDFLAGS}
 	$(Q)${STRIP} $(STRIP_SPEC) ./${PROG_NAME}
@@ -548,16 +541,6 @@ test:
 	@printf '%s\n' 'Tip: when extracting, to extract into a dir of the same name as the tar file,'
 	@printf '%s\n' ' do: tar -xvf ${PKG_NAME}.tar.xz --one-top-level'
 
-# Install / Uninstall targets
-install: prod
-	@printf '%b\n' '$(BOLD)$(BG_RED)--- Installing ${PROG_NAME} to $(DESTDIR)$(bindir) ---$(RESET)'
-	@install -d $(DESTDIR)$(bindir)
-	$(Q)install -m 0755 ./${PROG_NAME} $(DESTDIR)$(bindir)/${PROG_NAME}
-
-uninstall:
-	@printf '%b\n' '$(BOLD)$(BG_RED)--- Uninstalling ${PROG_NAME} from $(DESTDIR)$(bindir) ---$(RESET)'
-	$(Q)rm -fv $(DESTDIR)$(bindir)/${PROG_NAME} || true
-
 clean:
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- cleaning ---$(RESET)'
 	# remove build artifacts in OBJDIR (out-of-source build)
@@ -600,7 +583,7 @@ help:
 	@printf '\n'
 	@printf '%b\n' '$(BOLD)$(BLUE)Regular targets::$(RESET)'
 	@printf '%s\n' "  prod      : production build (-O${PROD_OPTLEVEL}, stripped)"
-	@printf '%s\n' "  debug     : debug build (-O${DEBUG_OPTLEVEL}, debug symbols, sanitizers, unstripped)"
+	@printf '%s\n' "  debug     : debug build (debug symbols, sanitizers, unstripped)"
 	@printf '%s\n' "  prod_2part: 2-part production build (requires the debug build)"
 	@printf '\n'
 	@printf '%b\n' '$(BOLD)$(BLUE)Other useful targets::$(RESET)'
@@ -608,6 +591,4 @@ help:
 	@printf '%s\n' "  sa        : static analysis (clang-tidy, flawfinder, cppcheck)"
 	@printf '%s\n' "  valgrind  : run valgrind (after debug build)"
 	@printf '%s\n' "  clean     : clean outputs"
-	@printf '%s\n' "  install   : install the built binary to \\$(DESTDIR)\\$(bindir) (use DESTDIR=... prefix=...)"
-	@printf '%s\n' "  uninstall : remove installed binary from \\$(DESTDIR)\\$(bindir)"
 	@printf '\n'
