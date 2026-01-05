@@ -445,7 +445,12 @@ endif
 	@echo "> Forcing compiler to GCC for coverage, as gcov/lcov seem to require it"
 	@echo -n "\e[0m"
 	$(eval CC := gcc)
-# For coverage analysis, gcov/lcov seems to require compilation via GCC (not clang)
+	# For coverage analysis, gcov/lcov seems to require compilation via GCC (not clang)
+	# Ensure coverage object files are built first
+	# remove any existing coverage object files so they are rebuilt with GCC
+	@rm -f ${OBJS_GCOV} *.gcno *.gcda || true
+	# build coverage object files using the forced CC (pass CC into the sub-make)
+	$(MAKE) CC=$(CC) ${OBJS_GCOV}
 	${CC} ${CFLAGS_GCOV} ${OBJS_GCOV} -o ${PROG_NAME}_gcov ${LDFLAGS}
 	@if test -z "${CMDLINE_ARGS}"; then echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${PROG_NAME}_gcov ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; fi
 
@@ -529,13 +534,14 @@ clean:
 	  echo " report folders - the ones named 0lcov_meta/, lcov_onerun_html/ and lcov_merged_html/ resp," ;\
 	  echo " as they're required to generate a merged or cumulative code coverage report." ;\
 	  echo "So: to start code coverage analysis from scratch, you can either:" ;\
-	  echo "- Invoke the special 'make clean_lcov' (it manually delete these 3 folders)" ;\
+	  echo "- Invoke the special 'make clean_lcov' (it manually deletes these 3 folders)" ;\
 	  echo "  OR" ;\
 	  echo "- Change the invocation of the lcov_gen.sh script in the Makefile, passing the -r option" ;\
 	  echo "-----------------------------------------------------------------------------------" ;\
 	fi
 
 clean_lcov:
+	make clean
 	@echo -n "\e[1m\e[41m"
 	@echo "--- cleaning LCOV metadata ---"
 	@echo -n "\e[0m"
