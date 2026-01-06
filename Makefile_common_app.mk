@@ -71,6 +71,10 @@ STRIP=${CROSS_COMPILE}strip
 POSIX_STD=201112L
 STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE
 
+# Tool defaults (ensure OBJCOPY/READELF are defined for prod_2part verification)
+OBJCOPY ?= ${CROSS_COMPILE}objcopy
+READELF ?= ${CROSS_COMPILE}readelf
+
 # Add this option switch to CFLAGS / CFLAGS_DBG if you want ltrace to work on Ubuntu!
 # (Although ltrace now works fine on recent versions of Ubuntu)
 LTRACE_ENABLE=-z lazy
@@ -276,9 +280,11 @@ prod_2part: ${OBJS}
 # Most IMP, setup the 'debug link' in the release binary, pointing to the debug
 # info file; this, in effect, is the 2part solution!
 # quiet-friendly
+	@printf '%b\n' '$(BOLD)$(BLUE)$(OBJCOPY) --add-gnu-debuglink=./$(PROG_NAME)_dbg ./$(PROG_NAME)$(RESET)'
 	$(Q)${OBJCOPY} --add-gnu-debuglink=./${PROG_NAME}_dbg ./${PROG_NAME}
-# verify it's setup
-	$(Q)${READELF} --debug-dump ./${PROG_NAME} | grep -A2 "debuglink"
+	# verify it's setup (display readelf output in bold blue)
+	@printf '%b\n' '$(BOLD)$(BLUE)--- debuglink info follows ---$(RESET)'
+	$(Q)${READELF} --debug-dump ./${PROG_NAME} | sed -e 's/.*/$(BOLD)$(BLUE)&$(RESET)/' | grep -A2 "debuglink"
 
 # 'debug' target: -Og, debug symbolic info (-g -ggdb), not stripped.
 # Generates the regular debug build, debug+ASAN, debug+UB, debug+LSAN, debug+MSAN builds'
