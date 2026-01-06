@@ -627,14 +627,14 @@ help:
 	@printf '%s\n' "code-style: use the kernel checkpatch.pl script to check code style"
 	@printf '%s\n' "  checkpatch: use the kernel checkpatch.pl script to check code style"
 	@printf '%s\n' "  indent    : use the indent utility to indent the code in the Linux kernel style"
-	@printf '%s\n' " covg      : generate coverage via gcov+lcov (this Makefile forces GCC for covg)"
-	@printf '%s\n' " checksec  : use the checksec script to check security properties of the built binary"
+	@printf '%s\n' "covg      : generate coverage via gcov+lcov (this Makefile forces GCC for covg)"
+	@printf '%s\n' "checksec  : use the checksec script to check security properties of the built binary"
 	@printf '\n'
 	@printf '%s\n' "$(BOLD)$(BLUE)Static analysis::$(RESET)"
 	@printf '%s\n' "  sa           : static analysis via all (clang-tidy, flawfinder, cppcheck)"
 	@printf '%s\n' "  sa_clangtidy : static analysis via clang-tidy"
-	@printf '%s\n' "  sa_flawfinder : static analysis via flawfinder"
-	@printf '%s\n' "  sa_cppcheck : static analysis via cppcheck"
+	@printf '%s\n' "  sa_flawfinder: static analysis via flawfinder"
+	@printf '%s\n' "  sa_cppcheck  : static analysis via cppcheck"
 	@printf '\n'
 	@printf '%b\n' '$(BOLD)$(BLUE)Dynamic analysis::$(RESET)'
 	@printf '%s\n' "  valgrind  : run valgrind (after debug build)"
