@@ -630,22 +630,27 @@ help:
 	@printf '%s\n' " covg      : generate coverage via gcov+lcov (this Makefile forces GCC for covg)"
 	@printf '%s\n' " checksec  : use the checksec script to check security properties of the built binary"
 	@printf '\n'
-	@printf '%s\n' "  sa        : static analysis (clang-tidy, flawfinder, cppcheck)"
+	@printf '%s\n' "$(BOLD)$(BLUE)Static analysis::$(RESET)"
+	@printf '%s\n' "  sa           : static analysis via all (clang-tidy, flawfinder, cppcheck)"
+	@printf '%s\n' "  sa_clangtidy : static analysis via clang-tidy"
+	@printf '%s\n' "  sa_flawfinder : static analysis via flawfinder"
+	@printf '%s\n' "  sa_cppcheck : static analysis via cppcheck"
 	@printf '\n'
-	@printf '%s\n' "Dynamic analysis:"
+	@printf '%b\n' '$(BOLD)$(BLUE)Dynamic analysis::$(RESET)'
 	@printf '%s\n' "  valgrind  : run valgrind (after debug build)"
 	@printf '%s\n' "  san       : run all the Sanitizer debug binaries (ASAN, UBSAN, MSAN, TSAN) (after debug build)"
 	@printf '\n'
-	@printf '%s\n' "Runtime Tests: pl first set the CMDLINE_ARGS variable as required"
+	@printf '%s\n' "$(BOLD)$(BLUE)Runime Tests: pl first set the CMDLINE_ARGS variable as required$(RESET)"
 	@printf '%s\n' "  run       : run the debug binary. CI-friendly: make CI=0 TIMEOUT=15 run"
 	@printf '%s\n' "  runtest   : run and fail on non-zero exit (CI-friendly)"
 	@printf '%s\n' "  test      : run all the targets on debug binaries (code-style, sa, valgrind, san, covg, checksec)"
 	@printf '\n'
-	@printf '%s\n' " clean targets:     "
+	@printf '%s\n' "$(BOLD)$(BLUE)Clean targets::$(RESET)"
 	@printf '%s\n' "  clean     : clean outputs"
 	@printf '%s\n' "  clean_lcov: clean outputs and lcov/gcov metadata"
 	@printf '%s\n' "  distclean : clean everything (including lcov metadata, generated Makefile backups, packaging)"
 	@printf '\n'
+	@printf '%s\n' "$(BOLD)$(BLUE)(Un)Install targets::$(RESET)"
 	@printf '%s\n' "  install   : install the built binary to \$(DESTDIR)\$(bindir) (use DESTDIR=... prefix=...)"
 	@printf '%s\n' "  uninstall : remove installed binary from \$(DESTDIR)\$(bindir)"
 	@printf '\n'
