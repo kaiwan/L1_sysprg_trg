@@ -396,7 +396,7 @@ else
 	make --ignore-errors debug
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- dynamic analysis with Valgrind memcheck ---$(RESET)'
 #--- CHECK: have you populated the above CMDLINE_ARGS var with the required cmdline?
-	@if test -z "${CMDLINE_ARGS}"; then echo -n "\e[1m\e[31m" ; echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test via Valgrind ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; echo -n "\e[0m" ; fi
+	@if test -z "${CMDLINE_ARGS}"; then printf '\n%b\n\n' '$(RED)@@@ (Possible) Warning: no parameters being passed to the program under test via Valgrind ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)$(RESET)'; fi
 	-${VALGRIND} --tool=memcheck --trace-children=yes ./${PROG_NAME}_dbg ${CMDLINE_ARGS}
 endif
 
@@ -404,7 +404,7 @@ endif
 san:
 	make --ignore-errors debug
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- dynamic analysis with the Address Sanitizer (ASAN) ---$(RESET)'
-	@if test -z "${CMDLINE_ARGS}"; then echo -n "\e[1m\e[31m" ; echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${PROG_NAME}_dbg_asan ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; echo -n "\e[0m" ; fi
+	@if test -z "${CMDLINE_ARGS}"; then printf '\n%b\n\n' '$(RED)@@@ (Possible) Warning: no parameters being passed to the program under test ${PROG_NAME}_dbg_asan ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)$(RESET)'; fi
 	-./${PROG_NAME}_dbg_asan ${CMDLINE_ARGS}
 
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- dynamic analysis with the Undefined Behavior Sanitizer (UBSAN) ---$(RESET)'
@@ -456,7 +456,7 @@ endif
 	# build coverage object files using the forced CC (pass CC into the sub-make)
 	$(MAKE) CC=$(CC) ${OBJS_GCOV}
 	${CC} ${CFLAGS_GCOV} ${OBJS_GCOV} -o ${PROG_NAME}_gcov ${LDFLAGS}
-	@if test -z "${CMDLINE_ARGS}"; then echo "\n@@@ (Possible) Warning: no parameters being passed to the program under test ${PROG_NAME}_gcov ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)"; fi
+	@if test -z "${CMDLINE_ARGS}"; then printf '\n%b\n\n' '$(RED)@@@ (Possible) Warning: no parameters being passed to the program under test ${PROG_NAME}_gcov ? @@@\n(FYI, initialize the Makefile variable CMDLINE_ARGS to setup parameters)$(RESET)'; fi
 
 	@printf '%b\n' '$(BOLD)$(BG_RED)-------------- Running via our wrapper ${LCOV_SCRIPT} --------------$(RESET)'
 	-${LCOV_SCRIPT} ${PROG_NAME}_gcov ${CMDLINE_ARGS}
@@ -515,7 +515,7 @@ run: debug
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- Running ${PROG_NAME}_dbg ---$(RESET)'
 	@printf '>>> %s\n' "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"
 	# Need the command in a single line for it to work correctly
-	@if [ "$(CI)" = "1" ] && command -v timeout >/dev/null 2>&1; then timeout $(TIMEOUT) sh -c "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"; elif [ "$(CI)" = "1" ]; then echo "Warning: 'timeout' not found; running without timeout"; sh -c "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"; else sh -c "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"; fi
+	@if [ "$(CI)" = "1" ] && command -v timeout >/dev/null 2>&1; then timeout $(TIMEOUT) sh -c "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"; elif [ "$(CI)" = "1" ]; then printf '%b\n' '$(YELLOW)Warning: '\''timeout'\'' not found; running without timeout$(RESET)'; sh -c "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"; else sh -c "./$(PROG_NAME)_dbg $(CMDLINE_ARGS)"; fi
 
 runtest: debug
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- Running test: ${PROG_NAME}_dbg ---$(RESET)'
