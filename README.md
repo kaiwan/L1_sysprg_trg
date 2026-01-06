@@ -34,7 +34,7 @@ use only].
 *******************************************************************************
 
 kaiwanTECH TRAINING COURSES :: 
-http://bit.ly/ktcorp
+https://kaiwantech.com
 
 Hope this helps! As is often said with regard to Linux, 
 "Above all, have fun!"
@@ -44,5 +44,3 @@ And all the very best,
 Kaiwan.
 < kaiwan -at- kaiwantech -dot- com >
 (c) kaiwanTECH
-
-COURSES: http://bit.ly/ktcorp
