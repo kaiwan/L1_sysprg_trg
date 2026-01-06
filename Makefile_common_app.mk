@@ -1,9 +1,7 @@
 # Makefile_common.mk
 # A 'better' Makefile template for Linux system programming.
-#
-# Designed to support building C projects with MULTIPLE source files.
+# When an unknown target is requested, show a helpful hint (colored)
 # Handles separate compilation and linking of object files.
-#
 # The majority of the Makefile logic is here, in the 
 # <../...>/Makefile_common.mk file, residing in this repo's root directory.
 # It's included by the projects in the subdirs of this repo.
@@ -165,6 +163,11 @@ DESTDIR ?=
 .PHONY: all prod prod_2part debug covg clean clean_lcov help \
 	install uninstall code-style indent checkpatch sa sa_clangtidy sa_flawfinder sa_cppcheck \
 	valgrind san test package distclean run runtest
+
+# When an unknown target is requested, show a helpful hint (colored)
+.DEFAULT:
+	@printf '%b\n' '$(YELLOW)No rule to make target "'$@'". Run `make help` to see a useful help screen$(RESET)'
+	@false
 all:
 	@$(MAKE) ${ALL}
 
@@ -486,9 +489,7 @@ endif
 ### More targets? Add them below
 
 
-# exit unconditionally
-%:
-	@true
+
 
 # Testing all
 # Limitation:
