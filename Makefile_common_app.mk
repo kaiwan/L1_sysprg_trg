@@ -422,10 +422,11 @@ san:
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- dynamic analysis with the Undefined Behavior Sanitizer (UBSAN) ---$(RESET)'
 	-./${PROG_NAME}_dbg_ub ${CMDLINE_ARGS}
 
-		ifneq (,$(findstring clang,$(CC)))
-		@printf '%b\n' '$(BOLD)$(BG_RED)--- dynamic analysis with the Memory Sanitizer (MSAN) ---$(RESET)'
-		-./${PROG_NAME}_dbg_msan ${CMDLINE_ARGS}
-		endif
+
+ifneq (,$(findstring clang,$(CC)))
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- dynamic analysis with the Memory Sanitizer (MSAN) ---$(RESET)'
+	-./${PROG_NAME}_dbg_msan ${CMDLINE_ARGS}
+endif
 
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- dynamic analysis with the Thread Sanitizer (TSAN) ---$(RESET)'
 	-./${PROG_NAME}_dbg_tsan ${CMDLINE_ARGS}
