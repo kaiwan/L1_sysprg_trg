@@ -14,12 +14,7 @@
 #  - prod_2part: build a '2-part' production target 'prod_2part'; it's
 #     -O${PROD_OPTLEVEL}, no debug symbolic info, strip-debug;
 #     Excellent for production as it gives ability to debug as and when required!
-#  - indent: adhering to (Linux kernel) coding style guidelines (indent+checkpatch)
-#  - sa: static analysis target (via flawfinder, cppcheck)
-#  - dynamic analysis target: via valgrind
-#  - code coverage via gcov/lcov
-#  - a packaging (.tar.xz) target and
-#  - a help target.
+#  - make help : to see a useful little help screen!
 #
 # You will require these utils installed:
 #  indent, flawfinder, cppcheck, valgrind, kernel-headers package -or- simply the
@@ -27,7 +22,7 @@
 #  The lcov_gen.sh wrapper script
 #   (DEV NOTE: careful of dependencies between this Makefile and script)
 #
-# To get started, just type:
+# Again, to get started, just type:
 #  make help
 #
 # (c) Kaiwan N Billimoria, kaiwanTECH
