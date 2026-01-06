@@ -49,7 +49,7 @@ PROG_NAME := demo1
 #  SRCS := src/main.c src/helper.c src/utils.c
 # If appropriate, can do:
 #SRCS := $(wildcard *.c)
-SRCS := main.c s2.c audio/s4.c engine/s3.c
+SRCS := main.c engine/s3.c audio/s4.c s2.c
 
 # Verbosity in builds
 VERBOSE ?= 1  # set to 0 for disabling verbose builds; or run as 'make V=0'
@@ -72,4 +72,4 @@ OBJS := $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
 OBJS_GCOV := $(patsubst %.c,$(OBJDIR)/%.gcov.o,$(SRCS))
 
 #---------------- Include the common Makefile --------------------------------
-include ../../Makefile_common.mk
+include ../../Makefile_common_app.mk
