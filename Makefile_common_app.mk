@@ -619,15 +619,32 @@ help:
 	@printf '%b\n' '$(BOLD)$(BLUE)Regular targets::$(RESET)'
 	@printf '%s\n' "  prod      : production build (-O${PROD_OPTLEVEL}, stripped)"
 	@printf '%s\n' "  debug     : debug build (-O${DEBUG_OPTLEVEL}, debug symbols, sanitizers, unstripped)"
-	@printf '%s\n' "  prod_2part: 2-part production build (requires the debug build)"
+	@printf '%s\n' "  prod_2part: 2-part production build (requires the debug build); this build is ideal for production deployments as it allows debugging when required"
+	@printf '%s\n' 'These are the targets built by default (when you simply type `make`)'
 	@printf '\n'
 	@printf '%b\n' '$(BOLD)$(BLUE)Other useful targets::$(RESET)'
-	@printf '%s\n' "  covg      : generate coverage via gcov+lcov (this Makefile forces GCC for covg)"
+	@printf '%s\n' "code-style: use the kernel checkpatch.pl script to check code style"
+	@printf '%s\n' "  checkpatch: use the kernel checkpatch.pl script to check code style"
+	@printf '%s\n' "  indent    : use the indent utility to indent the code in the Linux kernel style"
+	@printf '%s\n' " covg      : generate coverage via gcov+lcov (this Makefile forces GCC for covg)"
+	@printf '%s\n' " checksec  : use the checksec script to check security properties of the built binary"
+	@printf '\n'
 	@printf '%s\n' "  sa        : static analysis (clang-tidy, flawfinder, cppcheck)"
+	@printf '\n'
+	@printf '%s\n' "Dynamic analysis:"
 	@printf '%s\n' "  valgrind  : run valgrind (after debug build)"
+	@printf '%s\n' "  san       : run all the Sanitizer debug binaries (ASAN, UBSAN, MSAN, TSAN) (after debug build)"
+	@printf '\n'
+	@printf '%s\n' "Runtime Tests: pl first set the CMDLINE_ARGS variable as required"
+	@printf '%s\n' "  run       : run the debug binary. CI-friendly: make CI=0 TIMEOUT=15 run"
+	@printf '%s\n' "  runtest   : run and fail on non-zero exit (CI-friendly)"
+	@printf '%s\n' "  test      : run all the targets on debug binaries (code-style, sa, valgrind, san, covg, checksec)"
+	@printf '\n'
+	@printf '%s\n' " clean targets:     "
 	@printf '%s\n' "  clean     : clean outputs"
+	@printf '%s\n' "  clean_lcov: clean outputs and lcov/gcov metadata"
+	@printf '%s\n' "  distclean : clean everything (including lcov metadata, generated Makefile backups, packaging)"
+	@printf '\n'
 	@printf '%s\n' "  install   : install the built binary to \$(DESTDIR)\$(bindir) (use DESTDIR=... prefix=...)"
 	@printf '%s\n' "  uninstall : remove installed binary from \$(DESTDIR)\$(bindir)"
-	@printf '%s\n' "  run       : run the debug binary (use CMDLINE_ARGS). CI-friendly: make CI=1 TIMEOUT=15 run"
-	@printf '%s\n' "  runtest   : run and fail on non-zero exit (CI-friendly)"
 	@printf '\n'
