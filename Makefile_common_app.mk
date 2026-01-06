@@ -182,6 +182,20 @@ all:
 # with -pthread any longer
 #LINK=  #-pthread
 
+# Print header at parse time so it appears even when a specific target is
+# requested (e.g., `make prod`). Skip printing for maintenance targets to
+# avoid noise (help/clean/clean_lcov/distclean).
+ifneq ($(filter help clean clean_lcov distclean,$(MAKECMDGOALS)),)
+else
+$(info $(BOLD)$(GREEN)Compiler    = $(CC)$(RESET))
+$(info $(BOLD)$(BLUE)  Ver       = $(shell $(CC) --version | head -n1)$(RESET))
+$(info $(BOLD)$(BLUE)NPTL ver    = $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)$(RESET))
+$(info $(BOLD)$(GREEN)LDFLAGS     = $(LDFLAGS)$(RESET))
+$(info $(BOLD)$(BLUE)CFLAGS      = $(CFLAGS)$(RESET))
+$(info $(BOLD)$(GREEN)CFLAGS_DBG  = $(CFLAGS_DBG)$(RESET))
+$(info $(BOLD)$(BLUE)Verbosity   = $(VERBOSE)$(RESET))
+endif
+
 # Required vars
 SRC_FILES := *.[ch]
 INDENT := indent
