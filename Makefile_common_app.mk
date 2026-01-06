@@ -68,13 +68,6 @@ endif
 ## Compiler info will be printed at runtime by the `all` recipe
 
 STRIP=${CROSS_COMPILE}strip
-STRIP_SPEC=--strip-unneeded
-# "Remove all symbols that are not needed for relocation processing in addition to debugging symbols and sections stripped by --strip-debug"
-READELF=${CROSS_COMPILE}readelf
-OBJCOPY=${CROSS_COMPILE}objcopy
-
-CSTD=-ansi -std=c99 -std=c11 -std=c18  # the last one wins; else if unsupported, earlier ones...
-# For the meaning of the following feature test macros, see feature_test_macros(7)
 POSIX_STD=201112L
 STD_DEFS=-D_DEFAULT_SOURCE -D_GNU_SOURCE
 
@@ -169,13 +162,6 @@ DESTDIR ?=
 	install uninstall code-style indent checkpatch sa sa_clangtidy sa_flawfinder sa_cppcheck \
 	valgrind san test package distclean run runtest
 all:
-	@printf '%b\n' "$(BOLD)$(GREEN)Compiler    = $(CC)$(RESET)"
-	@printf '%b\n' "$(BOLD)$(GREEN) Ver        = $(shell $(CC) --version | head -n1)$(RESET)"
-	@printf '%s\n' "$(BOLD)$(BLUE)NPTL ver    = $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
-	@printf '%b\n' "$(BOLD)$(GREEN)LDFLAGS     = $(LDFLAGS)$(RESET)"
-	@printf '%b\n' "$(BOLD)$(BLUE)CFLAGS      = $(CFLAGS)$(RESET)"
-	@printf '%b\n' "$(BOLD)$(GREEN)CFLAGS_DBG  = $(CFLAGS_DBG)$(RESET)"
-	@printf '%b\n\n' "$(BOLD)$(BLUE)Verbosity   = $(VERBOSE)$(RESET)"
 	@$(MAKE) ${ALL}
 
 # glibc >= 2.34, libpthread is a part of it; hence were not required to link
@@ -187,6 +173,7 @@ all:
 # avoid noise (help/clean/clean_lcov/distclean).
 ifneq ($(filter help clean clean_lcov distclean,$(MAKECMDGOALS)),)
 else
+ifeq ($(MAKELEVEL),0)
 $(info $(BOLD)$(GREEN)Compiler    = $(CC)$(RESET))
 $(info $(BOLD)$(BLUE)  Ver       = $(shell $(CC) --version | head -n1)$(RESET))
 $(info $(BOLD)$(BLUE)NPTL ver    = $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)$(RESET))
@@ -194,6 +181,7 @@ $(info $(BOLD)$(GREEN)LDFLAGS     = $(LDFLAGS)$(RESET))
 $(info $(BOLD)$(BLUE)CFLAGS      = $(CFLAGS)$(RESET))
 $(info $(BOLD)$(GREEN)CFLAGS_DBG  = $(CFLAGS_DBG)$(RESET))
 $(info $(BOLD)$(BLUE)Verbosity   = $(VERBOSE)$(RESET))
+endif
 endif
 
 # Required vars
@@ -631,7 +619,7 @@ help:
 	@printf '%s\n' "checksec  : use the checksec script to check security properties of the built binary"
 	@printf '\n'
 	@printf '%s\n' "$(BOLD)$(BLUE)Static analysis::$(RESET)"
-	@printf '%s\n' "  sa           : static analysis via all (clang-tidy, flawfinder, cppcheck)"
+	@printf '%s\n' " sa            : static analysis via all (clang-tidy, flawfinder, cppcheck)"
 	@printf '%s\n' "  sa_clangtidy : static analysis via clang-tidy"
 	@printf '%s\n' "  sa_flawfinder: static analysis via flawfinder"
 	@printf '%s\n' "  sa_cppcheck  : static analysis via cppcheck"
