@@ -170,11 +170,12 @@ DESTDIR ?=
 	valgrind san test package distclean run runtest
 all:
 	@printf '%b\n' "$(BOLD)$(GREEN)Compiler    = $(CC)$(RESET)"
-	@printf '%s\n' "$(BLUE)NPTL ver    = $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
-	@printf '%b\n' "$(GREEN)LDFLAGS     = $(LDFLAGS)$(RESET)"
-	@printf '%b\n' "$(BLUE)CFLAGS      = $(CFLAGS)$(RESET)"
-	@printf '%b\n' "$(GREEN)CFLAGS_DBG  = $(CFLAGS_DBG)$(RESET)"
-	@printf '%b\n\n' "$(BLUE)Verbosity   = $(VERBOSE)$(RESET)"
+	@printf '%b\n' "$(BOLD)$(GREEN) Ver        = $(shell $(CC) --version | head -n1)$(RESET)"
+	@printf '%s\n' "$(BOLD)$(BLUE)NPTL ver    = $(shell getconf GNU_LIBPTHREAD_VERSION|cut -d' ' -f2)"
+	@printf '%b\n' "$(BOLD)$(GREEN)LDFLAGS     = $(LDFLAGS)$(RESET)"
+	@printf '%b\n' "$(BOLD)$(BLUE)CFLAGS      = $(CFLAGS)$(RESET)"
+	@printf '%b\n' "$(BOLD)$(GREEN)CFLAGS_DBG  = $(CFLAGS_DBG)$(RESET)"
+	@printf '%b\n\n' "$(BOLD)$(BLUE)Verbosity   = $(VERBOSE)$(RESET)"
 	@$(MAKE) ${ALL}
 
 # glibc >= 2.34, libpthread is a part of it; hence were not required to link
