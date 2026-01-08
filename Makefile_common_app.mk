@@ -368,9 +368,22 @@ sa_clangtidy:
 ifeq (, $(shell which ${CLANGTIDY}))
 	$(warning === WARNING! ${CLANGTIDY} not installed; consider doing 'sudo apt install clang-tidy' or equivalent ===)
 else
+# Run clang-tidy with a compilation database when it exists; else warn and skip,
+# but still run it via the provided CHECKS_ON, CHECKS_OFF flags
+ifneq (,$(wildcard compile_commands.json))
 	make clean
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- static analysis with clang-tidy ---$(RESET)'
-	-CHECKS_ON="-* ,clang-analyzer-*,bugprone-*,cert-*,concurrency-*,performance-*,portability-*,linuxkernel-*,readability-*,misc-*"; CHECKS_OFF="-clang-analyzer-cplusplus*,-misc-include-cleaner,-readability-identifier-length,-readability-braces-around-statements" ; ${CLANGTIDY} -header-filter=.* --use-color *.[ch] -checks=$$CHECKS_ON,$$CHECKS_OFF
+	-CHECKS_ON="-*,clang-analyzer-*,bugprone-*,cert-*,concurrency-*,performance-*,portability-*,linuxkernel-*,readability-*,misc-*"; \
+	CHECKS_OFF="-clang-analyzer-cplusplus*,-misc-include-cleaner,-readability-identifier-length,-readability-braces-around-statements" ; \
+	${CLANGTIDY} -header-filter=.* --use-color -p=. *.[ch] -checks=$$CHECKS_ON,$$CHECKS_OFF
+else
+	@printf '%b\n' '$(YELLOW)Note: clang-tidy will be run without a compilation database (compile_commands.json). Results may include false positives; consider generating one with `bear make` or `cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON`.$(RESET)'
+	make clean
+	@printf '%b\n' '$(BOLD)$(BG_RED)--- static analysis with clang-tidy (no compilation DB) ---$(RESET)'
+	-CHECKS_ON="-*,clang-analyzer-*,bugprone-*,cert-*,concurrency-*,performance-*,portability-*,linuxkernel-*,readability-*,misc-*"; \
+	CHECKS_OFF="-clang-analyzer-cplusplus*,-misc-include-cleaner,-readability-identifier-length,-readability-braces-around-statements" ; \
+	${CLANGTIDY} -header-filter=.* --use-color *.[ch] -checks=$$CHECKS_ON,$$CHECKS_OFF
+endif
 endif
 
 # static analysis with flawfinder
