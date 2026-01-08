@@ -2,6 +2,7 @@
  *
  * Display the virtual addresses of different regions of the process VAS.
  */
+//extern char *environ;
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -17,7 +18,6 @@
 #endif
 typedef unsigned int u32;
 
-extern char *environ;
 int gi = 5, gu;
 
 int main(int argc, char **argv)
