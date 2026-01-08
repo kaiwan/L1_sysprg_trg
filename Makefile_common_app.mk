@@ -161,8 +161,10 @@ DESTDIR ?=
 
 # When an unknown target is requested, show a helpful hint (colored)
 .DEFAULT:
-	@printf '%b\n' '$(YELLOW)No rule to make target "'$@'". Run `make help` to see a useful help screen$(RESET)'
-	@false
+	@case "$@" in \
+		*.d) exit 1 ;; \
+		*) printf '%b\n' "$(YELLOW)No rule to make target \"$@\". Run `make help` to see a useful help screen$(RESET)"; exit 1 ;; \
+	esac
 all:
 	@$(MAKE) ${ALL}
 
