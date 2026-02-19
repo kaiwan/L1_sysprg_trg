@@ -271,7 +271,7 @@ static inline void beep(int what)
 {                                                                         \
 	int c = 0, m;                                                     \
 	unsigned int for_index, inner_index, x;                           \
-									  \										\
+									  								\
 	for (for_index = 0; for_index < loop_count; for_index++) {        \
 		beep((val));                                              \
 		c++;                                                      \
