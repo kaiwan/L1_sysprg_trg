@@ -13,7 +13,8 @@ static char prgname[128];
 
 static void signal_handler(int signum)
 {
-	fprintf(stderr, "%s: caught sig %2d\n", prgname, signum);
+	fprintf(stderr, "%s: caught sig %2d\n", prgname, signum); /* actually a bug! 
+															   * will be explained */
 }
 
 int main(int argc, char **argv)
@@ -50,7 +51,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	printf("%s: awating signals ...\n", prgname);
+	printf("%s: awaiting signals ...\n", prgname);
 
 	// Block on all signals forever until a fatal one arrives
 	while (1)
