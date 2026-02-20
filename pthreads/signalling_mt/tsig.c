@@ -240,27 +240,17 @@ static void *signal_handler(void *arg)
 		 */
 		switch (sig) {
 		case SIGINT:
-			MTX_LOCK(&sig_mutex, FATAL);
 			signal_handled = SIGINT;
-			MTX_UNLOCK(&sig_mutex, FATAL);
 			break;
-
 		case SIGQUIT:
-			MTX_LOCK(&sig_mutex, FATAL);
 			signal_handled = SIGQUIT;
-			MTX_UNLOCK(&sig_mutex, FATAL);
 			break;
-
 		case SIGIO:
-			MTX_LOCK(&sig_mutex, FATAL);
 			signal_handled = SIGIO;
-			MTX_UNLOCK(&sig_mutex, FATAL);
 			break;
 			/* ... */
 		default:
-			MTX_LOCK(&sig_mutex, FATAL);
 			signal_handled = sig;
-			MTX_UNLOCK(&sig_mutex, FATAL);
 			break;
 		}		// switch
 		printf("!!! %s(): caught signal #%d !!!\n", __func__, sig);
@@ -279,7 +269,7 @@ Worker thread #%ld (pid %d)...\n", this, getpid());
 		if (g_opt == 1) {
 			int *pi = 0x0;
 			printf("pi = %p\n", (void *)*pi);	// NULL-ptr dereference bug!
-			/* BUG ! 
+			/* BUG !
 			 * Causes a fault at the level of the MMU (as all bytes in virtual page 0
 			 * have no permission '---'); thus, causing the MMU to raise a fault, leading
 			 * the OS's fault handling code to send SIGSEGV to the offending *thread*, the
