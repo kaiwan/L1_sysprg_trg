@@ -79,8 +79,11 @@ int main(int argc, char **argv)
 			mq_close(mymq);
 			fatal_error("mq_receive failed");
 		}
-		printf("%s: received msg: %60s [%5ld bytes, prio %5u]\n",
-			argv[0], buf, nr, prio);
+		/* Need to use the precision-controlled printf
+		 * format specifier to print the msg, as it may not be null-terminated
+		 */
+		printf("%s: received msg: %.*s [%5ld bytes, prio %5u]\n",
+			argv[0], nr, buf, nr, prio);
 	}
 
 	free(buf);
