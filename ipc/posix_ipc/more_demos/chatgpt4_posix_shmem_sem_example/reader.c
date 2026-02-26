@@ -18,6 +18,7 @@ int main()
 	void *ptr = mmap(0, SHM_SIZE, PROT_READ, MAP_SHARED, shm_fd, 0);
 	if (!ptr) {
 		perror("mmap() failed");
+		close(shm_fd);
 		exit(1);
 	}
 
@@ -36,13 +37,18 @@ int main()
 		perror("sem_wait() failed");
 		return -errno;
 	}
-
+	// Now we have the lock, read the message from shared memory
+	// Read the message from shared memory and print it
 	printf("Reader: Read message: %s\n", (char *)ptr);
 
 	sem_close(sem);
-	sem_unlink(SEM_NAME);	// Clean up
 	munmap(ptr, SHM_SIZE);
 	close(shm_fd);
-	shm_unlink(SHM_NAME);	// Clean up
+
+#define	REMOVE_OBJECTS 0
+#if REMOVE_OBJECTS == 1
+	sem_unlink(SEM_NAME);	// Clean up
+	shm_unlink(SHM_NAME);
+#endif
 	return 0;
 }
