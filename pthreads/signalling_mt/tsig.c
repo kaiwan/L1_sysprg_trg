@@ -22,13 +22,6 @@
  * <kaiwan -at- kaiwantech -dot- com>
  * License: MIT
  */
-//#define _POSIX_C_SOURCE    200112L    /* or earlier: 199506L */
-// causes issue w/ SA_RESTART etc ! Don't use it! Use this:
-//#define _POSIX_C_SOURCE    200809L
-// ref: https://stackoverflow.com/questions/9828733/sa-restart-not-defined-under-linux-compiles-fine-in-solaris
-
-//#define _GNU_SOURCE // the Makefile defines this
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -99,7 +92,6 @@ static inline void beep(int what)
 	}										\
 } while (0)
 
-static int signal_handled = -1;
 static pthread_mutex_t sig_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int g_opt;
 
@@ -201,6 +193,11 @@ static void fatal_sigs_handler(int signum, siginfo_t * siginfo, void *rest)
  * this could mean that on LinuxThreads, you have no choice but to install 
  * an asynchronous signal handler for each thread.
  */
+
+// With sig_atomic_t, we can avoid the locking around the global variable
+// 'signal_handled' as it's now atomic
+static volatile sig_atomic_t signal_handled = -1;
+
 static void *signal_handler(void *arg)
 {
 	sigset_t sigset;
