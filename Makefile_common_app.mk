@@ -403,7 +403,7 @@ ifeq (, $(shell which ${CPPCHECK}))
 else
 	make clean
 	@printf '%b\n' '$(BOLD)$(BG_RED)--- static analysis with cppcheck ---$(RESET)'
-	-${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem .
+	-${CPPCHECK} -v --force --enable=all -i bkp/ --suppress=missingIncludeSystem --safety .
 endif
 
 # Dynamic Analysis
