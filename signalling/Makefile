@@ -14,6 +14,7 @@
 ## Pl check and keep or remove <foo>_dbg_[asan|ub|msan] targets
 ## as desired.
 ALL :=  catchall sig1 sig1_dbg sig1_dbg_asan sig1_dbg_ub sig1_dbg_msan \
+	sig1_unsafe sig1_unsafe_dbg_tsan \
 	zombies_clear_traditional zombies_clear_traditional_dbg zombies_clear_traditional_dbg_asan zombies_clear_traditional_dbg_ub zombies_clear_traditional_dbg_msan \
 	zombies_clear_linux26 zombies_clear_linux26_dbg zombies_clear_linux26_dbg_asan zombies_clear_linux26_dbg_ub zombies_clear_linux26_dbg_msan \
 	sigcrit sigcrit_dbg sigcrit_dbg_asan sigcrit_dbg_ub sigcrit_dbg_msan \
@@ -67,6 +68,9 @@ sig1_dbg_asan.o: sig1.c
 	${CL} ${CFLAGS_DBG_ASAN} -c sig1.c -o sig1_dbg_asan.o
 sig1_dbg_asan: sig1_dbg_asan.o common_dbg_asan.o
 	${CL} ${CFLAGS_DBG_ASAN} -o sig1_dbg_asan sig1_dbg_asan.o common_dbg_asan.o
+
+sig1_unsafe_dbg_tsan: sig1_unsafe.c
+	${CC} ${CFLAGS_DBG} -fsanitize=thread sig1_unsafe.c -o sig1_unsafe_dbg_tsan
 
 sig1_dbg_ub.o: sig1.c
 	${CL} ${CFLAGS_DBG_UB} -c sig1.c -o sig1_dbg_ub.o
