@@ -21,7 +21,16 @@ int main()
 		close(shm_fd);
 		exit(1);
 	}
+	/* Map the shared memory object into the process's address space
+	 * void *mmap(void addr[.length], size_t length, int prot, int flags,
+     *            int fd, off_t offset);
+	 */			  
 	void *ptr = mmap(0, SHM_SIZE, PROT_WRITE, MAP_SHARED, shm_fd, 0);
+	if (!ptr) {
+		perror("mmap() failed");
+		close(shm_fd);
+		exit(1);
+	}
 	
 	// The value 0 here (4th param) implies that the caller will have the semaphore 'locked'
 	sem_t *sem = sem_open(SEM_NAME, O_CREAT, 0666, 0);
