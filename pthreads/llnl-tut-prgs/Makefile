@@ -46,5 +46,5 @@ manythrds_dbg: manythrds.c
 	gcc ${CFLAGS_DBG} -fsanitize=address -DDEBUG manythrds.c -o manythrds_dbg_asan ${LINKIN}
 
 clean:
-	rm -f ${OUT} *.o corefile*
+	rm -f ${OUT} *.o corefile* *~ a.out stacksz_asan manythrds_dbg_asan
 	touch *.c *.h
