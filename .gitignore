@@ -115,3 +115,4 @@ pthreads/sched/sched_pthrd_rtprio/runit.sh
 pthreads/signalling_mt/tsig
 pthreads/tlpi_code_cancel_cleanup/thread_cancel
 pthreads/tlpi_code_cancel_cleanup/thread_cleanup
+shlib/library_sample
