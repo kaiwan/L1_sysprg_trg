@@ -19,24 +19,26 @@
 #include <sys/wait.h>
 
 #define FEW   16
-static char *p;
 
 #define PR(pi, pj)   do { \
 printf("   i=%d j=%d\n" \
 		"   &i=%p &j=%p\n", pi, pj, (void *)&pi, (void *)&pj); \
 } while (0)
 
-int main(int argc, char **argv)
+int main(void)
 {
 	pid_t ret = 0;
-	int i = 5, j = 6, pgsz = getpagesize();	// typically returns 4096
+	int i = 5, j = 6;
+	size_t pgsz = (size_t)getpagesize();	// typically returns 4096
+	char *p;
 
 	p = malloc(pgsz);
 	if (!p) {
-		printf("malloc failed, aborting!\n");
+		perror("malloc failed, aborting");
 		exit(1);
 	}
 
+	fflush(stdout);
 	switch (ret = fork()) {
 	case -1:		// failure case
 		perror("fork failed");
@@ -50,7 +52,7 @@ int main(int argc, char **argv)
 		PR(i, j);
 
 		memset(p, 'c', pgsz);
-		printf("\nChild: malloc ret: %p\n", p);
+		printf("\nChild: malloc ret: %p\n", (void *)p);
 		{
 			int k;
 
@@ -67,6 +69,13 @@ int main(int argc, char **argv)
  * "Calling free before execvp is pointless, and it actually makes your code less
  * reusable/portable, since it's not valid to call free in the child after fork
  * if the calling process is multithreaded."
+ * 
+ * More on this topic:
+ * The real caveat is wrt multithreaded programs: if the parent is multithreaded
+ * and holds a lock on the malloc arena at the time of fork(), calling free()
+ * in the child can deadlock. For a single-threaded program calling free() then
+ * exit() is perfectly safe and conventional. As exit() already releases all
+ * resources, the free() is merely redundant (not harmful) in single-threaded code.
  */
 		free(p);
 #endif
@@ -76,13 +85,13 @@ int main(int argc, char **argv)
 
 		printf("\nParent: before var update: ");
 		PR(i, j);
-		printf("\nParent: after var update: ");
 		i++;
 		j--;
+		printf("\nParent: after var update: ");
 		PR(i, j);
 
 		memset(p, 'p', pgsz);
-		printf("\nParent: malloc ret: %p\n", p);
+		printf("\nParent: malloc ret: %p\n", (void *)p);
 		{
 			int k;
 
