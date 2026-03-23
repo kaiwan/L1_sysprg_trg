@@ -1,4 +1,5 @@
 #!/bin/bash
+# Display the pid limits for the current process in the cgroup
 
 cgroup_pid_limit()
 {
