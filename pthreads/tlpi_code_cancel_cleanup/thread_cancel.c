@@ -22,13 +22,19 @@ threadFunc(void *arg)
 
     printf("New thread started\n");     /* May be a cancellation point */
     for (j = 1; ; j++) {
+#if 1
+        if (j%100000000 == 0)
+            printf("Loop %d\n", j);         /* May be a cancellation point */
+        pthread_testcancel();              // Cancellation point
+#else
         printf("Loop %d\n", j);         /* May be a cancellation point */
+        sleep(1);                       /* A cancellation point */
+#endif
         /*
         math1();
         math2();
         pthread_testcancel();              // Cancellation point
         */
-        sleep(1);                       /* A cancellation point */
     }
 
 	/* If no cancellation point is available/invoked, use the
@@ -56,6 +62,7 @@ main(int argc, char *argv[])
     if (s != 0)
         fatalError(s, "pthread_cancel");
 
+    // TODO: should make the thread 'joinable' & not assume it is...
     s = pthread_join(thr, &res);
     if (s != 0)
         fatalError(s, "pthread_join");
