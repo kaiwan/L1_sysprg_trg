@@ -28,6 +28,9 @@ static void foo(int a, int b)
 	QP;
 }
 
+/* This particular workload, we think requires approx 100 KB of stack...
+ * Empirically trying it out shows it fails at ~ 86 KB !
+ */
 static void *dowork(void *tag)
 {
 	double arr[N][N];	// stress the stack by alloc'ing a large 10000*8 byte 2D array
