@@ -17,7 +17,7 @@ void *BusyWork(void *n)
 		result = result + 1;
 		//result = result + (double)random();
 	}
-	printf("worker %ld: result = %f\n", (long)n, result);
+	printf("%s(): worker %ld: result = %f\n", __func__, (long)n, result);
 	pthread_exit((void *)0);
 }
 
@@ -35,7 +35,7 @@ int main()
 	printf("NUM_THREADS = %d\n", NUM_THREADS);
 	/* Creation loop */
 	for (t = 0; t < NUM_THREADS; t++) {
-		printf("Creating thread %ld\n", t);
+		printf("%s(): Creating thread %ld\n", __func__, t);
 		rc = pthread_create(&work_thrd[t], &attr, BusyWork, (void *)t);
 		if (rc) {
 			printf
@@ -47,11 +47,10 @@ int main()
 
 	/* Free attribute structure and wait for the other threads */
 	pthread_attr_destroy(&attr);
-	printf("NUM_THREADS = %d\n", NUM_THREADS);
 
 	/* Join loop */
 	for (t = 0; t < NUM_THREADS; t++) {
-		printf("join loop # %ld\n", t);
+		printf("%s(): join loop # %ld\n", __func__, t);
 		/* Note: "status" should not be local to the dying thread */
 		rc = pthread_join(work_thrd[t], (void **)&status);
 		if (rc) {
@@ -59,10 +58,13 @@ int main()
 			       rc);
 			exit(EXIT_FAILURE);
 		}
-		printf("main: completed join with thread %ld status %d\n", t,
-		       status);
+		printf("%s(): completed join with thread %ld status %d\n",
+				__func__, t, status);
 		//sleep(1);
 	}
-
+	/* By here, all (joinable) workers have died
+	 * and been reaped by the main thread. 
+	 * We can now have main die!
+	 */
 	pthread_exit(NULL);
 }
