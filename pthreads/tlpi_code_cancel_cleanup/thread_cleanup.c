@@ -52,9 +52,12 @@ static void *threadFunc(void *arg)
 	pthread_cleanup_push(cleanupHandler, buf);
 
 	while (glob == 0) {
-		s = pthread_cond_wait(&cond, &mtx);	/* A cancellation point ; blocks on the pthread_cond_signal() */
+		s = pthread_cond_wait(&cond, &mtx);	/* A cancellation point ;
+			 blocks on the pthread_cond_signal(); we're waiting for glob
+			 to become 1 */
 		if (s != 0)
 			fatalError(s, "pthread_cond_wait");
+		// awake! but don't assume the condition we're waiting for is true - check it!
 	}
 
 	printf
