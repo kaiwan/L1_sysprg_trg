@@ -22,7 +22,7 @@ threadFunc(void *arg)
 
     printf("New thread started\n");     /* May be a cancellation point */
     for (j = 1; ; j++) {
-#if 1
+#if 0
         if (j%100000000 == 0)
             printf("Loop %d\n", j);         /* May be a cancellation point */
         pthread_testcancel();              // Cancellation point
