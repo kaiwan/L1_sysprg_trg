@@ -60,11 +60,11 @@ int main(void)
 
 /* Create a child process and write to the mapped/shared region */
 	pid_t child_pid = fork();
-	if (child_pid < 0) {
+	switch (child_pid) {
+	case -1:
 		perror("fork");
 		exit(1);
-	}
-	if (child_pid == 0) {	// have child write into our shmem region!
+	case 0: // have child write into our shmem region!
 		char *loc;
 
 		udata->lat = 77;
@@ -76,10 +76,11 @@ int main(void)
 		munmap(udata, sizeof(struct udata));
 		close(shmfd);
 		exit(0);
+	default: // parent
+		/* Make the parent wait until the child has exited */
+		wait(0);
+		break;
 	}
-
-	/* Make the parent wait until the child has exited */
-	wait(0);
 
 /* Read from the mapped/shared memory region */
 	printf("Location data after modification : location \"%s\":(%zu,%zu,%zu)\n",
