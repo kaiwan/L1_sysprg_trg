@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 	mqd_t mymq;
 	struct mq_attr attr;
 
-	// Create a POSIX MQ here: /dev/mqueue/MQNAME
+	// Create/access a POSIX MQ here: /dev/mqueue/MQNAME
 	mymq = mq_open(MQNAME, O_RDWR|O_CREAT|O_EXCL, 0644, NULL);	// 'attr' as NULL => use defaults
 	if (mymq == -1) {
 		if (EEXIST == errno) {	// failed as the MQ already exists!
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 		 * format specifier to print the msg, as it may not be null-terminated
 		 */
 		printf("%s: received msg: %.*s [%5ld bytes, prio %5u]\n",
-			argv[0], nr, buf, nr, prio);
+			argv[0], (int)nr, buf, nr, prio);
 	}
 
 	free(buf);
