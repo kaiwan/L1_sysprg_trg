@@ -49,7 +49,7 @@ int main(void)
 	 * Diagramatically:
 	 * Y-axis is the semaphore value
 	 *
-	 * P/C* calls sem_wait()
+	 * P/C : Parent or Child process calls sem_wait()
 
 	1 |________________                        ____ [...repeats...]
 	  |               |LOCK                    ^
@@ -57,11 +57,11 @@ int main(void)
 	0 |               v______________sem_post()|UNLOCK
 	  +--------------------------------------------------------------> t
 	 *
-	 * P/C : Parent or Child process
 	 */
 	for (int i = 0; i < 5; i++) {
-		sem_wait(sem);	/* LOCK: 
-		                 *  if sem value is +ve, decrement & proceed
+		sem_wait(sem);
+				/* LOCK:
+		         *  if sem value is 1, decrement & proceed
 				 *  if sem value is 0, *wait* until peer process 'posts'/increments
 				 *   the value to 1, i.e. until the peer process 'unlocks' it!
 				 */
@@ -71,12 +71,12 @@ int main(void)
 		else
 			write_to_file("Parent writing");
 
-		sem_post(sem);	// UNLOCK: increment the sem value
+		sem_post(sem);	// UNLOCK: increment the sem value to 1
 		usleep(100000);	// Sleep 100ms to mix up scheduling
 	}
 
-	if (pid > 0) {
-		wait(0);	// Wait for child
+	if (pid > 0) { // Parent process
+		wait(0);
 		sem_close(sem);
 		sem_unlink(SEM_NAME);	// Cleanup
 	} else {
