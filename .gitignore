@@ -118,3 +118,4 @@ pthreads/tlpi_code_cancel_cleanup/thread_cleanup
 shlib/library_sample
 .vscode/tasks.json
 shlib/library_sample
+ipc/posix_ipc/sem_named_demo/output.txt
