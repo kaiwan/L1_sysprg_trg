@@ -11,7 +11,7 @@ Demo runs:
 $ ./appdemo_shmsem 1
 56930: writing char p for 10485760 bytes at offset 0 now
 56931: writing char c for 10485760 bytes at offset 1048576 now
-appdemo_shmsem $ hexdump --canonical /dev/shm/myshm 
+appdemo_shmsem $ hexdump --canonical /dev/shm/myshm_mtx_demo 
 00000000  70 70 70 70 70 70 70 70  70 70 70 70 70 70 70 70  |pppppppppppppppp|
 *
 00100000  63 63 63 63 63 63 63 63  63 63 63 63 63 63 63 63  |cccccccccccccccc|
@@ -25,7 +25,7 @@ $
 $ ./appdemo_shmsem 0
 56988: writing char p for 10485760 bytes at offset 0 now
 56989: writing char c for 10485760 bytes at offset 1048576 now
-appdemo_shmsem $ hexdump --canonical /dev/shm/myshm 
+appdemo_shmsem $ hexdump --canonical /dev/shm/myshm_mtx_demo 
 00000000  70 70 70 70 70 70 70 70  70 70 70 70 70 70 70 70  |pppppppppppppppp|
 *
 0036f000  63 63 63 63 63 63 63 63  63 63 63 63 63 63 63 63  |cccccccccccccccc|
