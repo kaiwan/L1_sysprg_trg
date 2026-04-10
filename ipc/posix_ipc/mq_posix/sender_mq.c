@@ -68,12 +68,11 @@ int main(int argc, char **argv)
 
 	unsigned prio = atoi(argv[2]);
 	if ((prio < 0) || (prio > sysconf(_SC_MQ_PRIO_MAX))) {
-		fprintf(stderr, "%s: invalid priority value, aborting...\n",
-			argv[0]);
+		fprintf(stderr, "%s: invalid priority value, aborting...\n"
+			"Valid priority range is [0-%ld]\n",
+			argv[0], sysconf(_SC_MQ_PRIO_MAX));
 		exit(1);
 	}
-	printf("%s: sent a msg to MQ at prio %5d (max prio=%ld)\n",
-		argv[0], prio, sysconf(_SC_MQ_PRIO_MAX));
 
 	mymq = mq_open(MQNAME, O_RDWR|O_CREAT|O_EXCL, 0644, NULL);	// 'attr' as NULL => use defaults
 	if (mymq == -1) {
@@ -93,6 +92,8 @@ int main(int argc, char **argv)
 		mq_close(mymq);
 		fatal_error("mq_send failed");
 	}
+	printf("%s: sent a msg to MQ at prio %5d (max prio=%ld)\n",
+		argv[0], prio, sysconf(_SC_MQ_PRIO_MAX));
 
 	mq_close(mymq);
 	exit(0);
