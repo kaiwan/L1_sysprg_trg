@@ -313,7 +313,8 @@ int main(int argc, char *argv[])
 		printf("%s: bind done at IP %s port %d; SO_REUSEADDR setup as well\n",
 			argv[0], inet_ntoa(svr_addr.sin_addr), port);
 
-	if (listen(sd, QLENGTH) == -1)
+	// Can set q len (backlog) to the max via SOMAXCONN (4096)
+	if (listen(sd, QLENGTH) == -1) 
 		ErrExit(argv[0], "socket listen error", 3);
 	if (verbose)
 		printf("%s: listen q set up\n", argv[0]);
