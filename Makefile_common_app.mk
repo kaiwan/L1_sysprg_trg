@@ -47,14 +47,14 @@ ALL_NM :=  ${PROG_NAME} ${PROG_NAME}_dbg ${PROG_NAME}_dbg_asan ${PROG_NAME}_dbg_
 # Decide which compiler to use; GCC doesn't support MSAN, clang does
 CC := ${CROSS_COMPILE}gcc
 LINKIN := -static-libasan   # use this lib for ASAN with GCC
-ifeq (, $(shell which clang))
-	@printf '%b' '$(BOLD)$(BG_RED)'
-	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' or equivalent ===)
-	@printf '%b' '$(RESET)'
-else
-	CC := clang
-	LINKIN := -static-libsan
-endif
+#ifeq (, $(shell which clang))
+#	@printf '%b' '$(BOLD)$(BG_RED)'
+#	$(warning === WARNING! No clang (compiler) in PATH (reqd for MSAN); consider doing 'sudo apt install clang' or equivalent ===)
+#	@printf '%b' '$(RESET)'
+#else
+#	CC := clang
+#	LINKIN := -static-libsan
+#endif
 # If required, the below 2 lines can be uncommented to force GCC as the compiler
 #CC := ${CROSS_COMPILE}gcc
 #LINKIN := -static-libasan
@@ -343,7 +343,7 @@ code-style:
 	make --ignore-errors checkpatch
 
 indent: ${SRC_FILES}
-ifeq (, $(shell which ${INDENT}))
+ifeq (, $(shell which ${INDENT} 2>/dev/null))
 	$(warning === WARNING! ${INDENT} not installed; consider doing 'sudo apt install indent' or equivalent ===)
 else
 	make clean
@@ -365,7 +365,7 @@ sa:   # static analysis
 
 # static analysis with clang-tidy
 sa_clangtidy:
-ifeq (, $(shell which ${CLANGTIDY}))
+ifeq (, $(shell which ${CLANGTIDY}) 2>/dev/null)
 	$(warning === WARNING! ${CLANGTIDY} not installed; consider doing 'sudo apt install clang-tidy' or equivalent ===)
 else
 # Run clang-tidy with a compilation database when it exists; else warn and skip,
@@ -388,7 +388,7 @@ endif
 
 # static analysis with flawfinder
 sa_flawfinder:
-ifeq (, $(shell which ${FLAWFINDER}))
+ifeq (, $(shell which ${FLAWFINDER} 2>/dev/null))
 	$(warning === WARNING! ${FLAWFINDER} not installed; consider doing 'sudo apt install flawfinder' or equivalent ===)
 else
 	make clean
@@ -398,7 +398,7 @@ endif
 
 # static analysis with cppcheck
 sa_cppcheck:
-ifeq (, $(shell which ${CPPCHECK}))
+ifeq (, $(shell which ${CPPCHECK} 2>/dev/null))
 	$(warning === WARNING! ${CPPCHECK} not installed; consider doing 'sudo apt install cppcheck' or equivalent ===)
 else
 	make clean
@@ -409,7 +409,7 @@ endif
 # Dynamic Analysis
 # dynamic analysis with valgrind
 valgrind:
-ifeq (, $(shell which ${VALGRIND}))
+ifeq (, $(shell which ${VALGRIND} 2>/dev/null))
 	$(warning === WARNING! ${VALGRIND} not installed; consider doing 'sudo apt install valgrind' or equivalent ===)
 else
 	make --ignore-errors debug
@@ -458,7 +458,7 @@ else
 	sed -i 's/^#genhtml_branch_coverage = 1/genhtml_branch_coverage = 1/' ~/.lcovrc
 	sed -i 's/^lcov_branch_coverage = 0/lcov_branch_coverage = 1/' ~/.lcovrc
 endif
-ifeq (, $(shell which ${LCOV_SCRIPT}))
+ifeq (, $(shell which ${LCOV_SCRIPT} 2>/dev/null))
 	$(error ERROR: ensure our ${LCOV_SCRIPT} wrapper script's-installed and in your PATH first; location: https://github.com/kaiwan/usefulsnips/blob/master/lcov_gen.sh)
 endif
 
