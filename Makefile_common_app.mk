@@ -85,8 +85,8 @@ SECURITY_CFLAGS_REG = -fstack-protector-strong \
 	-pie -fPIE \
 	-fsanitize=bounds -fsanitize-undefined-trap-on-error \
 	-fcf-protection \
-	-fsanitize=signed-integer-overflow -fsanitize-undefined-trap-on-error
-#	-D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
+	-fsanitize=signed-integer-overflow -fsanitize-undefined-trap-on-error \
+	-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=${PROD_OPTLEVEL}
 ### NOTE- the -fcf-protection* flag(s) might not work on all archs ###
 
 SECURITY_CFLAGS = ${SECURITY_CFLAGS_REG}
