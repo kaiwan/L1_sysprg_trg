@@ -95,7 +95,7 @@ ifeq (gcc, $(CC))
 endif
 
 # Compiler warnings
-WARN = -Wall -Wextra -Wstack-protector -Wformat -Werror=format-security
+WARN = -Wall -Wextra -Wstack-protector -Wformat -Werror=format-security -Wshadow
 WARN_MORE = ${WARN} -Wpedantic #-Werror
 CFLAGS = -UDEBUG ${WARN} ${CSTD} -D_POSIX_C_SOURCE=${POSIX_STD} ${STD_DEFS} \
 	${SECURITY_CFLAGS}
