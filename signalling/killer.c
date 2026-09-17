@@ -57,15 +57,17 @@ int main(int argc, char **argv)
 	default:		// Parent      
 		printf("parent is %d, child is %d\n", getpid(), pid);
 		// poll for the child being alive
-		while(kill(pid, 0) < 0) {
-			printf("."); fflush(stdout);
+		while (kill(pid, 0) < 0) {
+			printf(".");
+			fflush(stdout);
 			if (try >= MAXTRIES) {
 				fprintf(stderr,
-				"\n%s: parent: child still not alive, aborting..\n", argv[0]);
+					"\n%s: parent: child still not alive, aborting..\n",
+					argv[0]);
 				exit(1);
 			}
 			(void)sleep(1);
-			try ++;
+			try++;
 		}
 		printf("\n");
 		if (kill(pid, SIG2SEND) < 0) {
