@@ -131,7 +131,7 @@
 
 #if (BITS_PER_LONG == 64)
 #define SHOW_DELTA_MGT(low, hi) (low), (hi), (((hi) - (low)) >> 20), (((hi) - (low)) >> 30), (((hi) - (low)) >> 40)
-#else // 32-bit
+#else				// 32-bit
 #define SHOW_DELTA_MGT(low, hi) (low), (hi), (((hi) - (low)) >> 20), (((hi) - (low)) >> 30)
 #endif
 
@@ -260,6 +260,17 @@ static inline void beep(int what)
 #endif
 }
 
+static inline void msleep(unsigned long ms)
+{
+#include <time.h>
+	struct timespec ts;
+
+	// Configure sleep time for 10 milliseconds
+	ts.tv_sec = 0;		// 0 seconds
+	ts.tv_nsec = ms * 1000000;	// ms milliseconds in nanoseconds
+	nanosleep(&ts, NULL);
+}
+
 /*
  * DELAY_LOOP macro
  * (Mostly) mindlessly loop, then print a char (via our beep() routine,
@@ -271,7 +282,7 @@ static inline void beep(int what)
 {                                                                         \
 	int c = 0, m;                                                     \
 	unsigned int for_index, inner_index, x;                           \
-									  								\
+									  \
 	for (for_index = 0; for_index < loop_count; for_index++) {        \
 		beep((val));                                              \
 		c++;                                                      \
@@ -279,6 +290,7 @@ static inline void beep(int what)
 			for (m = 0; m < 50; m++);                         \
 			x = inner_index / 2;                              \
 		}                                                         \
+		msleep(100);						  \
 	}                                                                 \
 	/*printf("c=%d\n",c);*/                                           \
 }
@@ -326,10 +338,10 @@ if (time_after((unsigned long)later, (unsigned long)earlier)) {                 
 } else                                                                                 \
 	pr_warn("SHOW_DELTA(): *invalid* earlier > later? (check order of params)\n"); \
 } while (0)
-#else   // 32-bit
+#else				// 32-bit
 	/* ktime_sub() not supported on 32-bit */
 #define SHOW_DELTA(later, earlier)  \
 	pr_warn("SHOW_DELTA(): ktime_sub() not supported on 32-bit\n")
 #endif
-#endif   /* #ifdef __KERNEL__ */
-#endif   /* #ifndef __LKP_CONVENIENT_H__ */
+#endif				/* #ifdef __KERNEL__ */
+#endif				/* #ifndef __LKP_CONVENIENT_H__ */
