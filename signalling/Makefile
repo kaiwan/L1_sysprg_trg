@@ -22,6 +22,7 @@ ALL :=  catchall sig1 sig1_dbg sig1_dbg_asan sig1_dbg_ub sig1_dbg_msan \
 	nano nano_dbg nano_dbg_asan nano_dbg_ub nano_dbg_msan \
 	killer killer_dbg killer_dbg_asan killer_dbg_ub killer_dbg_msan \
 	handle_segv handle_segv_dbg handle_segv_dbg_asan handle_segv_dbg_ub handle_segv_dbg_msan \
+	sigxxx sigxxx_dbg sigxxx_dbg_asan sigxxx_dbg_ub sigxxx_dbg_msan sigxxx_dbg_tsan \
 
 CC=${CROSS_COMPILE}gcc
 CL=${CROSS_COMPILE}clang
@@ -31,6 +32,7 @@ CFLAGS_DBG=-g -ggdb -gdwarf-4 -O0 -Wall -Wextra -DDEBUG
 CFLAGS_DBG_ASAN=${CFLAGS_DBG} -fsanitize=address
 CFLAGS_DBG_MSAN=${CFLAGS_DBG} -fsanitize=memory
 CFLAGS_DBG_UB=${CFLAGS_DBG} -fsanitize=undefined
+CFLAGS_DBG_TSAN=${CFLAGS_DBG} -fsanitize=thread
 
 all: ${ALL}
 CB_FILES := *.[ch]
@@ -47,6 +49,8 @@ common_dbg_ub.o: ../common.c ../common.h
 	${CL} ${CFLAGS_DBG_UB} -c ../common.c -o common_dbg_ub.o
 common_dbg_msan.o: ../common.c ../common.h
 	${CL} ${CFLAGS_DBG_MSAN} -c ../common.c -o common_dbg_msan.o
+common_dbg_tsan.o: ../common.c ../common.h
+	${CL} ${CFLAGS_DBG_TSAN} -c ../common.c -o common_dbg_tsan.o
 
 catchall.o: catchall.c
 	${CC} ${CFLAGS} -c catchall.c -o catchall.o
@@ -238,6 +242,11 @@ killer_dbg_msan.o: killer.c
 killer_dbg_msan: killer_dbg_msan.o common_dbg_msan.o
 	${CL} ${CFLAGS_DBG_MSAN} -o killer_dbg_msan killer_dbg_msan.o common_dbg_msan.o
 
+killer_dbg_tsan.o: killer.c
+	${CL} ${CFLAGS_DBG_TSAN} -c killer.c -o killer_dbg_tsan.o
+killer_dbg_msan: killer_dbg_tsan.o common_dbg_tsan.o
+	${CL} ${CFLAGS_DBG_TSAN} -o killer_dbg_tsan killer_dbg_tsan.o common_dbg_tsan.o
+
 handle_segv.o: handle_segv.c
 	${CC} ${CFLAGS} -c handle_segv.c -o handle_segv.o
 handle_segv: common.o handle_segv.o
@@ -263,6 +272,38 @@ handle_segv_dbg_msan.o: handle_segv.c
 	${CL} ${CFLAGS_DBG_MSAN} -c handle_segv.c -o handle_segv_dbg_msan.o
 handle_segv_dbg_msan: handle_segv_dbg_msan.o common_dbg_msan.o
 	${CL} ${CFLAGS_DBG_MSAN} -o handle_segv_dbg_msan handle_segv_dbg_msan.o common_dbg_msan.o
+
+sigxxx.o: sigxxx.c
+	${CC} ${CFLAGS} -c sigxxx.c -o sigxxx.o
+sigxxx: common.o sigxxx.o
+	${CC} ${CFLAGS} -o sigxxx sigxxx.o common.o
+
+sigxxx_dbg.o: sigxxx.c
+	${CC} ${CFLAGS_DBG} -c sigxxx.c -o sigxxx_dbg.o
+sigxxx_dbg: sigxxx_dbg.o common_dbg.o
+	${CC} ${CFLAGS_DBG} -o sigxxx_dbg sigxxx_dbg.o common_dbg.o
+
+#--- Sanitizers (use clang): <foo>_dbg_[asan|ub|msan]
+sigxxx_dbg_asan.o: sigxxx.c
+	${CL} ${CFLAGS_DBG_ASAN} -c sigxxx.c -o sigxxx_dbg_asan.o
+sigxxx_dbg_asan: sigxxx_dbg_asan.o common_dbg_asan.o
+	${CL} ${CFLAGS_DBG_ASAN} -o sigxxx_dbg_asan sigxxx_dbg_asan.o common_dbg_asan.o
+
+sigxxx_dbg_ub.o: sigxxx.c
+	${CL} ${CFLAGS_DBG_UB} -c sigxxx.c -o sigxxx_dbg_ub.o
+sigxxx_dbg_ub: sigxxx_dbg_ub.o common_dbg_ub.o
+	${CL} ${CFLAGS_DBG_UB} -o sigxxx_dbg_ub sigxxx_dbg_ub.o common_dbg_ub.o
+
+sigxxx_dbg_msan.o: sigxxx.c
+	${CL} ${CFLAGS_DBG_MSAN} -c sigxxx.c -o sigxxx_dbg_msan.o
+sigxxx_dbg_msan: sigxxx_dbg_msan.o common_dbg_msan.o
+	${CL} ${CFLAGS_DBG_MSAN} -o sigxxx_dbg_msan sigxxx_dbg_msan.o common_dbg_msan.o
+
+sigxxx_dbg_tsan.o: sigxxx.c
+	${CL} ${CFLAGS_DBG_TSAN} -c sigxxx.c -o sigxxx_dbg_tsan.o
+sigxxx_dbg_tsan: sigxxx_dbg_tsan.o common_dbg_tsan.o
+	${CL} ${CFLAGS_DBG_TSAN} -o sigxxx_dbg_tsan sigxxx_dbg_tsan.o common_dbg_tsan.o
+
 
 # indent- "beautifies" C code into the "Linux kernel style".
 # (cb = C Beautifier :) )

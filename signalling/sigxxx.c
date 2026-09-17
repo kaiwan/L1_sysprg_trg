@@ -1,5 +1,7 @@
-/* sig1.c
- * Simple sigaction prg.
+/* sigxxx.c
+ * sigaction prg demo to show that calling malloc() within a signal handler's
+ * a bug!
+ * Must use TSAN - Thread Sanitizer - to catch it.
  * 
  * Author: Kaiwan N Billimoria <kaiwan@kaiwantech.com>
  * License: MIT.
@@ -9,14 +11,15 @@
 #include <signal.h>
 #include <string.h>
 #include <stdlib.h>
+#include "../convenient.h"
 
-#define DEBUG  // hard-coded; conditionally put it in the Makefile (soft-code it)
+#define DEBUG			// hard-coded; conditionally put it in the Makefile (soft-code it)
 //#undef DEBUG  // in production
 
 static void catcher(int signo)
 {
 	printf("HIIIIIIIIIIII bad boy\n");
-	char *p = malloc(50000); // wrong !
+	char *p = malloc(50000);	// wrong !
 	(void)sleep(1);
 	free(p);
 }
@@ -33,9 +36,9 @@ int main()
 #else
 	sigfillset(&act.sa_mask);	/* block all signals while in the handler
 					 * (with the inclusion of the signal being handled)
-		sigaddset() : selectively allow 1 signal
-		sigdelset() : selectively clear 1 signal
-	 */
+					 sigaddset() : selectively allow 1 signal
+					 sigdelset() : selectively clear 1 signal
+					 */
 #endif
 	act.sa_flags = 0;	/* the sigemptyset() and flags init to 0 are redundant 
 				 * due to the memset(), but we're just showing proper form */
@@ -49,6 +52,8 @@ int main()
 		exit(1);
 	}
 #endif
-	for (;;)
+	for (;;) {
+		msleep(50);
 		printf("\nExecuting for loop..");
+	}
 }
