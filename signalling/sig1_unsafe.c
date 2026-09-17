@@ -17,12 +17,12 @@ static void catcher(int signo)
 {
 #if 1
 	char *p = malloc(100);
-		/*
-		 * Calling malloc() in a signal handler's buggy! why?? ...it will be
-		 * covered! :-)
-		 * See the signal-safety(7) man page for the list of async-signal-safe
-		 * functions; malloc() is not in that list!
-		 */
+	/*
+	 * Calling malloc() in a signal handler's buggy! why?? ...it will be
+	 * covered! :-)
+	 * See the signal-safety(7) man page for the list of async-signal-safe
+	 * functions; malloc() is not in that list!
+	 */
 	printf("** %s(): Ouch! Received SIGINT. **\n", __func__);
 	free(p);
 #else
@@ -50,9 +50,9 @@ int main()
 #else
 	sigfillset(&act.sa_mask);	/* block all signals while in the handler
 					 * (with the inclusion of the signal being handled)
-		sigaddset() : selectively allow 1 signal
-		sigdelset() : selectively clear 1 signal
-	 */
+					 sigaddset() : selectively allow 1 signal
+					 sigdelset() : selectively clear 1 signal
+					 */
 
 #endif
 	act.sa_flags = 0;	/* the sigemptyset() and flags init to 0 are redundant 

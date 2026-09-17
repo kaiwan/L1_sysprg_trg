@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
-const char Date_Prj_str[]       = __DATE__;
-const char Time_Prj_str[]       = __TIME__;
+const char Date_Prj_str[] = __DATE__;
+const char Time_Prj_str[] = __TIME__;
 
 int main()
 {

@@ -36,10 +36,10 @@ void *stack(void)
 	/* Accumulator holds the return value */
 #endif
 #ifdef __arm__
-	asm volatile("mov r0, sp"); // r0 holds the ret val
+	asm volatile ("mov r0, sp");	// r0 holds the ret val
 #endif
 #ifdef __aarch64__
-	asm volatile("mov x0, sp"); // x0 holds the ret val
+	asm volatile ("mov x0, sp");	// x0 holds the ret val
 #endif
 }
 
@@ -80,7 +80,7 @@ option=1 : use SA_NODEFER flag (will process signal immd)\n", argv[0]);
 		exit(1);
 	}
 
-	printf("SA_NODEFER used? %s\n", (atoi(argv[1])==0?"no":"yes"));
+	printf("SA_NODEFER used? %s\n", (atoi(argv[1]) == 0 ? "no" : "yes"));
 	if (atoi(argv[1]) == 1)
 		flags = SA_NODEFER | SA_RESTART;
 	else if (atoi(argv[1]) == 0)
@@ -89,10 +89,10 @@ option=1 : use SA_NODEFER flag (will process signal immd)\n", argv[0]);
 	// set up signal handler
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = sighdlr;
-#if 1 // keep this
-	sigemptyset(&act.sa_mask); // allow all other signals...
+#if 1				// keep this
+	sigemptyset(&act.sa_mask);	// allow all other signals...
 #else
-	sigfillset(&act.sa_mask); // don't allow all other signals...
+	sigfillset(&act.sa_mask);	// don't allow all other signals...
 #endif
 	act.sa_flags = flags;
 

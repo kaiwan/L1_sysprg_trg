@@ -61,4 +61,4 @@ static inline void beep(int what)
 }
 /*------------------------------------------------------------------------*/
 
-#endif     /* #ifndef _COMMON_H_ */
+#endif				/* #ifndef _COMMON_H_ */

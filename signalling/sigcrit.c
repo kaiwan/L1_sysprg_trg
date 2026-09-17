@@ -62,10 +62,10 @@ int main(int argc, char **argv)
 	 *          sigset_t *oldset);
 	 */
 #if 1
-	sigemptyset(&sigset); // clear all bits
-	if (sigaddset(&sigset, SIGINT) == -1)      // sets the bit for SIGINT
+	sigemptyset(&sigset);	// clear all bits
+	if (sigaddset(&sigset, SIGINT) == -1)	// sets the bit for SIGINT
 		perror("sigaddset failure"), exit(1);
-	if (sigaddset(&sigset, SIGQUIT) == -1)      // sets the bit for SIGQUIT
+	if (sigaddset(&sigset, SIGQUIT) == -1)	// sets the bit for SIGQUIT
 		perror("sigaddset failure"), exit(1);
 #else
 	sigfillset(&sigset);

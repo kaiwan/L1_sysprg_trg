@@ -43,6 +43,13 @@ int main(int argc, char **argv)
 #define MAXTRIES  3
 	int try = 0;
 
+#if 0
+	// bug demo.. caught by static and dynamic analysis!
+	{
+		char d[] = "aaa", s[] = "aaabbb";
+		strcpy(d, s);
+	}
+#endif
 	memset(&act, 0, sizeof(act));
 	act.sa_handler = catchit;
 	sigemptyset(&act.sa_mask);

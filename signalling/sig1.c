@@ -10,14 +10,14 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define DEBUG  // hard-coded; conditionally put it in the Makefile (soft-code it)
+#define DEBUG			// hard-coded; conditionally put it in the Makefile (soft-code it)
 //#undef DEBUG  // in production
 
 static void catcher(int signo)
 {
 #if 0
 	printf("** Ouch! Received SIGINT. **\n");
-		// why?? ...it will be covered! :-)
+	// why?? ...it will be covered! :-)
 #else
 #ifdef DEBUG
 	printf("%s():signo = %d\n", __func__, signo);
@@ -43,9 +43,9 @@ int main()
 #else
 	sigfillset(&act.sa_mask);	/* block all signals while in the handler
 					 * (with the inclusion of the signal being handled)
-		sigaddset() : selectively allow 1 signal
-		sigdelset() : selectively clear 1 signal
-	 */
+					 sigaddset() : selectively allow 1 signal
+					 sigdelset() : selectively clear 1 signal
+					 */
 
 #endif
 	act.sa_flags = 0;	/* the sigemptyset() and flags init to 0 are redundant 

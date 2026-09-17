@@ -53,9 +53,9 @@ int main(int argc, char **argv)
 	/* TODO: use strto[u]l() to do proper IoF checks ! */
 	if (atoi(argv[1]) == 0) {	/* sleep */
 		ret = sleep(nsec);
-		 /* Actually BUGGY !!
-		 Why? As the sleep can be aborted by a signal and we don't check
-		 the return value from sleep() - the # of seconds remaining to sleep!
+		/* Actually BUGGY !!
+		   Why? As the sleep can be aborted by a signal and we don't check
+		   the return value from sleep() - the # of seconds remaining to sleep!
 		 */
 		printf("sleep returned %u\n", ret);
 	} else if (atoi(argv[1]) == 1) {	/* nanosleep - the RIGHT way */

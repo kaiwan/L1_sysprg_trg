@@ -14,7 +14,7 @@ static void catcher(int signo)
 {
 #if 0
 	printf("** Ouch! Received SIGINT. **\n");
-		// why?? ...it will be covered! :-)
+	// why?? ...it will be covered! :-)
 #else
 	// ssize_t write(int fd, const void *buf, size_t count);
 	if (write(STDOUT_FILENO, "** Ouch! Received SIGINT. **", 28) == -1) {
@@ -37,9 +37,9 @@ int main()
 #else
 	sigfillset(&act.sa_mask);	/* block all signals while in the handler
 					 * (with the execption of the signal being handled)
-		sigaddset() : selectively allow 1 signal
-		sigdelset() : selectively clear 1 signal
-	 */
+					 sigaddset() : selectively allow 1 signal
+					 sigdelset() : selectively clear 1 signal
+					 */
 
 #endif
 	act.sa_flags = 0;	/* the sigemptyset() and flags init to 0 are redundant 

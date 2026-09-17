@@ -5,13 +5,13 @@
 
 int main(int argc, char *argv[])
 {
-  size(char);
-  size(short);
-  size(int);
-  size(long);
-  size(double);
-  size(void*);
-  size(long long);
+	size(char);
+	size(short);
+	size(int);
+	size(long);
+	size(double);
+	size(void *);
+	size(long long);
 
-  return 0;
+	return 0;
 }

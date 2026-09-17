@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
 	memset(&act, 0, sizeof(act));
 	sigemptyset(&act.sa_mask);
-	act.sa_flags = SA_RESTART | SA_NOCLDSTOP;  /* SA_NOCLDSTOP: no SIGCHLD on stop of child(ren) */
+	act.sa_flags = SA_RESTART | SA_NOCLDSTOP;	/* SA_NOCLDSTOP: no SIGCHLD on stop of child(ren) */
 	act.sa_flags |= SA_NOCLDWAIT;	/* 2.6 Linux: prevent zombie on termination of child(ren)! */
 	if (sigaction(SIGCHLD, &act, 0) == -1) {
 		perror("sigaction failed");
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 		printf("child: %d\n", getpid());
 		DELAY_LOOP('c', 250);
 		exit(0);	// child dies before parent...
-	default:	// Parent
+	default:		// Parent
 		/* don't call wait*(); implies the child will become a zombie on exit */
 		while (1)
 			pause();

@@ -24,7 +24,7 @@ int handle_err(int fatal, const char *fmt, ...)
 		return -1;
 
 	va_start(argp, fmt);
-	vsnprintf(err_str, ERRSTRMAX-1, fmt, argp);
+	vsnprintf(err_str, ERRSTRMAX - 1, fmt, argp);
 	va_end(argp);
 
 	fprintf(stderr, "%s", err_str);
@@ -219,7 +219,7 @@ void hex_dump(unsigned char *data, int size, char *caption, int verbose)
 
 void Dprint(const char *fmt, ...)
 {
-	va_list ap; 
+	va_list ap;
 #ifdef DEBUG
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
