@@ -1,0 +1,6 @@
+#!/bin/sh
+(
+date
+/usr/local/bin/primegen 1000000 1
+date
+) >> /app/my-folder/app1_primes.log

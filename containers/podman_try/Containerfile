@@ -1,0 +1,43 @@
+# Podman demo
+# This is the Containerfile or Dockerfile
+# Ref: Gemini: https://share.google/aimode/zFPR0t6ksMX95LHA2
+#
+# To have changes made here take effect, you must rebuild the image.
+# Build with:
+# podman build -t my_alpine_pod1 .
+
+FROM alpine:latest
+
+# Install glibc compatibility package for Alpine (as it uses musl by default)
+RUN apk add --no-cache gcompat
+
+# 1. Create a custom group and user with a specific ID (e.g., 1001)
+RUN addgroup -g 1001 appgroup && \
+    adduser -u 1001 -G appgroup -D appuser
+
+# 2. Create your folder and hand over ownership to the new appuser
+RUN mkdir -p /app/my-folder && chown -R appuser:appgroup /app
+
+# 3. Switch to the new non-root user
+USER appuser
+WORKDIR /app/my-folder
+
+# 4. Copy the binary from your host computer into the container
+# Format: COPY <source_path_on_host> <destination_path_in_container>
+# Don't put these into the 'volume' folder... it won't work..
+COPY --chown=appuser:appgroup primegen/primegen /usr/local/bin/
+COPY --chown=appuser:appgroup primegen/app1_primes /usr/local/bin/
+
+# 5. Make sure the binary has execute permissions
+RUN chmod +x /usr/local/bin/primegen
+RUN chmod +x /usr/local/bin/app1_primes
+
+# 6. Set the binary to run automatically when the container starts
+CMD ["app1_primes"]
+
+# Append custom PS1 prompt to bashrc
+#RUN echo 'export PS1="[podman] \u@\h \w\\$ "' >> ~/.bashrc
+
+# Set default command
+#CMD ["/bin/sh"]
+

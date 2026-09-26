@@ -1,0 +1,55 @@
+# Podman demo
+# the 'run script'
+# Runs rootless as user 'appuser'
+# Change '--user appuser' to '--user root' to be logged into the container
+# as root.
+# Adjust the other resource controls as required..
+podman run \
+	--interactive --tty \
+	--user appuser \
+	--hostname host001 \
+	--memory 200m \
+	--oom-score-adj 250 \
+	--cpu-shares 512 \
+	--cpus=0.5 \
+	-v my-container-storage:/app/my-folder \
+	my_alpine_pod1:latest \
+#	sh
+# NOTE: the last line 'sh' implies you'll be dropped to a shell within the
+# container.
+# To have it simply execute it's 'app' - the app1_primes wrapper - simply
+# comment out the 'sh', else it will override.
+
+# CPU
+#	--cpu-shares 512 
+# 512 out of 1024 ! i.e. 50%; BUT it does NOT cap cpu if no one else is using cpu...
+#  (cgroup default)
+#	--cpus=0.5 
+# THIS hard-caps CPU usage at 50% irrespective of load
+
+
+# Storage:
+#	-v my-container-storage:/app/my-folder
+# Creates persistent storage volume (-v)! 
+# On the host, here:
+#  ~/.local/share/containers/storage/volumes/
+# so:
+#	-v my-container-storage:/app/my-folder
+#       ^           ^                 ^
+#   cr8 vol    vol name on host      folder in container
+#
+# What if the embedded host's rootfs is RO?
+# Then redirect the container volume location to either:
+#  a RW mount point OR 
+#  network storage
+# f.e.
+#podman run -it --read-only \
+#  -v /var/my-persistent-data/app-data:/app/my-folder:Z \
+#  my-pod /bin/sh
+# The :Z flag signals Podman to automatically adjust SELinux and rootless user
+# namespace permissions so the non-root container account can write to it.
+
+# TODO
+#	--ip 192.168.0.201
+#	--cpuset-cpus ="0,2" \
+#	--cgroup-manager=cgroupfs \
